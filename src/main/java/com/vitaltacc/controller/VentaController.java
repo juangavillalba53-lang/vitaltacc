@@ -16,34 +16,40 @@ public class VentaController {
     @Autowired
     private VentaService ventaService;
 
-    // Crear venta
+    // 🔥 Crear venta
     @PostMapping
     public Venta crearVenta(@RequestBody Venta venta) {
         return ventaService.crearVenta(venta);
     }
 
-    // Listar ventas
+    // 🔥 Listar ventas
     @GetMapping
     public List<Venta> listarVentas() {
         return ventaService.obtenerVentas();
     }
 
-    // Total facturado
+    // 🔥 Total facturado
     @GetMapping("/total")
     public Double obtenerTotalFacturado() {
         return ventaService.obtenerTotalFacturado();
     }
 
-    // 🔥 NUEVO: productos más vendidos por mes
+    // 🔥 Productos más vendidos (SIN filtro)
     @GetMapping("/mas-vendidos")
-    public List<Map<String, Object>> obtenerProductosMasVendidos(
+    public List<Map<String, Object>> obtenerProductosMasVendidos() {
+        return ventaService.obtenerProductosMasVendidos();
+    }
+
+    // 🔥 Productos más vendidos por mes
+    @GetMapping("/mas-vendidos/por-mes")
+    public List<Map<String, Object>> obtenerProductosMasVendidosPorMes(
             @RequestParam int mes,
             @RequestParam int anio) {
 
         return ventaService.obtenerProductosMasVendidosPorMes(mes, anio);
     }
 
-    // 🔥 NUEVO: total por mes
+    // 🔥 Total por mes
     @GetMapping("/total-por-mes")
     public Double obtenerTotalPorMes(
             @RequestParam int mes,
@@ -52,7 +58,7 @@ public class VentaController {
         return ventaService.obtenerTotalPorMes(mes, anio);
     }
 
-    // 🔥 NUEVO: total por año
+    // 🔥 Total por año (mes a mes)
     @GetMapping("/total-por-anio")
     public List<Map<String, Object>> obtenerTotalPorAnio(
             @RequestParam int anio) {
@@ -60,7 +66,7 @@ public class VentaController {
         return ventaService.obtenerTotalPorAnio(anio);
     }
 
-    // 🔥 NUEVO: top clientes
+    // 🔥 Top clientes
     @GetMapping("/top-clientes")
     public List<Map<String, Object>> obtenerTopClientes() {
         return ventaService.obtenerTopClientes();

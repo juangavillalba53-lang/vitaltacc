@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Resumen de compra</h1>
+    </header>
+
+    <div class="checkout-container">
+
+        <!-- LISTA -->
+        <div id="resumen" class="checkout-lista"></div>
+
+        <!-- RESUMEN -->
+        <div class="checkout-resumen">
+            <h2>Total</h2>
+            <p class="precio">$<span id="total"></span></p>
+
+            <h3>Método de pago</h3>
+
+            <select id="metodoPago">
+                <option value="EFECTIVO">Efectivo</option>
+                <option value="TRANSFERENCIA">Transferencia</option>
+                <option value="TARJETA">Tarjeta</option>
+            </select>
+
+            <button class="btn-finalizar" onclick="confirmarCompra()">
+                Confirmar compra
+            </button>
+        </div>
+
+    </div>
+
+    <script src="checkout.js"></script>
+
+</body>
+
+</html>
