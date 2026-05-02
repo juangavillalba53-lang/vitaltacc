@@ -23,24 +23,35 @@ public class ProductoService {
     @Autowired
     private LoteRepository loteRepository;
 
-    // Guardar producto
+    // 🔥 Guardar producto
     public Producto guardarProducto(Producto producto) {
         return productoRepository.save(producto);
     }
 
-    // Listar productos
+    // 🔥 Listar productos
     public List<Producto> obtenerProductos() {
         return productoRepository.findAll();
     }
 
-    // Buscar por ID
+    // 🔥 Buscar por ID
     public Producto obtenerPorId(Long id) {
         return productoRepository.findById(id).orElse(null);
     }
 
-    // Eliminar producto
+    // 🔥 Eliminar producto
     public void eliminarProducto(Long id) {
         productoRepository.deleteById(id);
+    }
+
+    // 🔥 ACTUALIZAR PRECIO (🔥 ESTE ES EL NUEVO)
+    public Producto actualizarPrecio(Long id, Double precio) {
+
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        producto.setPrecio(precio);
+
+        return productoRepository.save(producto);
     }
 
     // 🔥 Calcular precio con descuento
@@ -69,7 +80,7 @@ public class ProductoService {
         return precio;
     }
 
-    // 🔥 NUEVO: Calcular stock total del producto
+    // 🔥 Calcular stock total del producto
     public Integer calcularStock(Producto producto) {
 
         return loteRepository.findByProductoId(producto.getId())

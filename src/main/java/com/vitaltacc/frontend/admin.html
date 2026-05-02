@@ -13,16 +13,94 @@
         <h1>Panel Administrativo</h1>
     </header>
 
-    <div style="padding:20px;">
+    <div class="container-admin">
+        <!-- 🔥 NUEVO: AGREGAR PRODUCTO -->
+        <div class="card-admin">
+            <h2>Agregar producto</h2>
+            <div class="card-admin">
+                <h2>Editar precio</h2>
 
-        <h2>Total facturado</h2>
-        <p id="total"></p>
+                <select id="productoEditar"></select>
 
-        <h2>Productos más vendidos</h2>
-        <ul id="masVendidos"></ul>
+                <input type="number" id="nuevoPrecio" placeholder="Nuevo precio">
+
+                <button onclick="actualizarPrecio()">Actualizar precio</button>
+            </div>
+
+            <input type="text" id="nombreProducto" placeholder="Nombre del producto">
+            <input type="number" id="precioProducto" placeholder="Precio">
+
+            <button onclick="crearProducto()">Guardar producto</button>
+        </div>
+
+        <div class="card-admin">
+            <h2>Agregar lote</h2>
+
+            <select id="productoLote"></select>
+
+            <input type="text" id="precioLote" placeholder="Precio" readonly>
+
+            <input type="number" id="cantidadLote" placeholder="Cantidad">
+
+            <input type="date" id="vencimientoLote">
+
+            <button onclick="crearLote()">Guardar lote</button>
+        </div>
+
+        <!-- 🔥 FILTRO -->
+        <div class="filtro">
+            <h2>Filtrar por mes</h2>
+
+            <select id="mes">
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+
+            <input type="number" id="anio" value="2026">
+
+            <button onclick="filtrar()">Filtrar</button>
+
+            <p id="filtroActual"></p>
+        </div>
+
+        <!-- 🔥 RESULTADOS -->
+        <div class="grid-admin">
+
+            <div class="card-admin">
+                <h2>Total facturado</h2>
+                <p id="total"></p>
+            </div>
+
+            <div class="card-admin">
+                <h2>Productos más vendidos</h2>
+                <ul id="masVendidos"></ul>
+            </div>
+
+            <div class="card-admin">
+                <h2>Top clientes</h2>
+                <ul id="topClientes"></ul>
+            </div>
+
+            <div class="card-admin full">
+                <h2>Ventas por año</h2>
+                <canvas id="graficoVentas"></canvas>
+            </div>
+
+        </div>
 
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="admin.js"></script>
 
 </body>

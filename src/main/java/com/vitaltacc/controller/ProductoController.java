@@ -17,13 +17,13 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    // Crear producto
+    // 🔥 Crear producto
     @PostMapping
     public Producto crearProducto(@RequestBody Producto producto) {
         return productoService.guardarProducto(producto);
     }
 
-    // 🔥 Listar productos con precio con descuento + stock
+    // 🔥 Listar productos (con precio final + stock)
     @GetMapping
     public List<Map<String, Object>> listarProductos() {
 
@@ -42,13 +42,22 @@ public class ProductoController {
         }).toList();
     }
 
-    // Buscar por ID
+    // 🔥 Obtener producto por ID
     @GetMapping("/{id}")
     public Producto obtenerProducto(@PathVariable Long id) {
         return productoService.obtenerPorId(id);
     }
 
-    // Eliminar producto
+    // 🔥 ACTUALIZAR PRECIO (🔥 ESTE ES EL NUEVO)
+    @PutMapping("/{id}")
+    public Producto actualizarPrecio(@PathVariable Long id, @RequestBody Map<String, Object> datos) {
+
+        Double nuevoPrecio = Double.valueOf(datos.get("precioOriginal").toString());
+
+        return productoService.actualizarPrecio(id, nuevoPrecio);
+    }
+
+    // 🔥 Eliminar producto
     @DeleteMapping("/{id}")
     public void eliminarProducto(@PathVariable Long id) {
         productoService.eliminarProducto(id);

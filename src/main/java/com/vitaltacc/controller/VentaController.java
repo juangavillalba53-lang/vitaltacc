@@ -28,13 +28,13 @@ public class VentaController {
         return ventaService.obtenerVentas();
     }
 
-    // 🔥 Total facturado
+    // 🔥 Total facturado (general)
     @GetMapping("/total")
     public Double obtenerTotalFacturado() {
         return ventaService.obtenerTotalFacturado();
     }
 
-    // 🔥 Productos más vendidos (SIN filtro)
+    // 🔥 Productos más vendidos (general)
     @GetMapping("/mas-vendidos")
     public List<Map<String, Object>> obtenerProductosMasVendidos() {
         return ventaService.obtenerProductosMasVendidos();
@@ -58,7 +58,7 @@ public class VentaController {
         return ventaService.obtenerTotalPorMes(mes, anio);
     }
 
-    // 🔥 Total por año (mes a mes)
+    // 🔥 Total por año (gráfico)
     @GetMapping("/total-por-anio")
     public List<Map<String, Object>> obtenerTotalPorAnio(
             @RequestParam int anio) {
@@ -66,9 +66,12 @@ public class VentaController {
         return ventaService.obtenerTotalPorAnio(anio);
     }
 
-    // 🔥 Top clientes
-    @GetMapping("/top-clientes")
-    public List<Map<String, Object>> obtenerTopClientes() {
-        return ventaService.obtenerTopClientes();
+    // 🔥 TOP CLIENTES POR MES (🔥 ESTE ES EL NUEVO)
+    @GetMapping("/top-clientes/por-mes")
+    public List<Map<String, Object>> obtenerTopClientesPorMes(
+            @RequestParam int mes,
+            @RequestParam int anio) {
+
+        return ventaService.obtenerTopClientesPorMes(mes, anio);
     }
 }

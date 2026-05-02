@@ -155,7 +155,8 @@ public class VentaService {
                 .toList();
     }
 
-    public List<Map<String, Object>> obtenerTopClientes() {
+    // 🔥 TOP CLIENTES POR MES (IMPORTANTE)
+    public List<Map<String, Object>> obtenerTopClientesPorMes(int mes, int anio) {
 
         Map<String, Double> gastoPorCliente = new HashMap<>();
 
@@ -163,14 +164,18 @@ public class VentaService {
 
         for (Venta venta : ventas) {
 
-            if (venta.getCliente() == null)
+            if (venta.getFecha() == null || venta.getCliente() == null)
                 continue;
 
-            String nombre = venta.getCliente().getNombre();
-            double total = venta.getTotal() != null ? venta.getTotal() : 0;
+            if (venta.getFecha().getMonthValue() == mes &&
+                    venta.getFecha().getYear() == anio) {
 
-            gastoPorCliente.put(nombre,
-                    gastoPorCliente.getOrDefault(nombre, 0.0) + total);
+                String nombre = venta.getCliente().getNombre();
+                double total = venta.getTotal() != null ? venta.getTotal() : 0;
+
+                gastoPorCliente.put(nombre,
+                        gastoPorCliente.getOrDefault(nombre, 0.0) + total);
+            }
         }
 
         return gastoPorCliente.entrySet().stream()
@@ -212,7 +217,6 @@ public class VentaService {
         return ordenarResultados(conteo);
     }
 
-    // 🔥 MÉTODO AUXILIAR (evita repetir código)
     private List<Map<String, Object>> ordenarResultados(Map<String, Integer> conteo) {
 
         return conteo.entrySet().stream()
