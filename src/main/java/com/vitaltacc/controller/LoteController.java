@@ -13,6 +13,7 @@ import java.util.HashMap;
 
 @RestController
 @RequestMapping("/lotes")
+@CrossOrigin(origins = "*")
 public class LoteController {
 
     @Autowired

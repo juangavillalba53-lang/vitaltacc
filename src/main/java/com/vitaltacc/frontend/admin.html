@@ -14,18 +14,10 @@
     </header>
 
     <div class="container-admin">
-        <!-- 🔥 NUEVO: AGREGAR PRODUCTO -->
+
+        <!-- 🔥 AGREGAR PRODUCTO -->
         <div class="card-admin">
             <h2>Agregar producto</h2>
-            <div class="card-admin">
-                <h2>Editar precio</h2>
-
-                <select id="productoEditar"></select>
-
-                <input type="number" id="nuevoPrecio" placeholder="Nuevo precio">
-
-                <button onclick="actualizarPrecio()">Actualizar precio</button>
-            </div>
 
             <input type="text" id="nombreProducto" placeholder="Nombre del producto">
             <input type="number" id="precioProducto" placeholder="Precio">
@@ -33,6 +25,18 @@
             <button onclick="crearProducto()">Guardar producto</button>
         </div>
 
+        <!-- 🔥 EDITAR PRECIO -->
+        <div class="card-admin">
+            <h2>Editar precio</h2>
+
+            <select id="productoEditar"></select>
+
+            <input type="number" id="nuevoPrecio" placeholder="Nuevo precio">
+
+            <button onclick="actualizarPrecio()">Actualizar precio</button>
+        </div>
+
+        <!-- 🔥 AGREGAR LOTE -->
         <div class="card-admin">
             <h2>Agregar lote</h2>
 
@@ -45,7 +49,25 @@
             <input type="date" id="vencimientoLote">
 
             <button onclick="crearLote()">Guardar lote</button>
+
+            <p id="loteCreado"></p>
         </div>
+
+        <div class="header-lotes">
+            <h2>Lotes por vencer</h2>
+            <button onclick="toggleBusqueda()">Buscar</button>
+        </div>
+
+        <input type="text" id="busquedaLote" placeholder="Buscar producto o lote" oninput="buscarLotes()"
+            style="display: none;">
+
+        <div class="filtros-lotes">
+            <button onclick="setFiltro('URGENTE')">Urgentes</button>
+            <button onclick="setFiltro('ATENCION')">Atención</button>
+            <button onclick="setFiltro('TODOS')">Todos</button>
+        </div>
+
+        <ul id="lotesVencer"></ul>
 
         <!-- 🔥 FILTRO -->
         <div class="filtro">

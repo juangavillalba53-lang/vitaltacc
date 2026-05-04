@@ -276,3 +276,74 @@ canvas {
         grid-column: span 1;
     }
 }
+
+.mensaje-exito {
+    background: #d4edda;
+    color: #155724;
+    padding: 8px;
+    margin-top: 10px;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+/* 🔥 LOTES */
+
+.lote-urgente {
+    color: red;
+    font-weight: bold;
+}
+
+.lote-atencion {
+    color: orange;
+    font-weight: bold;
+}
+
+.lote-ok {
+    color: green;
+}
+
+/* 🔥 BOTÓN VER MÁS / MENOS */
+
+.btn-ver {
+    margin-top: 10px;
+    padding: 6px 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn-ver:hover {
+    background-color: #2980b9;
+}
+
+.filtros-lotes {
+    margin-bottom: 10px;
+}
+
+.filtros-lotes button {
+    margin-right: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.header-lotes {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#busquedaLote {
+    margin-top: 10px;
+    padding: 6px;
+    width: 100%;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.header-lotes button {
+    padding: 4px 10px;
+    font-size: 14px;
+    cursor: pointer;
+}
