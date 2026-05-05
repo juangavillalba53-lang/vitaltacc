@@ -35,15 +35,31 @@ public class VentaService {
 
                 int cantidadADescontar = detalle.getCantidad();
 
+                // 🔥 OBTENER LOTES ORDENADOS (FIFO)
                 List<Lote> lotes = loteRepository
                         .findByProductoIdOrderByFechaVencimientoAsc(detalle.getProducto().getId());
 
+                // 🔥 CALCULAR STOCK TOTAL DISPONIBLE
+                int stockTotal = lotes.stream()
+                        .mapToInt(Lote::getCantidad)
+                        .sum();
+
+                // 🔥 VALIDAR STOCK ANTES DE DESCONTAR
+                if (stockTotal < cantidadADescontar) {
+                    throw new RuntimeException("No hay stock suficiente para el producto: "
+                            + detalle.getProducto().getNombre());
+                }
+
+                // 🔥 DESCONTAR FIFO
                 for (Lote lote : lotes) {
 
                     if (cantidadADescontar <= 0)
                         break;
 
                     int stockLote = lote.getCantidad();
+
+                    if (stockLote <= 0)
+                        continue;
 
                     if (stockLote <= cantidadADescontar) {
                         cantidadADescontar -= stockLote;
@@ -155,7 +171,6 @@ public class VentaService {
                 .toList();
     }
 
-    // 🔥 TOP CLIENTES POR MES (IMPORTANTE)
     public List<Map<String, Object>> obtenerTopClientesPorMes(int mes, int anio) {
 
         Map<String, Double> gastoPorCliente = new HashMap<>();

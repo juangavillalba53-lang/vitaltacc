@@ -53,6 +53,7 @@
             <p id="loteCreado"></p>
         </div>
 
+        <!-- 🔥 LOTES -->
         <div class="header-lotes">
             <h2>Lotes por vencer</h2>
             <button onclick="toggleBusqueda()">Buscar</button>
@@ -70,7 +71,7 @@
         <ul id="lotesVencer"></ul>
 
         <!-- 🔥 FILTRO -->
-        <div class="filtro">
+        <div id="seccion-filtro" class="filtro">
             <h2>Filtrar por mes</h2>
 
             <select id="mes">
@@ -95,8 +96,8 @@
             <p id="filtroActual"></p>
         </div>
 
-        <!-- 🔥 RESULTADOS -->
-        <div class="grid-admin">
+        <!-- 🔥 RESULTADOS (SOLO ADMIN) -->
+        <div id="seccion-reportes" class="grid-admin">
 
             <div class="card-admin">
                 <h2>Total facturado</h2>

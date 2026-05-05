@@ -9,12 +9,36 @@ fetch("http://localhost:8080/productos")
 
         data.forEach(prod => {
 
+            // 🔥 ocultar si no hay stock
+            if (!prod.stock || prod.stock <= 0) return;
+
             const card = document.createElement("div");
             card.classList.add("card");
 
+            // 🔥 PRECIOS CORRECTOS
+            let precioOriginal = Number(prod.precio || 0);
+            let precioFinal = prod.precioFinal != null
+                ? Number(prod.precioFinal)
+                : precioOriginal;
+
+            let precioHTML = "";
+
+            if (precioFinal < precioOriginal) {
+                precioHTML = `
+                    <p>
+                        <span style="text-decoration: line-through; color: gray;">
+                            $${precioOriginal.toFixed(2)}
+                        </span>
+                        <strong>$${precioFinal.toFixed(2)}</strong>
+                    </p>
+                `;
+            } else {
+                precioHTML = `<p>$${precioOriginal.toFixed(2)}</p>`;
+            }
+
             card.innerHTML = `
                 <h3>${prod.nombre}</h3>
-                <p>$${prod.precioFinal}</p>
+                ${precioHTML}
 
                 <div>
                     <button onclick="cambiarCantidad(${prod.id}, -1)">-</button>
@@ -22,7 +46,7 @@ fetch("http://localhost:8080/productos")
                     <button onclick="cambiarCantidad(${prod.id}, 1)">+</button>
                 </div>
 
-                <button onclick="agregarDesdeCard(${prod.id}, '${prod.nombre}', ${prod.precioFinal})">
+                <button onclick="agregarDesdeCard(${prod.id}, '${prod.nombre}', ${precioFinal}, ${prod.stock})">
                     Agregar al carrito
                 </button>
             `;
@@ -43,9 +67,15 @@ function actualizarCarrito() {
     let total = 0;
     let cantidadTotal = 0;
 
+    // 🔥 limpiar datos inválidos
+    carrito = carrito.filter(item => item && item.precio != null && item.cantidad > 0);
+
     carrito.forEach(item => {
 
-        const subtotal = item.precio * item.cantidad;
+        let precio = Number(item.precio) || 0;
+        let cantidad = Number(item.cantidad) || 0;
+
+        let subtotal = precio * cantidad;
 
         const li = document.createElement("li");
 
@@ -53,18 +83,18 @@ function actualizarCarrito() {
             <div class="item-carrito">
 
                 <div class="info">
-                    <strong>${item.nombre}</strong>
-                    <p>$${item.precio} c/u</p>
+                    <strong>${item.nombre || "Producto"}</strong>
+                    <p>$${precio.toFixed(2)} c/u</p>
                 </div>
 
                 <div class="controles">
                     <button onclick="restarCantidad(${item.id})">-</button>
-                    <span>${item.cantidad}</span>
+                    <span>${cantidad}</span>
                     <button onclick="sumarCantidad(${item.id})">+</button>
                 </div>
 
                 <div class="subtotal">
-                    $${subtotal}
+                    $${subtotal.toFixed(2)}
                 </div>
 
                 <button class="eliminar" onclick="eliminarProducto(${item.id})">🗑️</button>
@@ -75,10 +105,10 @@ function actualizarCarrito() {
         lista.appendChild(li);
 
         total += subtotal;
-        cantidadTotal += item.cantidad;
+        cantidadTotal += cantidad;
     });
 
-    totalSpan.innerText = total;
+    totalSpan.innerText = total.toFixed(2);
 
     if (contador) {
         contador.innerText = cantidadTotal;
@@ -87,18 +117,35 @@ function actualizarCarrito() {
     localStorage.setItem("carrito", JSON.stringify(carrito));
 }
 
-// 🔥 Finalizar compra (ARREGLADO)
+// 🔥 Finalizar compra
 function finalizarCompra() {
 
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+    // ❌ No logueado
+    if (!usuario) {
+        alert("Tenés que iniciar sesión para comprar");
+        window.location.href = "login.html";
+        return;
+    }
+
+    // ❌ No es cliente
+    if (usuario.rol !== "CLIENTE") {
+        alert("Solo los clientes pueden realizar compras");
+        return;
+    }
+
+    // ❌ carrito vacío
     if (carrito.length === 0) {
         alert("El carrito está vacío");
         return;
     }
 
+    // ✅ OK
     window.location.href = "checkout.html";
 }
 
-// 🔥 Sumar cantidad
+// 🔥 Sumar cantidad (con control)
 function sumarCantidad(id) {
 
     let item = carrito.find(p => p.id === id);
@@ -144,17 +191,28 @@ function cambiarCantidad(id, cambio) {
     document.getElementById(`cant-${id}`).innerText = cantidades[id];
 }
 
-// 🔥 Agregar desde card
-function agregarDesdeCard(id, nombre, precio) {
+// 🔥 Agregar desde card (con control de stock y seguridad)
+function agregarDesdeCard(id, nombre, precio, stock) {
 
     let cantidad = cantidades[id] || 1;
 
     let existente = carrito.find(p => p.id === id);
+    let totalEnCarrito = existente ? existente.cantidad : 0;
+
+    if (cantidad + totalEnCarrito > stock) {
+        alert("No hay suficiente stock disponible");
+        return;
+    }
 
     if (existente) {
         existente.cantidad += cantidad;
     } else {
-        carrito.push({ id, nombre, precio, cantidad: cantidad });
+        carrito.push({
+            id,
+            nombre,
+            precio: precio ?? 0,
+            cantidad
+        });
     }
 
     cantidades[id] = 1;
@@ -169,5 +227,5 @@ function eliminarProducto(id) {
     actualizarCarrito();
 }
 
-// 🔥 Inicializar carrito al cargar
+// 🔥 Inicializar
 actualizarCarrito();

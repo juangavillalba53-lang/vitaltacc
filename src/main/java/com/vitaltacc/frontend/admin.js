@@ -1,8 +1,21 @@
+const usuario = JSON.parse(localStorage.getItem("usuario"));
 let filtroActual = "TODOS";
 let textoBusqueda = "";
 
 console.log("VERSION NUEVA JS");
+
 document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔥 validar login
+    if (!usuario) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    console.log("Usuario logueado:", usuario);
+
+    aplicarPermisos(); // 🔥 importante
+
     cargarGeneral();
     cargarProductos();
     cargarLotesPorVencer();
@@ -438,4 +451,27 @@ function toggleBusqueda() {
 function buscarLotes() {
     textoBusqueda = document.getElementById("busquedaLote").value.toLowerCase();
     cargarLotesPorVencer();
+}
+
+function aplicarPermisos() {
+
+    if (usuario.rol === "EMPLEADO") {
+
+        console.log("Modo empleado");
+
+        // ❌ ocultar secciones de admin (cuando las agreguemos con ID)
+        const reportes = document.getElementById("seccion-reportes");
+        const usuarios = document.getElementById("seccion-usuarios");
+        const promociones = document.getElementById("seccion-promociones");
+        const filtro = document.getElementById("seccion-filtro");
+
+        if (filtro) filtro.style.display = "none";
+        if (reportes) reportes.style.display = "none";
+        if (usuarios) usuarios.style.display = "none";
+        if (promociones) promociones.style.display = "none";
+    }
+
+    if (usuario.rol === "ADMIN") {
+        console.log("Modo admin");
+    }
 }

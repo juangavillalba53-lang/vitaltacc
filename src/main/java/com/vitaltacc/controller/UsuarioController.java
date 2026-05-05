@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/usuarios")
+@CrossOrigin(origins = "*")
 public class UsuarioController {
 
     @Autowired
@@ -36,5 +37,12 @@ public class UsuarioController {
     @DeleteMapping("/{id}")
     public void eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
+    }
+
+    @PostMapping("/login")
+    public Usuario login(@RequestBody Usuario loginData) {
+        return usuarioService.login(
+                loginData.getEmail(),
+                loginData.getContrasena());
     }
 }

@@ -33,7 +33,7 @@ public class ProductoController {
             data.put("id", producto.getId());
             data.put("nombre", producto.getNombre());
             data.put("descripcion", producto.getDescripcion());
-            data.put("precioOriginal", producto.getPrecio());
+            data.put("precio", producto.getPrecio());
             data.put("precioFinal", productoService.calcularPrecioConDescuento(producto));
             data.put("stock", productoService.calcularStock(producto));
 

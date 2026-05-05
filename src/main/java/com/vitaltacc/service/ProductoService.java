@@ -57,7 +57,8 @@ public class ProductoService {
     // 🔥 Calcular precio con descuento
     public Double calcularPrecioConDescuento(Producto producto) {
 
-        Double precio = producto.getPrecio();
+        Double precioOriginal = producto.getPrecio();
+        Double precio = precioOriginal;
 
         LocalDate hoy = LocalDate.now();
 
@@ -75,6 +76,11 @@ public class ProductoService {
             else if (promo.getProducto().getId().equals(producto.getId())) {
                 precio = precio - (precio * promo.getDescuento() / 100);
             }
+        }
+
+        // 🔥 Si no cambió el precio → no hay descuento
+        if (precio.equals(precioOriginal)) {
+            return null;
         }
 
         return precio;

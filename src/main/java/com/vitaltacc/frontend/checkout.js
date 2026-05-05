@@ -5,6 +5,7 @@ function mostrarResumen() {
     const contenedor = document.getElementById("resumen");
     const totalSpan = document.getElementById("total");
 
+
     let total = 0;
 
     carrito.forEach(item => {
@@ -25,7 +26,7 @@ function mostrarResumen() {
                 </div>
 
                 <div class="subtotal">
-                    $${subtotal}
+                    $${subtotal.toFixed(2)}
                 </div>
             </div>
         `;
@@ -35,31 +36,45 @@ function mostrarResumen() {
         total += subtotal;
     });
 
-    totalSpan.innerText = total;
+    totalSpan.innerText = total.toFixed(2);
 }
 
 function confirmarCompra() {
 
-    let detalles = carrito.map(item => ({
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!usuario) {
+        alert("Debes iniciar sesión para comprar");
+        window.location.href = "login.html";
+        return;
+    }
+
+    if (carrito.length === 0) {
+        alert("Carrito vacío");
+        return;
+    }
+
+    const metodo = document.getElementById("metodoPago").value;
+
+    if (!metodo) {
+        alert("Seleccioná un método de pago");
+        return;
+    }
+
+    const detalles = carrito.map(item => ({
         cantidad: item.cantidad,
         precioUnitario: item.precio,
         producto: { id: item.id }
     }));
 
-    const metodo = document.getElementById("metodoPago").value;
-    if (!metodo) {
-        alert("Seleccioná un método de pago");
-        return;
-    }
     const venta = {
-        cliente: { id: 1 },
+        cliente: { id: usuario.id }, // 🔥 CAMBIO CLAVE
         metodoPago: metodo,
         tipoVenta: "ONLINE",
         detalles: detalles
     };
-    if (!confirm("¿Confirmar compra?")) {
-        return;
-    }
+
+    if (!confirm("¿Confirmar compra?")) return;
 
     fetch("http://localhost:8080/ventas", {
         method: "POST",
@@ -73,6 +88,9 @@ function confirmarCompra() {
             return res.json();
         })
         .then(() => {
+
+            localStorage.removeItem("carrito");
+
             document.body.innerHTML = `
                 <div style="text-align:center; margin-top:50px;">
                     <h1>✅ Compra realizada con éxito</h1>
@@ -82,10 +100,6 @@ function confirmarCompra() {
                     </button>
                 </div>
             `;
-
-            localStorage.removeItem("carrito");
-
-            window.location.href = "index.html";
         })
         .catch(() => {
             alert("Error al confirmar compra");
