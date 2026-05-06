@@ -229,3 +229,29 @@ function eliminarProducto(id) {
 
 // 🔥 Inicializar
 actualizarCarrito();
+
+function mostrarUsuario() {
+
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    const contenedor = document.getElementById("user-info");
+
+    if (!contenedor) return;
+
+    if (usuario) {
+        contenedor.innerHTML = `
+            Hola, ${usuario.nombre}
+            <button onclick="logout()">Cerrar sesión</button>
+        `;
+    } else {
+        contenedor.innerHTML = `
+            <a href="login.html">Iniciar sesión</a>
+        `;
+    }
+}
+
+function logout() {
+    localStorage.removeItem("usuario");
+    location.reload();
+}
+
+mostrarUsuario();

@@ -4,40 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin - VitalTacc</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/admin.css">
 </head>
 
 <body>
 
-    <header>
+    <header class="header-admin">
+
         <h1>Panel Administrativo</h1>
+
+        <div id="user-info"></div>
+
     </header>
+
+    <div class="tabs-admin">
+
+        <button onclick="mostrarPanel('producto')">
+            Agregar producto
+        </button>
+
+        <button onclick="mostrarPanel('precio')">
+            Modificar precio
+        </button>
+
+        <button onclick="mostrarPanel('lote')">
+            Agregar lote
+        </button>
+
+    </div>
 
     <div class="container-admin">
 
         <!-- 🔥 AGREGAR PRODUCTO -->
-        <div class="card-admin">
+        <div id="panel-producto" class="panel-admin">
             <h2>Agregar producto</h2>
 
             <input type="text" id="nombreProducto" placeholder="Nombre del producto">
-            <input type="number" id="precioProducto" placeholder="Precio">
+            <input type="number" step="0.01" id="precioProducto" placeholder="Precio">
 
             <button onclick="crearProducto()">Guardar producto</button>
         </div>
 
         <!-- 🔥 EDITAR PRECIO -->
-        <div class="card-admin">
+        <div id="panel-precio" class="panel-admin">
             <h2>Editar precio</h2>
 
             <select id="productoEditar"></select>
 
-            <input type="number" id="nuevoPrecio" placeholder="Nuevo precio">
+            <input type="number" step="0.01" id="nuevoPrecio" placeholder="Nuevo precio">
 
             <button onclick="actualizarPrecio()">Actualizar precio</button>
         </div>
 
         <!-- 🔥 AGREGAR LOTE -->
-        <div class="card-admin">
+        <div id="panel-lote" class="panel-admin">
             <h2>Agregar lote</h2>
 
             <select id="productoLote"></select>
@@ -118,6 +139,50 @@
                 <h2>Ventas por año</h2>
                 <canvas id="graficoVentas"></canvas>
             </div>
+
+        </div>
+
+        <!-- 🔥 GESTIÓN USUARIOS -->
+        <div id="seccion-usuarios" class="card-admin full">
+
+            <h2>Gestionar usuarios</h2>
+
+            <!-- 🔥 CREAR USUARIO -->
+            <div class="crear-usuario">
+
+                <input type="text" id="nombreUsuario" placeholder="Nombre">
+
+                <input type="email" id="emailUsuario" placeholder="Email">
+
+                <input type="password" id="contrasenaUsuario" placeholder="Contraseña temporal">
+
+                <select id="rolUsuario">
+                    <option value="EMPLEADO">EMPLEADO</option>
+                    <option value="ADMIN">ADMIN</option>
+                </select>
+
+                <button onclick="crearUsuario()">
+                    Crear usuario
+                </button>
+
+            </div>
+
+            <!-- 🔥 TABLA -->
+            <table class="tabla-usuarios">
+
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaUsuarios"></tbody>
+
+            </table>
 
         </div>
 

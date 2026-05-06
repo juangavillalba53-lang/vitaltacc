@@ -6,19 +6,25 @@ console.log("VERSION NUEVA JS");
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 🔥 validar login
+    // 🔒 VALIDAR LOGIN
     if (!usuario) {
         window.location.href = "login.html";
         return;
     }
 
+    if (usuario.rol !== "ADMIN" && usuario.rol !== "EMPLEADO") {
+        alert("No tenés permisos para entrar acá");
+        window.location.href = "index.html";
+        return;
+    }
+
     console.log("Usuario logueado:", usuario);
 
-    aplicarPermisos(); // 🔥 importante
-
+    aplicarPermisos();
     cargarGeneral();
     cargarProductos();
     cargarLotesPorVencer();
+    cargarUsuarios();
 
     const select = document.getElementById("productoLote");
 
@@ -29,6 +35,7 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("precioLote").value = "$" + precio;
         });
     }
+    mostrarPanel("producto");
 });
 
 // 🔥 CARGA GENERAL
@@ -164,10 +171,7 @@ function crearProducto() {
         headers: {
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-            nombre: nombre,
-            precio: precio
-        })
+        body: JSON.stringify({ nombre, precio })
     })
         .then(res => {
             if (!res.ok) throw new Error();
@@ -208,7 +212,7 @@ function cargarProductos() {
                 const option = document.createElement("option");
                 option.value = prod.id;
                 option.text = prod.nombre;
-                option.setAttribute("data-precio", prod.precioOriginal ?? 0);
+                option.setAttribute("data-precio", prod.precio ?? 0);
                 select.appendChild(option);
 
                 // SELECT EDITAR
@@ -457,9 +461,6 @@ function aplicarPermisos() {
 
     if (usuario.rol === "EMPLEADO") {
 
-        console.log("Modo empleado");
-
-        // ❌ ocultar secciones de admin (cuando las agreguemos con ID)
         const reportes = document.getElementById("seccion-reportes");
         const usuarios = document.getElementById("seccion-usuarios");
         const promociones = document.getElementById("seccion-promociones");
@@ -470,8 +471,159 @@ function aplicarPermisos() {
         if (usuarios) usuarios.style.display = "none";
         if (promociones) promociones.style.display = "none";
     }
-
-    if (usuario.rol === "ADMIN") {
-        console.log("Modo admin");
-    }
 }
+
+function mostrarPanel(panel) {
+
+    // ocultar todos
+    document.getElementById("panel-producto").style.display = "none";
+    document.getElementById("panel-precio").style.display = "none";
+    document.getElementById("panel-lote").style.display = "none";
+
+    // mostrar seleccionado
+    document.getElementById("panel-" + panel).style.display = "block";
+}
+
+function cargarUsuarios() {
+
+    fetch("http://localhost:8080/usuarios")
+        .then(res => res.json())
+        .then(data => {
+
+            const tabla = document.getElementById("tablaUsuarios");
+
+            if (!tabla) return;
+
+            tabla.innerHTML = "";
+
+            data.forEach(user => {
+
+                if (user.rol === "CLIENTE") return;
+
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.nombre}</td>
+                    <td>${user.email}</td>
+
+                    <td>
+                        <select onchange="cambiarRol(${user.id}, this.value)">
+                            <option value="CLIENTE" ${user.rol === "CLIENTE" ? "selected" : ""}>CLIENTE</option>
+                            <option value="EMPLEADO" ${user.rol === "EMPLEADO" ? "selected" : ""}>EMPLEADO</option>
+                            <option value="ADMIN" ${user.rol === "ADMIN" ? "selected" : ""}>ADMIN</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <button onclick="eliminarUsuario(${user.id})">
+                            Eliminar
+                        </button>
+                    </td>
+                `;
+
+                tabla.appendChild(tr);
+            });
+        });
+}
+
+function crearUsuario() {
+
+    const nombre = document.getElementById("nombreUsuario").value;
+    const email = document.getElementById("emailUsuario").value;
+    const contrasena = document.getElementById("contrasenaUsuario").value;
+    const rol = document.getElementById("rolUsuario").value;
+
+    if (!nombre || !email || !contrasena) {
+        alert("Completar todos los campos");
+        return;
+    }
+
+    fetch("http://localhost:8080/usuarios", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            nombre,
+            email,
+            contrasena,
+            rol
+        })
+    })
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
+        .then(() => {
+
+            alert("Usuario creado");
+
+            document.getElementById("nombreUsuario").value = "";
+            document.getElementById("emailUsuario").value = "";
+            document.getElementById("contrasenaUsuario").value = "";
+
+            cargarUsuarios();
+        })
+        .catch(() => {
+            alert("Error creando usuario");
+        });
+}
+
+function cambiarRol(id, rol) {
+
+    fetch(`http://localhost:8080/usuarios/${id}/rol`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ rol })
+    })
+        .then(() => {
+            alert("Rol actualizado");
+        })
+        .catch(() => {
+            alert("Error actualizando rol");
+        });
+}
+
+function eliminarUsuario(id) {
+
+    if (!confirm("¿Eliminar usuario?")) return;
+
+    fetch(`http://localhost:8080/usuarios/${id}`, {
+        method: "DELETE"
+    })
+        .then(() => {
+            alert("Usuario eliminado");
+            cargarUsuarios();
+        })
+        .catch(() => {
+            alert("Error eliminando usuario");
+        });
+}
+
+function mostrarUsuario() {
+
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    const contenedor = document.getElementById("user-info");
+
+    if (!contenedor) return;
+
+    contenedor.innerHTML = `
+        Hola, ${usuario.nombre}
+
+        <button onclick="logout()">
+            Cerrar sesión
+        </button>
+    `;
+}
+
+function logout() {
+
+    localStorage.removeItem("usuario");
+
+    window.location.href = "login.html";
+}
+
+mostrarUsuario();

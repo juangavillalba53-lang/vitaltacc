@@ -45,4 +45,15 @@ public class UsuarioController {
                 loginData.getEmail(),
                 loginData.getContrasena());
     }
+
+    // 🔥 ACTUALIZAR ROL
+    @PutMapping("/{id}/rol")
+    public Usuario actualizarRol(@PathVariable Long id, @RequestBody Usuario datos) {
+
+        Usuario usuario = usuarioService.obtenerPorId(id);
+
+        usuario.setRol(datos.getRol());
+
+        return usuarioService.guardarUsuario(usuario);
+    }
 }

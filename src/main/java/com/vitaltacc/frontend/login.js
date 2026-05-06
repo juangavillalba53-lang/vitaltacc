@@ -32,7 +32,7 @@ function login() {
             localStorage.setItem("usuario", JSON.stringify(usuario));
 
             // 🔥 redirigir según rol
-            if (usuario.rol === "ADMIN") {
+            if (usuario.rol === "ADMIN" || usuario.rol === "EMPLEADO") {
                 window.location.href = "admin.html";
             } else {
                 window.location.href = "index.html";
