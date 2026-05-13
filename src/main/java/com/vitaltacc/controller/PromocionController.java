@@ -9,6 +9,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/promociones")
+@CrossOrigin(origins = "*")
 public class PromocionController {
 
     @Autowired
@@ -30,5 +31,10 @@ public class PromocionController {
     @GetMapping("/activas")
     public List<Promocion> promocionesActivas() {
         return promocionService.obtenerPromocionesActivas();
+    }
+
+    @DeleteMapping("/{id}")
+    public void eliminarPromocion(@PathVariable Long id) {
+        promocionService.eliminarPromocion(id);
     }
 }

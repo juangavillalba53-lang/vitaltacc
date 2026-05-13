@@ -14,20 +14,29 @@ public class PromocionService {
     @Autowired
     private PromocionRepository promocionRepository;
 
-    // Guardar promoción
+    // 🔥 Crear promoción
     public Promocion guardarPromocion(Promocion promocion) {
         return promocionRepository.save(promocion);
     }
 
-    // Listar todas
+    // 🔥 Listar todas
     public List<Promocion> obtenerPromociones() {
         return promocionRepository.findAll();
     }
 
-    // Promociones activas hoy
+    // 🔥 Promociones activas
     public List<Promocion> obtenerPromocionesActivas() {
+
         LocalDate hoy = LocalDate.now();
+
         return promocionRepository
-                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(hoy, hoy);
+                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(
+                        hoy,
+                        hoy);
+    }
+
+    // 🔥 Eliminar promoción
+    public void eliminarPromocion(Long id) {
+        promocionRepository.deleteById(id);
     }
 }

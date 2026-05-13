@@ -87,4 +87,5 @@ public class LoteService {
                         lote.getCantidad() > 0)
                 .collect(Collectors.toList());
     }
+
 }

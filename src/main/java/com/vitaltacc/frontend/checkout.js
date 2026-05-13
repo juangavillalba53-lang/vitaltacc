@@ -1,5 +1,9 @@
 let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
+let clienteSeleccionado = null;
+
+const usuario = JSON.parse(localStorage.getItem("usuario"));
+
 function mostrarResumen() {
 
     const contenedor = document.getElementById("resumen");
@@ -37,6 +41,102 @@ function mostrarResumen() {
     });
 
     totalSpan.innerText = total.toFixed(2);
+
+    // 🔥 ocultar sección cliente si es CLIENTE
+    if (usuario && usuario.rol === "CLIENTE") {
+
+        const seccionCliente =
+            document.getElementById("seccion-cliente");
+
+        if (seccionCliente) {
+            seccionCliente.style.display = "none";
+        }
+    }
+}
+
+function buscarCliente() {
+
+    const dni = document.getElementById("dniCliente").value;
+
+    if (!dni) {
+        alert("Ingresar DNI");
+        return;
+    }
+
+    fetch(`http://localhost:8080/usuarios/dni/${dni}`)
+        .then(res => {
+
+            if (!res.ok) {
+                throw new Error();
+            }
+
+            return res.json();
+        })
+        .then(usuario => {
+
+            clienteSeleccionado = usuario;
+
+            document.getElementById("clienteEncontrado").innerText =
+                `Cliente: ${usuario.nombre}`;
+
+            document.getElementById("crearClienteBox").style.display = "none";
+        })
+        .catch(() => {
+
+            clienteSeleccionado = null;
+
+            document.getElementById("clienteEncontrado").innerText =
+                "Cliente no encontrado";
+
+            document.getElementById("crearClienteBox").style.display = "block";
+        });
+}
+
+function crearClienteRapido() {
+
+    const dni = document.getElementById("dniCliente").value;
+    const nombre = document.getElementById("nuevoNombre").value;
+    const telefono = document.getElementById("nuevoTelefono").value;
+
+    if (!dni || !nombre) {
+        alert("Completar datos");
+        return;
+    }
+
+    fetch("http://localhost:8080/usuarios", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            nombre: nombre,
+            dni: dni,
+            telefono: telefono,
+            rol: "CLIENTE"
+        })
+    })
+        .then(res => {
+
+            if (!res.ok) {
+                throw new Error();
+            }
+
+            return res.json();
+        })
+        .then(usuario => {
+
+            clienteSeleccionado = usuario;
+
+            document.getElementById("clienteEncontrado").innerText =
+                `Cliente creado: ${usuario.nombre}`;
+
+            document.getElementById("crearClienteBox").style.display = "none";
+
+            alert("Cliente creado correctamente");
+        })
+        .catch(() => {
+            alert("Error creando cliente");
+        });
 }
 
 function confirmarCompra() {
@@ -67,10 +167,28 @@ function confirmarCompra() {
         producto: { id: item.id }
     }));
 
+    let clienteFinal = usuario;
+
+    // 🔥 ADMIN / EMPLEADO
+    if (usuario.rol === "ADMIN" || usuario.rol === "EMPLEADO") {
+
+        if (!clienteSeleccionado) {
+            alert("Debés buscar un cliente");
+            return;
+        }
+
+        clienteFinal = clienteSeleccionado;
+    }
+
     const venta = {
-        cliente: { id: usuario.id }, // 🔥 CAMBIO CLAVE
+        cliente: { id: clienteFinal.id },
         metodoPago: metodo,
-        tipoVenta: "ONLINE",
+
+        tipoVenta:
+            usuario.rol === "CLIENTE"
+                ? "ONLINE"
+                : "LOCAL",
+
         detalles: detalles
     };
 

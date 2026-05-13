@@ -25,6 +25,9 @@ document.addEventListener("DOMContentLoaded", () => {
     cargarProductos();
     cargarLotesPorVencer();
     cargarUsuarios();
+    cargarStock();
+    mostrarUsuario();
+    cargarPromociones();
 
     const select = document.getElementById("productoLote");
 
@@ -199,8 +202,17 @@ function cargarProductos() {
 
             const select = document.getElementById("productoLote");
             const selectEditar = document.getElementById("productoEditar");
+            const selectPromo = document.getElementById("productoPromo");
 
             select.innerHTML = "";
+
+            if (selectPromo) {
+                selectPromo.innerHTML = `
+                    <option value="">
+                        Promoción global (toda la tienda)
+                    </option>
+                `;
+            }
 
             if (selectEditar) {
                 selectEditar.innerHTML = "";
@@ -221,6 +233,16 @@ function cargarProductos() {
                     optionEditar.value = prod.id;
                     optionEditar.text = prod.nombre;
                     selectEditar.appendChild(optionEditar);
+                }
+                // SELECT PROMOS
+                if (selectPromo) {
+
+                    const optionPromo = document.createElement("option");
+
+                    optionPromo.value = prod.id;
+                    optionPromo.text = prod.nombre;
+
+                    selectPromo.appendChild(optionPromo);
                 }
             });
 
@@ -297,6 +319,7 @@ function crearLote() {
             document.getElementById("vencimientoLote").value = "";
 
             cargarLotesPorVencer();
+            cargarStock();
         })
         .catch(error => {
             console.error(error);
@@ -509,7 +532,6 @@ function cargarUsuarios() {
 
                     <td>
                         <select onchange="cambiarRol(${user.id}, this.value)">
-                            <option value="CLIENTE" ${user.rol === "CLIENTE" ? "selected" : ""}>CLIENTE</option>
                             <option value="EMPLEADO" ${user.rol === "EMPLEADO" ? "selected" : ""}>EMPLEADO</option>
                             <option value="ADMIN" ${user.rol === "ADMIN" ? "selected" : ""}>ADMIN</option>
                         </select>
@@ -613,6 +635,10 @@ function mostrarUsuario() {
     contenedor.innerHTML = `
         Hola, ${usuario.nombre}
 
+        <button onclick="irTienda()">
+            Tienda
+        </button>
+
         <button onclick="logout()">
             Cerrar sesión
         </button>
@@ -626,4 +652,318 @@ function logout() {
     window.location.href = "login.html";
 }
 
-mostrarUsuario();
+function irTienda() {
+    window.location.href = "index.html";
+}
+
+// 🔥 STOCK
+
+let productosStock = [];
+
+function cargarStock() {
+
+    fetch("http://localhost:8080/productos")
+        .then(res => res.json())
+        .then(data => {
+
+            productosStock = data;
+
+            renderStock(data);
+        });
+}
+
+function renderStock(productos) {
+
+    const tabla = document.getElementById("tablaStock");
+
+    if (!tabla) return;
+
+    tabla.innerHTML = "";
+
+    productos.forEach(prod => {
+
+        let clase = "stock-ok";
+
+        if (prod.stock <= 5) {
+            clase = "stock-bajo";
+        }
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${prod.nombre}</td>
+
+            <td class="${clase}">
+                ${prod.stock}
+            </td>
+
+            <td>
+                <button onclick="abrirModalLotes(${prod.id})">
+                    Ver lotes
+                </button>
+            </td>
+        `;
+
+        tabla.appendChild(tr);
+    });
+}
+
+function filtrarStock() {
+
+    const texto = document
+        .getElementById("buscarStock")
+        .value
+        .toLowerCase();
+
+    const filtrados = productosStock.filter(p =>
+        p.nombre.toLowerCase().includes(texto)
+    );
+
+    renderStock(filtrados);
+}
+
+function abrirModalLotes(productoId) {
+
+    const modal = document.getElementById("modalLotes");
+
+    const lista = document.getElementById("listaModalLotes");
+
+    modal.style.display = "flex";
+
+    lista.innerHTML = "Cargando...";
+
+    fetch(`http://localhost:8080/lotes/producto/${productoId}`)
+        .then(res => res.json())
+        .then(data => {
+            console.log(data);
+            // 🔥 ocultar vencidos y stock 0
+            const lotesValidos = data.filter(l =>
+                l.cantidad > 0 &&
+                l.diasRestantes >= 0
+            );
+
+            if (lotesValidos.length === 0) {
+
+                lista.innerHTML = `
+                    <p>No hay lotes disponibles</p>
+                `;
+
+                return;
+            }
+
+            let html = "";
+
+            lotesValidos.forEach(lote => {
+
+                let clase = "lote-ok";
+
+                if (lote.alerta === "URGENTE") {
+                    clase = "lote-urgente";
+                }
+                else if (lote.alerta === "ATENCION") {
+                    clase = "lote-atencion";
+                }
+
+                html += `
+                    <div class="${clase} modal-lote-item">
+
+                        <strong>Lote:</strong>
+                        ${lote.numeroLote}
+
+                        <br><br>
+
+                       <strong>Cantidad:</strong>
+                        ${lote.cantidad}
+
+                        <br><br>
+
+                        <strong>Vence:</strong>
+                        ${lote.fechaVencimiento}
+
+                        <br>
+
+                        <strong>Días restantes:</strong>
+                        ${lote.diasRestantes}
+
+                        ${usuario.rol === "ADMIN" ? `
+                            <br><br>
+
+                            <button class="btn-eliminar-lote"
+                                onclick="eliminarLote(${lote.id}, ${productoId})">
+
+                                Eliminar lote
+                            </button>
+                        ` : ""}
+
+                    </div>
+                `;
+            });
+
+            lista.innerHTML = html;
+        });
+}
+
+function cerrarModalLotes() {
+
+    document.getElementById("modalLotes").style.display = "none";
+}
+
+function eliminarLote(loteId, productoId) {
+
+    if (!confirm("¿Eliminar lote?")) {
+        return;
+    }
+
+    fetch(`http://localhost:8080/lotes/${loteId}`, {
+        method: "DELETE"
+    })
+        .then(() => {
+
+            alert("Lote eliminado");
+
+            abrirModalLotes(productoId);
+
+            cargarStock();
+            cargarLotesPorVencer();
+        })
+        .catch(() => {
+            alert("Error eliminando lote");
+        });
+}
+
+// 🔥 PROMOCIONES
+
+function crearPromocion() {
+
+    const productoId = document.getElementById("productoPromo").value;
+
+    const descripcion = document
+        .getElementById("descripcionPromo")
+        .value;
+
+    const descuento = parseFloat(
+        document.getElementById("descuentoPromo").value
+    );
+
+    const inicio = document.getElementById("inicioPromo").value;
+
+    const fin = document.getElementById("finPromo").value;
+
+    if (!descripcion || isNaN(descuento) || !inicio || !fin) {
+        alert("Completar todos los campos");
+        return;
+    }
+
+    if (descuento <= 0 || descuento > 100) {
+        alert("Descuento inválido");
+        return;
+    }
+
+    const body = {
+        descripcion,
+        descuento,
+        fechaInicio: inicio,
+        fechaFin: fin
+    };
+
+    // 🔥 si eligió producto
+    if (productoId) {
+        body.producto = {
+            id: productoId
+        };
+    }
+
+    fetch("http://localhost:8080/promociones", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+    })
+        .then(res => {
+            if (!res.ok) throw new Error();
+            return res.json();
+        })
+        .then(() => {
+
+            alert("Promoción creada");
+
+            document.getElementById("descripcionPromo").value = "";
+            document.getElementById("descuentoPromo").value = "";
+            document.getElementById("inicioPromo").value = "";
+            document.getElementById("finPromo").value = "";
+
+            cargarPromociones();
+        })
+        .catch(() => {
+            alert("Error creando promoción");
+        });
+}
+
+function cargarPromociones() {
+
+    fetch("http://localhost:8080/promociones")
+        .then(res => res.json())
+        .then(data => {
+
+            const tabla = document.getElementById("tablaPromociones");
+
+            if (!tabla) return;
+
+            tabla.innerHTML = "";
+
+            data.forEach(promo => {
+
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+                    <td>
+                        ${promo.producto
+                        ? promo.producto.nombre
+                        : "GLOBAL"}
+                    </td>
+
+                    <td>
+                        ${promo.descripcion}
+                    </td>
+
+                    <td>
+                        ${promo.descuento}%
+                    </td>
+
+                    <td>
+                        ${promo.fechaInicio}
+                        →
+                        ${promo.fechaFin}
+                    </td>
+
+                    <td>
+                        <button onclick="eliminarPromocion(${promo.id})">
+                            Eliminar
+                        </button>
+                    </td>
+                `;
+
+                tabla.appendChild(tr);
+            });
+        });
+}
+
+function eliminarPromocion(id) {
+
+    if (!confirm("¿Eliminar promoción?")) return;
+
+    fetch(`http://localhost:8080/promociones/${id}`, {
+        method: "DELETE"
+    })
+        .then(() => {
+
+            alert("Promoción eliminada");
+
+            cargarPromociones();
+        })
+        .catch(() => {
+            alert("Error eliminando promoción");
+        });
+}
+

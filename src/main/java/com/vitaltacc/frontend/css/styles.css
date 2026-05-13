@@ -170,3 +170,152 @@ header {
     padding: 5px 10px;
     cursor: pointer;
 }
+
+/* 🔥 MODAL */
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.6);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+}
+
+.modal-box {
+    background: white;
+    width: 400px;
+    max-width: 90%;
+
+    padding: 30px;
+    border-radius: 16px;
+
+    text-align: center;
+
+    position: relative;
+
+    animation: aparecerModal 0.3s ease;
+}
+
+.modal-box h2 {
+    margin-bottom: 15px;
+}
+
+.modal-box p {
+    color: gray;
+    margin-bottom: 25px;
+    font-size: 18px;
+}
+
+.btn-modal {
+    width: 100%;
+
+    background-color: #2c3e50;
+    color: white;
+
+    border: none;
+
+    padding: 14px;
+
+    border-radius: 10px;
+
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.btn-modal:hover {
+    background-color: #1f2d3a;
+}
+
+.cerrar-modal {
+    position: absolute;
+
+    top: 15px;
+    right: 15px;
+
+    border: none;
+    background: none;
+
+    font-size: 22px;
+    cursor: pointer;
+
+    color: gray;
+}
+
+@keyframes aparecerModal {
+
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 🔥 BOTÓN REGISTRO */
+
+.btn-registro {
+    position: fixed;
+
+    right: -45px;
+    top: 50%;
+
+    transform: rotate(-90deg);
+
+    background: #e53935;
+    color: white;
+
+    border: none;
+
+    padding: 12px 25px;
+
+    font-weight: bold;
+
+    cursor: pointer;
+
+    z-index: 999;
+}
+
+/* 🔥 MODAL REGISTRO */
+
+.modal-registro {
+    background: white;
+
+    width: 450px;
+    max-width: 95%;
+
+    padding: 30px;
+
+    border-radius: 16px;
+
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 15px;
+}
+
+.modal-registro input {
+    padding: 12px;
+
+    border: 1px solid #ccc;
+
+    border-radius: 8px;
+
+    font-size: 15px;
+}
+
+.modal-registro h2 {
+    text-align: center;
+}

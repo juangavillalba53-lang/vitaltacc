@@ -206,3 +206,64 @@ canvas {
 .tabla-usuarios select {
     padding: 5px;
 }
+
+/* 🔥 TABLA STOCK */
+
+.tabla-stock {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.tabla-stock th,
+.tabla-stock td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+.stock-bajo {
+    color: red;
+    font-weight: bold;
+}
+
+.stock-ok {
+    color: green;
+    font-weight: bold;
+}
+
+/* 🔥 MODAL LOTES */
+
+.modal-lotes {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    justify-content: center;
+    align-items: center;
+}
+
+.contenido-modal-lotes {
+    background: white;
+    width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 12px;
+    padding: 25px;
+    position: relative;
+}
+
+.cerrar-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.modal-lote-item {
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    background: #f5f5f5;
+}

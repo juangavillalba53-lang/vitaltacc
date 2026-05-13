@@ -91,6 +91,74 @@
 
         <ul id="lotesVencer"></ul>
 
+        <!-- 🔥 GESTIÓN STOCK -->
+        <div class="card-admin full">
+
+            <h2>Gestión de stock</h2>
+
+            <input type="text" id="buscarStock" placeholder="Buscar producto" oninput="filtrarStock()">
+
+            <table class="tabla-stock">
+
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Stock total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaStock"></tbody>
+
+            </table>
+
+        </div>
+
+        <!-- 🔥 PROMOCIONES -->
+        <div id="seccion-promociones" class="card-admin full">
+
+            <h2>Promociones</h2>
+
+            <div class="crear-promocion">
+
+                <select id="productoPromo">
+                    <option value="">
+                        Promoción global (toda la tienda)
+                    </option>
+                </select>
+
+                <input type="text" id="descripcionPromo" placeholder="Descripción">
+
+                <input type="number" id="descuentoPromo" placeholder="% descuento">
+
+                <input type="date" id="inicioPromo">
+
+                <input type="date" id="finPromo">
+
+                <button onclick="crearPromocion()">
+                    Crear promoción
+                </button>
+
+            </div>
+
+            <table class="tabla-usuarios">
+
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Descripción</th>
+                        <th>Descuento</th>
+                        <th>Vigencia</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tablaPromociones"></tbody>
+
+            </table>
+
+        </div>
+
         <!-- 🔥 FILTRO -->
         <div id="seccion-filtro" class="filtro">
             <h2>Filtrar por mes</h2>
@@ -183,6 +251,24 @@
                 <tbody id="tablaUsuarios"></tbody>
 
             </table>
+
+        </div>
+
+    </div>
+
+    <!-- 🔥 MODAL LOTES -->
+
+    <div id="modalLotes" class="modal-lotes">
+
+        <div class="contenido-modal-lotes">
+
+            <span class="cerrar-modal" onclick="cerrarModalLotes()">
+                ✖
+            </span>
+
+            <h2>Lotes del producto</h2>
+
+            <div id="listaModalLotes"></div>
 
         </div>
 

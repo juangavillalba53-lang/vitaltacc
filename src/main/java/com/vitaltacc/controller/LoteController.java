@@ -33,11 +33,43 @@ public class LoteController {
 
     // Lotes por producto
     @GetMapping("/producto/{productoId}")
-    public List<Lote> obtenerPorProducto(@PathVariable Long productoId) {
-        return loteService.obtenerPorProducto(productoId);
+    public List<Map<String, Object>> obtenerPorProducto(@PathVariable Long productoId) {
+
+        return loteService.obtenerPorProducto(productoId)
+                .stream()
+                .map(lote -> {
+
+                    Map<String, Object> data = new HashMap<>();
+
+                    long diasRestantes = ChronoUnit.DAYS.between(
+                            LocalDate.now(),
+                            lote.getFechaVencimiento());
+
+                    String alerta;
+
+                    if (diasRestantes <= 7) {
+                        alerta = "URGENTE";
+                    } else if (diasRestantes <= 30) {
+                        alerta = "ATENCION";
+                    } else {
+                        alerta = "OK";
+                    }
+
+                    // 🔥 ESTO FALTABA
+                    data.put("id", lote.getId());
+
+                    data.put("numeroLote", lote.getNumeroLote());
+                    data.put("cantidad", lote.getCantidad());
+                    data.put("fechaVencimiento", lote.getFechaVencimiento());
+                    data.put("diasRestantes", diasRestantes);
+                    data.put("alerta", alerta);
+
+                    return data;
+
+                }).toList();
     }
 
-    // 🔥 NUEVO: Lotes por vencer (MEJORADO)
+    // 🔥 NUEVO: Lotes por vencer
     @GetMapping("/por-vencer")
     public List<Map<String, Object>> obtenerLotesPorVencer() {
 
@@ -75,4 +107,5 @@ public class LoteController {
     public void eliminarLote(@PathVariable Long id) {
         loteService.eliminarLote(id);
     }
+
 }

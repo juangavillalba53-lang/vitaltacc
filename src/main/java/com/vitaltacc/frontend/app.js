@@ -39,11 +39,14 @@ fetch("http://localhost:8080/productos")
             card.innerHTML = `
                 <h3>${prod.nombre}</h3>
                 ${precioHTML}
+                <p class="stock-card">
+                    Stock: ${prod.stock}
+                </p>
 
                 <div>
                     <button onclick="cambiarCantidad(${prod.id}, -1)">-</button>
                     <span id="cant-${prod.id}">1</span>
-                    <button onclick="cambiarCantidad(${prod.id}, 1)">+</button>
+                    <button onclick="cambiarCantidad(${prod.id}, 1, ${prod.stock})">+</button>
                 </div>
 
                 <button onclick="agregarDesdeCard(${prod.id}, '${prod.nombre}', ${precioFinal}, ${prod.stock})">
@@ -129,12 +132,6 @@ function finalizarCompra() {
         return;
     }
 
-    // ❌ No es cliente
-    if (usuario.rol !== "CLIENTE") {
-        alert("Solo los clientes pueden realizar compras");
-        return;
-    }
-
     // ❌ carrito vacío
     if (carrito.length === 0) {
         alert("El carrito está vacío");
@@ -176,14 +173,20 @@ function restarCantidad(id) {
 // 🔥 Cantidades en cards
 let cantidades = {};
 
-function cambiarCantidad(id, cambio) {
+function cambiarCantidad(id, cambio, stock) {
 
     if (!cantidades[id]) {
         cantidades[id] = 1;
     }
 
+    // 🔥 impedir pasar stock máximo
+    if (cambio > 0 && cantidades[id] >= stock) {
+        return;
+    }
+
     cantidades[id] += cambio;
 
+    // 🔥 mínimo 1
     if (cantidades[id] < 1) {
         cantidades[id] = 1;
     }
@@ -237,14 +240,41 @@ function mostrarUsuario() {
 
     if (!contenedor) return;
 
-    if (usuario) {
-        contenedor.innerHTML = `
-            Hola, ${usuario.nombre}
-            <button onclick="logout()">Cerrar sesión</button>
-        `;
-    } else {
+    // 🔒 NO logueado
+    if (!usuario) {
+
         contenedor.innerHTML = `
             <a href="login.html">Iniciar sesión</a>
+        `;
+
+        return;
+    }
+
+    // 🔥 ADMIN / EMPLEADO
+    if (usuario.rol === "ADMIN" || usuario.rol === "EMPLEADO") {
+
+        contenedor.innerHTML = `
+            Hola, ${usuario.nombre}
+
+            <button onclick="irPanel()">
+                Panel
+            </button>
+
+            <button onclick="logout()">
+                Cerrar sesión
+            </button>
+        `;
+    }
+
+    // 🔥 CLIENTE
+    else {
+
+        contenedor.innerHTML = `
+            Hola, ${usuario.nombre}
+
+            <button onclick="logout()">
+                Cerrar sesión
+            </button>
         `;
     }
 }
@@ -254,4 +284,114 @@ function logout() {
     location.reload();
 }
 
+function irPanel() {
+    window.location.href = "admin.html";
+}
+
 mostrarUsuario();
+
+// 🔥 MODAL BIENVENIDA
+
+function verificarModalBienvenida() {
+
+    const usuario = JSON.parse(localStorage.getItem("usuario"));
+
+    const modal = document.getElementById("modalBienvenida");
+
+    // 🔥 si está logueado NO mostrar
+    if (usuario) {
+
+        modal.style.display = "none";
+        return;
+    }
+
+    // 🔥 mostrar modal
+    modal.style.display = "flex";
+}
+
+function cerrarModal() {
+
+    document.getElementById("modalBienvenida").style.display = "none";
+}
+
+function abrirLogin() {
+
+    window.location.href = "login.html";
+}
+
+verificarModalBienvenida();
+
+// 🔥 MODAL REGISTRO
+
+function abrirRegistro() {
+
+    document.getElementById("modalRegistro").style.display = "flex";
+}
+
+function cerrarRegistro() {
+
+    document.getElementById("modalRegistro").style.display = "none";
+}
+
+function registrarse() {
+
+    const nombre = document.getElementById("registroNombre").value;
+    const dni = document.getElementById("registroDni").value;
+    const telefono = document.getElementById("registroTelefono").value;
+    const email = document.getElementById("registroEmail").value;
+
+    const contrasena = document.getElementById("registroContrasena").value;
+    const repetir = document.getElementById("registroContrasena2").value;
+
+    if (!nombre || !dni || !telefono || !email || !contrasena) {
+
+        alert("Completar todos los campos");
+        return;
+    }
+
+    if (contrasena !== repetir) {
+
+        alert("Las contraseñas no coinciden");
+        return;
+    }
+
+    fetch("http://localhost:8080/usuarios", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            nombre,
+            dni,
+            telefono,
+            email,
+            contrasena,
+            rol: "CLIENTE"
+        })
+    })
+        .then(res => {
+
+            if (!res.ok) {
+                throw new Error();
+            }
+
+            return res.json();
+        })
+        .then(usuario => {
+
+            localStorage.setItem("usuario", JSON.stringify(usuario));
+
+            alert("Cuenta creada correctamente");
+
+            location.reload();
+        })
+        .catch(() => {
+
+            alert("Error al registrarse");
+        });
+}
+

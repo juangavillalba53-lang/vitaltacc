@@ -33,6 +33,12 @@ public class UsuarioController {
         return usuarioService.obtenerPorId(id);
     }
 
+    // 🔥 Buscar por DNI
+    @GetMapping("/dni/{dni}")
+    public Usuario buscarPorDni(@PathVariable String dni) {
+        return usuarioService.buscarPorDni(dni);
+    }
+
     // Eliminar
     @DeleteMapping("/{id}")
     public void eliminarUsuario(@PathVariable Long id) {

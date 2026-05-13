@@ -24,6 +24,34 @@
             <h2>Total</h2>
             <p class="precio">$<span id="total"></span></p>
 
+            <div id="seccion-cliente">
+
+                <h3>Cliente</h3>
+
+                <input type="text" id="dniCliente" placeholder="DNI del cliente">
+
+                <button onclick="buscarCliente()">
+                    Buscar cliente
+                </button>
+
+                <p id="clienteEncontrado"></p>
+
+                <div id="crearClienteBox" style="display:none; margin-top:10px;">
+
+                    <h4>Crear cliente</h4>
+
+                    <input type="text" id="nuevoNombre" placeholder="Nombre">
+
+                    <input type="text" id="nuevoTelefono" placeholder="Teléfono">
+
+                    <button onclick="crearClienteRapido()">
+                        Crear cliente
+                    </button>
+
+                </div>
+
+            </div>
+
             <h3>Método de pago</h3>
 
             <select id="metodoPago">

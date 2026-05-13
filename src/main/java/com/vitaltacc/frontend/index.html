@@ -34,6 +34,65 @@
 
     </div>
 
+    <!-- 🔥 MODAL BIENVENIDA -->
+    <div id="modalBienvenida" class="modal-overlay">
+
+        <div class="modal-box">
+
+            <button class="cerrar-modal" onclick="cerrarModal()">
+                ✕
+            </button>
+
+            <h2>Bienvenido a VitalTacc</h2>
+
+            <p>
+                Iniciá sesión para una experiencia completa.
+            </p>
+
+            <button class="btn-modal" onclick="abrirLogin()">
+                Acceder ahora
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- 🔥 BOTÓN REGISTRO -->
+    <button class="btn-registro" onclick="abrirRegistro()">
+        REGÍSTRATE
+    </button>
+
+    <!-- 🔥 MODAL REGISTRO -->
+    <div id="modalRegistro" class="modal-overlay" style="display: none;">
+
+        <div class="modal-registro">
+
+            <button class="cerrar-modal" onclick="cerrarRegistro()">
+                ✕
+            </button>
+
+            <h2>Crear cuenta</h2>
+
+            <input type="text" id="registroNombre" placeholder="Nombre y apellido">
+
+            <input type="text" id="registroDni" placeholder="DNI">
+
+            <input type="text" id="registroTelefono" placeholder="Número de teléfono">
+
+            <input type="email" id="registroEmail" placeholder="Email">
+
+            <input type="password" id="registroContrasena" placeholder="Contraseña">
+
+            <input type="password" id="registroContrasena2" placeholder="Repetir contraseña">
+
+            <button class="btn-modal" onclick="registrarse()">
+                Registrarse
+            </button>
+
+        </div>
+
+    </div>
+
     <script src="app.js"></script>
 
 </body>
