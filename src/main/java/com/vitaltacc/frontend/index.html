@@ -4,32 +4,124 @@
 <head>
     <meta charset="UTF-8">
     <title>VitalTacc</title>
+    <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="favicon.ico">
 </head>
 
 <body>
+    <header class="navbar">
 
-    <header>
-        <div id="user-info"></div>
-        <h1>VitalTacc - Tienda</h1>
+        <!-- LOGO -->
+        <a href="index.html" class="logo">
+            <img src="img/logo.png" alt="VitalTacc">
+        </a>
+
+        <!-- MENU -->
+        <nav class="nav-links">
+
+            <a href="index.html">Inicio</a>
+
+            <a href="nosotras.html">Nosotras</a>
+
+            <a href="#productos">Productos</a>
+
+        </nav>
+
+        <!-- USUARIO -->
+        <div class="nav-user" id="nav-user"></div>
+
     </header>
+
+    <section class="hero">
+
+        <div class="overlay"></div>
+
+        <div class="hero-content">
+
+            <span class="subtitulo-hero">
+                ALIMENTOS LIBRES DE GLUTEN
+            </span>
+
+            <h1>
+                Calidad, sabor y confianza
+                en cada producto
+            </h1>
+
+            <p>
+                Descubrí productos sin TACC elaborados
+                con dedicación, cercanía y compromiso.
+            </p>
+
+            <div class="hero-buttons">
+
+                <a href="#productos" class="btn-hero">
+                    Ver productos
+                </a>
+
+                <a href="nosotras.html" class="btn-secundario">
+                    Conocé más
+                </a>
+
+            </div>
+
+        </div>
+
+    </section>
 
     <div class="container">
 
         <!-- PRODUCTOS -->
-        <div class="productos" id="lista-productos"></div>
+        <section class="productos-section" id="productos">
 
-        <!-- CARRITO -->
-        <div class="carrito">
-            <h2>Carrito</h2>
-            <ul id="lista-carrito"></ul>
+            <div class="titulo-seccion">
 
-            <p class="total">Total: $<span id="total">0</span></p>
+                <span>NUESTROS PRODUCTOS</span>
 
-            <button class="btn-finalizar" onclick="finalizarCompra()">
-                Finalizar compra
-            </button>
+                <h2>Elegidos para disfrutar sin límites</h2>
+
+            </div>
+
+            <div class="productos" id="lista-productos"></div>
+
+        </section>
+
+        <!-- 🔥 BOTÓN CARRITO -->
+        <div class="carrito-flotante" onclick="abrirCarrito()">
+
+            🛒
+
+            <span id="contador-carrito">
+                0
+            </span>
+
+        </div>
+
+        <!-- 🔥 MODAL CARRITO -->
+        <div id="modalCarrito" class="modal-carrito">
+
+            <div class="contenido-carrito">
+
+                <button class="cerrar-carrito" onclick="cerrarCarrito()">
+
+                    ✖
+                </button>
+
+                <h2>Tu carrito</h2>
+
+                <ul id="lista-carrito"></ul>
+
+                <p class="total">
+                    Total: $<span id="total">0</span>
+                </p>
+
+                <button class="btn-finalizar" onclick="finalizarCompra()">
+
+                    Finalizar compra
+                </button>
+
+            </div>
+
         </div>
 
     </div>
@@ -93,7 +185,16 @@
 
     </div>
 
-    <script src="app.js"></script>
+    <!-- 🔥 TOAST -->
+
+    <div id="toast" class="toast">
+
+        Producto agregado al carrito
+
+    </div>
+    <script src="js/global.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/app.js"></script>
 
 </body>
 

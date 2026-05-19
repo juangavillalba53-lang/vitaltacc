@@ -3,10 +3,13 @@ function login() {
     const email = document.getElementById("email").value;
     const contrasena = document.getElementById("contrasena").value;
 
-    document.getElementById("error").innerText = "";
+    const error = document.getElementById("error");
+
+    error.innerText = "";
 
     if (!email || !contrasena) {
-        document.getElementById("error").innerText = "Completá todos los campos";
+        error.innerText =
+            "Completá todos los campos";
         return;
     }
 
@@ -26,8 +29,6 @@ function login() {
         })
         .then(usuario => {
 
-            console.log(usuario);
-
             // 🔥 guardar usuario completo (incluye rol)
             localStorage.setItem("usuario", JSON.stringify(usuario));
 
@@ -40,6 +41,6 @@ function login() {
 
         })
         .catch(() => {
-            document.getElementById("error").innerText = "Email o contraseña incorrectos";
+            error.innerText = "Email o contraseña incorrectos";
         });
 }

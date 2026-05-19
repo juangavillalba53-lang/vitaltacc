@@ -1,4 +1,10 @@
-let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+const usuarioStorage = JSON.parse(localStorage.getItem("usuario"));
+
+const carritoKey = usuarioStorage
+    ? `carrito_${usuarioStorage.id}`
+    : "carrito_invitado";
+
+let carrito = JSON.parse(localStorage.getItem(carritoKey)) || [];
 
 let clienteSeleccionado = null;
 
@@ -7,6 +13,9 @@ const usuario = JSON.parse(localStorage.getItem("usuario"));
 function mostrarResumen() {
 
     const contenedor = document.getElementById("resumen");
+
+    if (!contenedor) return;
+
     const totalSpan = document.getElementById("total");
 
 
@@ -141,8 +150,6 @@ function crearClienteRapido() {
 
 function confirmarCompra() {
 
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-
     if (!usuario) {
         alert("Debes iniciar sesión para comprar");
         window.location.href = "login.html";
@@ -207,7 +214,13 @@ function confirmarCompra() {
         })
         .then(() => {
 
-            localStorage.removeItem("carrito");
+            const usuarioStorage = JSON.parse(localStorage.getItem("usuario"));
+
+            const carritoKey = usuarioStorage
+                ? `carrito_${usuarioStorage.id}`
+                : "carrito_invitado";
+
+            localStorage.removeItem(carritoKey);
 
             document.body.innerHTML = `
                 <div style="text-align:center; margin-top:50px;">

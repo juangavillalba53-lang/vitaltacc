@@ -1,4 +1,10 @@
-let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+const usuarioStorage = JSON.parse(localStorage.getItem("usuario"));
+
+const carritoKey = usuarioStorage
+    ? `carrito_${usuarioStorage.id}`
+    : "carrito_invitado";
+
+let carrito = JSON.parse(localStorage.getItem(carritoKey)) || [];
 
 // 🔥 Cargar productos
 fetch("http://localhost:8080/productos")
@@ -7,13 +13,15 @@ fetch("http://localhost:8080/productos")
 
         const contenedor = document.getElementById("lista-productos");
 
+        if (!contenedor) return;
+
         data.forEach(prod => {
 
             // 🔥 ocultar si no hay stock
             if (!prod.stock || prod.stock <= 0) return;
 
             const card = document.createElement("div");
-            card.classList.add("card");
+            card.classList.add("product-card");
 
             // 🔥 PRECIOS CORRECTOS
             let precioOriginal = Number(prod.precio || 0);
@@ -117,7 +125,7 @@ function actualizarCarrito() {
         contador.innerText = cantidadTotal;
     }
 
-    localStorage.setItem("carrito", JSON.stringify(carrito));
+    localStorage.setItem(carritoKey, JSON.stringify(carrito));
 }
 
 // 🔥 Finalizar compra
@@ -222,6 +230,7 @@ function agregarDesdeCard(id, nombre, precio, stock) {
     document.getElementById(`cant-${id}`).innerText = 1;
 
     actualizarCarrito();
+    mostrarToast(`${nombre} agregado al carrito`);
 }
 
 // 🔥 Eliminar producto
@@ -233,62 +242,30 @@ function eliminarProducto(id) {
 // 🔥 Inicializar
 actualizarCarrito();
 
-function mostrarUsuario() {
+function abrirCarrito() {
 
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-    const contenedor = document.getElementById("user-info");
-
-    if (!contenedor) return;
-
-    // 🔒 NO logueado
-    if (!usuario) {
-
-        contenedor.innerHTML = `
-            <a href="login.html">Iniciar sesión</a>
-        `;
-
-        return;
-    }
-
-    // 🔥 ADMIN / EMPLEADO
-    if (usuario.rol === "ADMIN" || usuario.rol === "EMPLEADO") {
-
-        contenedor.innerHTML = `
-            Hola, ${usuario.nombre}
-
-            <button onclick="irPanel()">
-                Panel
-            </button>
-
-            <button onclick="logout()">
-                Cerrar sesión
-            </button>
-        `;
-    }
-
-    // 🔥 CLIENTE
-    else {
-
-        contenedor.innerHTML = `
-            Hola, ${usuario.nombre}
-
-            <button onclick="logout()">
-                Cerrar sesión
-            </button>
-        `;
-    }
+    document.getElementById("modalCarrito").style.display = "flex";
 }
 
-function logout() {
-    localStorage.removeItem("usuario");
-    location.reload();
+function cerrarCarrito() {
+
+    document.getElementById("modalCarrito").style.display = "none";
 }
 
-function irPanel() {
-    window.location.href = "admin.html";
-}
+function mostrarToast(texto) {
 
-mostrarUsuario();
+    const toast = document.getElementById("toast");
+
+    toast.innerText = texto;
+
+    toast.classList.add("mostrar");
+
+    setTimeout(() => {
+
+        toast.classList.remove("mostrar");
+
+    }, 2000);
+}
 
 // 🔥 MODAL BIENVENIDA
 

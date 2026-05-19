@@ -6,13 +6,40 @@
     <title>Checkout</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/checkout.css">
+    <link rel="stylesheet" href="css/global.css">
 </head>
 
 <body>
 
-    <header>
-        <h1>Resumen de compra</h1>
+    <header class="navbar">
+
+        <a href="index.html" class="logo">
+            <img src="img/logo.png" alt="VitalTacc">
+        </a>
+
+        <nav class="nav-links">
+
+            <a href="index.html">Inicio</a>
+
+            <a href="nosotras.html">Nosotras</a>
+
+            <a href="index.html#productos">Productos</a>
+
+        </nav>
+
+        <div class="nav-user" id="nav-user"></div>
+
     </header>
+
+    <section class="checkout-hero">
+
+        <h1>Finalizar compra</h1>
+
+        <p>
+            Revisá tu pedido y completá la compra.
+        </p>
+
+    </section>
 
     <div class="checkout-container">
 
@@ -68,7 +95,9 @@
 
     </div>
 
-    <script src="checkout.js"></script>
+    <script src="js/global.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/checkout.js"></script>
 
 </body>
 

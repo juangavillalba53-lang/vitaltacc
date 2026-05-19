@@ -628,18 +628,21 @@ function eliminarUsuario(id) {
 function mostrarUsuario() {
 
     const usuario = JSON.parse(localStorage.getItem("usuario"));
-    const contenedor = document.getElementById("user-info");
 
-    if (!contenedor) return;
+    const navUser = document.getElementById("nav-user");
 
-    contenedor.innerHTML = `
-        Hola, ${usuario.nombre}
+    if (!navUser) return;
 
-        <button onclick="irTienda()">
+    navUser.innerHTML = `
+        <span>
+            Hola, ${usuario.nombre}
+        </span>
+
+        <button class="btn-nav" onclick="irTienda()">
             Tienda
         </button>
 
-        <button onclick="logout()">
+        <button class="btn-nav" onclick="logout()">
             Cerrar sesión
         </button>
     `;
@@ -967,3 +970,17 @@ function eliminarPromocion(id) {
         });
 }
 
+function mostrarPanel(panel) {
+
+    document
+        .querySelectorAll(".panel-admin")
+        .forEach(p => {
+            p.classList.remove("activo");
+        });
+
+    document
+        .getElementById(`panel-${panel}`)
+        .classList.add("activo");
+}
+
+mostrarPanel("producto");
