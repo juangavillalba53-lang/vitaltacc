@@ -9,7 +9,7 @@
 
 /* 🔥 CONTENEDOR ADMIN */
 .container-admin {
-    padding: 110px 20px 20px;
+    padding: 0 20px 20px;
 }
 
 /* 🔥 FILTRO */
@@ -133,33 +133,110 @@ canvas {
 /* 🔥 BOTÓN VER MÁS / MENOS */
 
 .btn-ver {
-    margin-top: 10px;
-    padding: 6px 10px;
-    background-color: #3498db;
+
+    background: #14b8a6;
+
     color: white;
+
     border: none;
-    border-radius: 5px;
+
+    padding: 10px 18px;
+
+    border-radius: 10px;
+
     cursor: pointer;
+
+    font-weight: bold;
+
+    transition: 0.3s;
+
+    margin-top: 15px;
 }
 
 .btn-ver:hover {
-    background-color: #2980b9;
+
+    background: #0f9f90;
 }
 
 .filtros-lotes {
-    margin-bottom: 10px;
+
+    display: flex;
+
+    gap: 10px;
+
+    margin-bottom: 20px;
+
+    flex-wrap: wrap;
 }
 
 .filtros-lotes button {
-    margin-right: 5px;
-    padding: 5px 10px;
+
+    background: white;
+
+    border: 1px solid #ddd;
+
+    padding: 10px 18px;
+
+    border-radius: 10px;
+
     cursor: pointer;
+
+    font-weight: 600;
+
+    transition: 0.3s;
+}
+
+.filtros-lotes button:hover {
+
+    background: #14b8a6;
+
+    color: white;
+
+    border-color: #14b8a6;
 }
 
 .header-lotes {
+
     display: flex;
+
     align-items: center;
-    gap: 10px;
+
+    gap: 15px;
+
+    margin-bottom: 20px;
+
+    flex-wrap: wrap;
+}
+
+.header-lotes h2 {
+
+    font-size: 36px;
+
+    color: #111;
+}
+
+.header-lotes button {
+
+    background: #14b8a6;
+
+    color: white;
+
+    border: none;
+
+    padding: 10px 18px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    font-weight: bold;
+
+    transition: 0.3s;
+}
+
+.header-lotes button:hover {
+
+    background: #0f9f90;
 }
 
 #busquedaLote {
@@ -170,10 +247,28 @@ canvas {
     border: 1px solid #ccc;
 }
 
-.header-lotes button {
-    padding: 4px 10px;
-    font-size: 14px;
-    cursor: pointer;
+#lotesVencer {
+
+    list-style: none;
+
+    padding: 0;
+
+    margin-top: 20px;
+}
+
+#lotesVencer li {
+
+    background: white;
+
+    padding: 18px 22px;
+
+    border-radius: 14px;
+
+    margin-bottom: 12px;
+
+    font-weight: 600;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
 .tabs-admin {
@@ -182,11 +277,14 @@ canvas {
 
     gap: 15px;
 
+    padding: 110px 20px 0;
+
     margin-top: 10px;
 
     margin-bottom: 30px;
 
     flex-wrap: wrap;
+
 }
 
 .tabs-admin button {
@@ -259,15 +357,41 @@ canvas {
 /* 🔥 TABLA STOCK */
 
 .tabla-stock {
+
     width: 100%;
+
     border-collapse: collapse;
-    margin-top: 20px;
+
+    margin-top: 25px;
+
+    background: white;
+
+    border-radius: 14px;
+
+    overflow: hidden;
 }
 
-.tabla-stock th,
+.tabla-stock th {
+
+    background: #14b8a6;
+
+    color: white;
+
+    padding: 16px;
+
+    text-align: left;
+}
+
 .tabla-stock td {
-    padding: 12px;
-    border-bottom: 1px solid #ddd;
+
+    padding: 16px;
+
+    border-bottom: 1px solid #eee;
+}
+
+.tabla-stock tr:hover {
+
+    background: #f9f9f9;
 }
 
 .stock-bajo {
@@ -286,10 +410,11 @@ canvas {
     display: none;
     position: fixed;
     inset: 0;
+    padding-top: 120px;
     background: rgba(0, 0, 0, 0.5);
     z-index: 999;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
 }
 
 .contenido-modal-lotes {
@@ -369,4 +494,32 @@ canvas {
 
 .panel-admin.activo {
     display: block;
+}
+
+#buscarStock {
+
+    width: 100%;
+
+    max-width: 350px;
+
+    padding: 14px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 12px;
+
+    margin-top: 10px;
+}
+
+.card-admin,
+.panel-admin,
+#lotesVencer li {
+
+    transition: 0.3s;
+}
+
+.card-admin:hover,
+.panel-admin:hover {
+
+    transform: translateY(-3px);
 }

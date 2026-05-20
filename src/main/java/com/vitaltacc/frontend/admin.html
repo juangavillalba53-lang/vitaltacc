@@ -42,7 +42,7 @@
             </button>
 
             <button type="button" onclick="mostrarPanel('precio')">
-                Modificar precio
+                Editar precio
             </button>
 
             <button type="button" onclick="mostrarPanel('lote')">
@@ -90,21 +90,41 @@
         </div>
 
         <!-- 🔥 LOTES -->
-        <div class="header-lotes">
-            <h2>Lotes por vencer</h2>
-            <button onclick="toggleBusqueda()">Buscar</button>
+
+        <div class="card-admin full">
+
+            <div class="header-lotes">
+
+                <h2>Lotes por vencer</h2>
+
+                <button onclick="toggleBusqueda()">
+                    Buscar
+                </button>
+
+            </div>
+
+            <input type="text" id="busquedaLote" placeholder="Buscar producto o lote" oninput="buscarLotes()"
+                style="display: none;">
+
+            <div class="filtros-lotes">
+
+                <button onclick="setFiltro('URGENTE')">
+                    Urgentes
+                </button>
+
+                <button onclick="setFiltro('ATENCION')">
+                    Atención
+                </button>
+
+                <button onclick="setFiltro('TODOS')">
+                    Todos
+                </button>
+
+            </div>
+
+            <ul id="lotesVencer"></ul>
+
         </div>
-
-        <input type="text" id="busquedaLote" placeholder="Buscar producto o lote" oninput="buscarLotes()"
-            style="display: none;">
-
-        <div class="filtros-lotes">
-            <button onclick="setFiltro('URGENTE')">Urgentes</button>
-            <button onclick="setFiltro('ATENCION')">Atención</button>
-            <button onclick="setFiltro('TODOS')">Todos</button>
-        </div>
-
-        <ul id="lotesVencer"></ul>
 
         <!-- 🔥 GESTIÓN STOCK -->
         <div class="card-admin full">

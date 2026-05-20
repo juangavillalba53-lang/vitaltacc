@@ -77,3 +77,12 @@ function irPanel() {
 }
 
 mostrarUsuario();
+
+const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
+
+const btnRegistro = document.getElementById("btnRegistro");
+
+if (usuarioLogueado && btnRegistro) {
+
+    btnRegistro.style.display = "none";
+}
