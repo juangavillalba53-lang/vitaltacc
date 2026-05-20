@@ -2,7 +2,7 @@ const usuario = JSON.parse(localStorage.getItem("usuario"));
 let filtroActual = "TODOS";
 let textoBusqueda = "";
 
-console.log("VERSION NUEVA JS");
+console.log("VERSION NUEVA");
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
     aplicarPermisos();
     cargarGeneral();
     cargarProductos();
+    cargarTablaProductos();
     cargarLotesPorVencer();
     cargarUsuarios();
     cargarStock();
@@ -161,100 +162,226 @@ function cargarGrafico() {
 // 🔥 CREAR PRODUCTO
 function crearProducto() {
 
-    const nombre = document.getElementById("nombreProducto").value;
-    const precio = parseFloat(document.getElementById("precioProducto").value);
+    const nombre =
+        document.getElementById("nombreProducto").value;
+
+    const precio =
+        parseFloat(
+            document.getElementById("precioProducto").value
+        );
+
+    const imagenes =
+        document.getElementById("imagenesProducto").files;
 
     if (!nombre || isNaN(precio)) {
+
         alert("Completar datos");
         return;
     }
 
+    const formData = new FormData();
+
+    formData.append("nombre", nombre);
+    formData.append("precio", precio);
+
+    for (let i = 0; i < imagenes.length; i++) {
+
+        formData.append(
+            "imagenes",
+            imagenes[i]
+        );
+    }
+
     fetch("http://localhost:8080/productos", {
+
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ nombre, precio })
+
+        body: formData
+
     })
         .then(res => {
-            if (!res.ok) throw new Error();
+
+            if (!res.ok) {
+
+                throw new Error();
+            }
+
             return res.json();
         })
+
         .then(() => {
+
             alert("Producto creado");
 
             document.getElementById("nombreProducto").value = "";
             document.getElementById("precioProducto").value = "";
+            document.getElementById("imagenesProducto").value = "";
 
             cargarProductos();
+            cargarTablaProductos();
         })
-        .catch(() => {
+
+        .catch(error => {
+
+            console.error(error);
+
             alert("Error al crear producto");
         });
 }
 
-// 🔥 CARGAR PRODUCTOS (LOTE + EDITAR)
+// 🔥 CARGAR PRODUCTOS (LOTE + EDITAR + TABLA)
+
 function cargarProductos() {
 
     fetch("http://localhost:8080/productos")
         .then(res => res.json())
         .then(data => {
 
-            const select = document.getElementById("productoLote");
-            const selectEditar = document.getElementById("productoEditar");
-            const selectPromo = document.getElementById("productoPromo");
+            const select =
+                document.getElementById("productoLote");
+
+            const selectEditar =
+                document.getElementById("productoEditar");
+
+            const selectPromo =
+                document.getElementById("productoPromo");
+
+            const tablaStock =
+                document.getElementById("tablaStock");
+
+            // 🔥 LIMPIAR
 
             select.innerHTML = "";
 
-            if (selectPromo) {
-                selectPromo.innerHTML = `
-                    <option value="">
-                        Promoción global (toda la tienda)
-                    </option>
-                `;
+            if (tablaStock) {
+                tablaStock.innerHTML = "";
             }
 
             if (selectEditar) {
                 selectEditar.innerHTML = "";
             }
 
-            data.forEach(prod => {
+            if (selectPromo) {
 
-                // SELECT LOTES
+                selectPromo.innerHTML = `
+                    <option value="">
+                        Promoción global (toda la tienda)
+                    </option>
+                `;
+            }
+            console.log(data);
+
+            data.forEach(prod => {
+                console.log(prod);
+
+                // 🔥 SELECT LOTES
+
                 const option = document.createElement("option");
+
                 option.value = prod.id;
+
                 option.text = prod.nombre;
-                option.setAttribute("data-precio", prod.precio ?? 0);
+
+                option.setAttribute(
+                    "data-precio",
+                    prod.precio ?? 0
+                );
+
                 select.appendChild(option);
 
-                // SELECT EDITAR
+                // 🔥 SELECT EDITAR
+
                 if (selectEditar) {
-                    const optionEditar = document.createElement("option");
+
+                    const optionEditar =
+                        document.createElement("option");
+
                     optionEditar.value = prod.id;
+
                     optionEditar.text = prod.nombre;
+
                     selectEditar.appendChild(optionEditar);
                 }
-                // SELECT PROMOS
+
+                // 🔥 SELECT PROMOS
+
                 if (selectPromo) {
 
-                    const optionPromo = document.createElement("option");
+                    const optionPromo =
+                        document.createElement("option");
 
                     optionPromo.value = prod.id;
+
                     optionPromo.text = prod.nombre;
 
                     selectPromo.appendChild(optionPromo);
                 }
+
+                // 🔥 TABLA PRODUCTOS
+
+                if (tablaStock) {
+
+                    tablaStock.innerHTML += `
+                    <tr>
+                        <td>${prod.nombre}</td>
+
+                        <td>$${Number(prod.precio).toFixed(2)}</td>
+
+                        <td class="${prod.stock <= 5 ? 'stock-bajo' : 'stock-ok'}">
+                            ${prod.stock}
+                        </td>
+
+                        <td>
+                            <div class="acciones-producto">
+
+                                <button
+                                    class="btn-tabla btn-lotes"
+                                    onclick="abrirModalLotes(${prod.id})"
+                                >
+                                    Ver lotes
+                                </button>
+
+                                <button
+                                    class="btn-tabla btn-editar"
+                                    onclick="abrirModalEditarProducto(${prod.id})"
+                                >
+                                    Editar
+                                </button>
+
+                                ${usuarioLogueado.rol === "ADMIN" ? `
+                                    <button
+                                        class="btn-tabla btn-eliminar"
+                                        onclick="eliminarProductoAdmin(${prod.id})"
+                                    >
+                                        Eliminar
+                                    </button>
+                                ` : ""}
+
+                            </div>
+                        </td>
+                    </tr>
+                    `;
+                }
+
             });
 
-            // SETEAR PRECIO INICIAL
+            // 🔥 SETEAR PRECIO INICIAL
+
             if (select.options.length > 0) {
+
                 const first = select.options[0];
-                const precio = first.getAttribute("data-precio");
-                document.getElementById("precioLote").value = "$" + precio;
+
+                const precio =
+                    first.getAttribute("data-precio");
+
+                document.getElementById("precioLote").value =
+                    "$" + precio;
             }
 
         })
+
         .catch(() => {
+
             alert("Error cargando productos");
         });
 }
@@ -484,15 +611,26 @@ function aplicarPermisos() {
 
     if (usuario.rol === "EMPLEADO") {
 
-        const reportes = document.getElementById("seccion-reportes");
-        const usuarios = document.getElementById("seccion-usuarios");
-        const promociones = document.getElementById("seccion-promociones");
-        const filtro = document.getElementById("seccion-filtro");
+        const reportes =
+            document.getElementById("adminReportes");
 
-        if (filtro) filtro.style.display = "none";
-        if (reportes) reportes.style.display = "none";
-        if (usuarios) usuarios.style.display = "none";
-        if (promociones) promociones.style.display = "none";
+        const promociones =
+            document.getElementById("adminPromociones");
+
+        const usuarios =
+            document.getElementById("adminUsuarios");
+
+        if (reportes) {
+            reportes.style.display = "none";
+        }
+
+        if (promociones) {
+            promociones.style.display = "none";
+        }
+
+        if (usuarios) {
+            usuarios.style.display = "none";
+        }
     }
 }
 
@@ -694,16 +832,47 @@ function renderStock(productos) {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>${prod.nombre}</td>
+            <td>
+                ${prod.nombre}
+            </td>
+
+            <td>
+                $${Number(prod.precio).toFixed(2)}
+            </td>
 
             <td class="${clase}">
                 ${prod.stock}
             </td>
 
             <td>
-                <button onclick="abrirModalLotes(${prod.id})">
-                    Ver lotes
-                </button>
+
+                <div class="acciones-producto">
+
+                    <button
+                        class="btn-tabla btn-lotes"
+                        onclick="abrirModalLotes(${prod.id})"
+                    >
+                        Ver lotes
+                    </button>
+
+                    <button
+                        class="btn-tabla btn-editar"
+                        onclick="abrirModalEditarProducto(${prod.id})"
+                    >
+                        Editar
+                    </button>
+
+                    ${usuarioLogueado.rol === "ADMIN" ? `
+                        <button
+                            class="btn-tabla btn-eliminar"
+                            onclick="eliminarProductoAdmin(${prod.id})"
+                        >
+                            Eliminar
+                        </button>
+                    ` : ""}
+
+                </div>
+
             </td>
         `;
 
@@ -984,3 +1153,208 @@ function mostrarPanel(panel) {
 }
 
 mostrarPanel("producto");
+
+// 🔥 TABLA PRODUCTOS ADMIN
+function cargarTablaProductos() {
+
+    fetch("http://localhost:8080/productos")
+        .then(res => res.json())
+        .then(productos => {
+
+            const tbody =
+                document.getElementById("tablaProductosBody");
+
+            if (!tbody) return;
+
+            tbody.innerHTML = "";
+
+            productos.forEach(prod => {
+
+                let imagen = "";
+
+                if (
+                    prod.imagenes &&
+                    prod.imagenes.length > 0
+                ) {
+
+                    imagen =
+                        `http://localhost:8080${prod.imagenes[0].url}`;
+                }
+
+                const tr = document.createElement("tr");
+
+                tr.innerHTML = `
+
+                    <td>
+
+                        ${imagen
+                        ? `<img src="${imagen}" class="preview-admin">`
+                        : `Sin imagen`
+                    }
+
+                    </td>
+
+                    <td>
+                        ${prod.nombre}
+                    </td>
+
+                    <td>
+                        $${prod.precio}
+                    </td>
+
+                    <td>
+                        ${prod.stock}
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn-editar"
+                        >
+                            Editar
+                        </button>
+
+                        <button
+                            class="btn-eliminar"
+                            onclick="eliminarProductoAdmin(${prod.id})"
+                        >
+                            Eliminar
+                        </button>
+
+                    </td>
+                `;
+
+                tbody.appendChild(tr);
+
+            });
+
+        })
+        .catch(() => {
+
+            alert("Error cargando tabla");
+        });
+}
+
+// 🔥 ELIMINAR PRODUCTO
+function eliminarProductoAdmin(id) {
+
+    if (!confirm("Eliminar producto?")) {
+        return;
+    }
+
+    fetch(`http://localhost:8080/productos/${id}`, {
+
+        method: "DELETE"
+
+    })
+        .then(() => {
+
+            alert("Producto eliminado");
+
+            cargarProductos();
+            cargarTablaProductos();
+
+        })
+        .catch(() => {
+
+            alert("Error eliminando producto");
+        });
+}
+
+function editarProducto(id) {
+
+    alert("Editar producto ID: " + id);
+}
+
+let productoEditando = null;
+
+// 🔥 ABRIR MODAL EDITAR
+
+function abrirModalEditarProducto(id) {
+
+    console.log("CLICK EDITAR", id);
+
+    fetch(`http://localhost:8080/productos/${id}`)
+        .then(res => {
+
+            console.log("RESPUESTA", res);
+
+            return res.json();
+        })
+
+        .then(prod => {
+
+            console.log("PRODUCTO", prod);
+
+            productoEditando = prod;
+
+            document.getElementById("tituloEditarProducto").innerText =
+                prod.nombre;
+
+            document.getElementById("editarDescripcion").value =
+                prod.descripcion || "";
+
+            document.getElementById("modalEditarProducto").style.display =
+                "flex";
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            alert("Error abriendo modal");
+        });
+}
+
+// 🔥 CERRAR MODAL
+
+function cerrarModalEditarProducto() {
+
+    document.getElementById("modalEditarProducto").style.display =
+        "none";
+}
+
+// 🔥 GUARDAR EDICIÓN PRODUCTO
+
+function guardarEdicionProducto() {
+
+    const body = {
+
+        descripcion:
+            document.getElementById("editarDescripcion").value
+    };
+
+    fetch(`http://localhost:8080/productos/${productoEditando.id}/editar`, {
+
+        method: "PUT",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(body)
+    })
+
+        .then(res => {
+
+            if (!res.ok) {
+                throw new Error();
+            }
+
+            return res.json();
+        })
+
+        .then(() => {
+
+            cerrarModalEditarProducto();
+
+            cargarProductos();
+
+            alert("Producto actualizado");
+        })
+
+        .catch(() => {
+
+            alert("Error actualizando producto");
+        });
+}

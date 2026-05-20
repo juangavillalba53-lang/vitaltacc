@@ -2,6 +2,7 @@ package com.vitaltacc.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.List;
 
 @Entity
 @Table(name = "producto")
@@ -23,4 +24,7 @@ public class Producto {
 
     @Column(name = "stock_minimo")
     private Integer stockMinimo;
+
+    @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductoImagen> imagenes;
 }

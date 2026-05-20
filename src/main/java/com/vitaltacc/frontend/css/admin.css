@@ -437,6 +437,38 @@ canvas {
     border-radius: 14px;
 
     overflow: hidden;
+
+    table-layout: auto;
+}
+
+.tabla-stock th:nth-child(1),
+.tabla-stock td:nth-child(1) {
+
+    width: 25%;
+}
+
+.tabla-stock th:nth-child(2),
+.tabla-stock td:nth-child(2) {
+
+    width: 18%;
+
+    text-align: center;
+}
+
+.tabla-stock th:nth-child(3),
+.tabla-stock td:nth-child(3) {
+
+    width: 15%;
+
+    text-align: center;
+}
+
+.tabla-stock th:nth-child(4),
+.tabla-stock td:nth-child(4) {
+
+    width: 42%;
+
+    text-align: center;
 }
 
 .tabla-stock th {
@@ -455,6 +487,14 @@ canvas {
     padding: 16px;
 
     border-bottom: 1px solid #eee;
+
+    text-align: center;
+}
+
+.tabla-stock td:first-child,
+.tabla-stock th:first-child {
+
+    text-align: left;
 }
 
 .tabla-stock tr:hover {
@@ -603,4 +643,159 @@ canvas {
     font-weight: 600;
 
     color: #333;
+}
+
+/* 🔥 INPUT IMÁGENES */
+
+#imagenesProducto {
+
+    margin-top: 10px;
+
+    margin-bottom: 20px;
+}
+
+/* 🔥 PREVIEW IMÁGENES */
+
+.preview-imagenes {
+
+    display: flex;
+
+    gap: 15px;
+
+    flex-wrap: wrap;
+
+    margin-bottom: 20px;
+}
+
+.preview-imagenes img {
+
+    width: 120px;
+
+    height: 120px;
+
+    object-fit: cover;
+
+    border-radius: 14px;
+
+    border: 2px solid #eee;
+
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* 🔥 ACCIONES TABLA */
+
+.acciones-producto {
+
+    display: flex;
+
+    gap: 10px;
+
+    justify-content: center;
+
+    flex-wrap: nowrap;
+}
+
+.btn-tabla {
+
+    border: none;
+
+    padding: 8px 14px;
+
+    border-radius: 10px;
+
+    font-size: 13px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.3s;
+
+    min-width: 110px;
+}
+
+.btn-lotes {
+
+    background: #14b8a6;
+
+    color: white;
+}
+
+.btn-lotes:hover {
+
+    background: #0f9f90;
+}
+
+.btn-editar {
+
+    background: #3b82f6;
+
+    color: white;
+}
+
+.btn-editar:hover {
+
+    background: #2563eb;
+}
+
+.btn-eliminar {
+
+    background: #ef4444;
+
+    color: white;
+}
+
+.btn-eliminar:hover {
+
+    background: #dc2626;
+}
+
+/* 🔥 MODAL EDITAR PRODUCTO */
+
+#editarDescripcion {
+
+    width: 100%;
+
+    margin-top: 15px;
+
+    padding: 14px;
+
+    border: 1px solid #ddd;
+
+    border-radius: 12px;
+
+    resize: vertical;
+
+    font-size: 15px;
+}
+
+.acciones-checks {
+
+    display: flex;
+
+    gap: 25px;
+
+    margin-top: 20px;
+
+    margin-bottom: 25px;
+}
+
+.acciones-checks label {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    font-weight: 600;
+}
+
+#tituloEditarProducto {
+
+    margin-top: 10px;
+
+    margin-bottom: 15px;
+
+    color: #111;
 }

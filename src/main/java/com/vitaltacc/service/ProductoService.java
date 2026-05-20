@@ -5,9 +5,16 @@ import com.vitaltacc.model.Promocion;
 import com.vitaltacc.repository.ProductoRepository;
 import com.vitaltacc.repository.PromocionRepository;
 import com.vitaltacc.repository.LoteRepository;
+import com.vitaltacc.repository.ProductoImagenRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.vitaltacc.model.ProductoImagen;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -23,9 +30,80 @@ public class ProductoService {
     @Autowired
     private LoteRepository loteRepository;
 
+    @Autowired
+    private ProductoImagenRepository productoImagenRepository;
+
     // 🔥 Guardar producto
     public Producto guardarProducto(Producto producto) {
         return productoRepository.save(producto);
+    }
+
+    public Producto guardarProductoConImagenes(
+
+            Producto producto,
+
+            List<MultipartFile> imagenes
+
+    ) {
+
+        Producto productoGuardado = productoRepository.save(producto);
+
+        List<ProductoImagen> listaImagenes = new ArrayList<>();
+
+        if (imagenes != null) {
+
+            for (MultipartFile imagen : imagenes) {
+
+                System.out.println("Imagen recibida: " + imagen.getOriginalFilename());
+
+                try {
+
+                    String nombreArchivo = System.currentTimeMillis()
+                            + "_" +
+                            imagen.getOriginalFilename();
+
+                    String carpetaUploads = System.getProperty("user.dir") + "/uploads/";
+
+                    File carpeta = new File(carpetaUploads);
+
+                    if (!carpeta.exists()) {
+                        carpeta.mkdirs();
+                    }
+
+                    String ruta = carpetaUploads + nombreArchivo;
+
+                    if (!carpeta.exists()) {
+
+                        carpeta.mkdirs();
+                    }
+
+                    File destino = new File(ruta);
+
+                    imagen.transferTo(destino);
+
+                    ProductoImagen productoImagen = new ProductoImagen();
+
+                    productoImagen.setUrl("/uploads/" + nombreArchivo);
+
+                    productoImagen.setProducto(productoGuardado);
+
+                    listaImagenes.add(productoImagen);
+
+                } catch (Exception e) {
+
+                    e.printStackTrace();
+
+                    throw new RuntimeException(
+                            "Error al guardar imagen: " + e.getMessage());
+                }
+            }
+
+            productoImagenRepository.saveAll(listaImagenes);
+
+            productoGuardado.setImagenes(listaImagenes);
+        }
+
+        return productoGuardado;
     }
 
     // 🔥 Listar productos
@@ -93,5 +171,20 @@ public class ProductoService {
                 .stream()
                 .mapToInt(lote -> lote.getCantidad())
                 .sum();
+    }
+
+    // 🔥 ACTUALIZAR DESCRIPCIÓN
+    public Producto actualizarDescripcion(
+
+            Long id,
+
+            String descripcion) {
+
+        Producto producto = productoRepository.findById(id)
+                .orElseThrow();
+
+        producto.setDescripcion(descripcion);
+
+        return productoRepository.save(producto);
     }
 }

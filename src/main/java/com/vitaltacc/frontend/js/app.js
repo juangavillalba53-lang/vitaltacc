@@ -44,16 +44,35 @@ fetch("http://localhost:8080/productos")
                 precioHTML = `<p>$${precioOriginal.toFixed(2)}</p>`;
             }
 
+            let imagenHTML = "";
+
+            if (prod.imagenes && prod.imagenes.length > 0) {
+
+                imagenHTML = `
+                    <img 
+                        src="http://localhost:8080${prod.imagenes[0].url}" 
+                        alt="${prod.nombre}"
+                        class="img-producto"
+                    >
+                `;
+            }
+
             card.innerHTML = `
+                ${imagenHTML}
+
                 <h3>${prod.nombre}</h3>
+
                 ${precioHTML}
+
                 <p class="stock-card">
                     Stock: ${prod.stock}
                 </p>
 
                 <div>
                     <button onclick="cambiarCantidad(${prod.id}, -1)">-</button>
+
                     <span id="cant-${prod.id}">1</span>
+
                     <button onclick="cambiarCantidad(${prod.id}, 1, ${prod.stock})">+</button>
                 </div>
 

@@ -4,7 +4,7 @@ import com.vitaltacc.model.Producto;
 import com.vitaltacc.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -18,9 +18,28 @@ public class ProductoController {
     private ProductoService productoService;
 
     // 🔥 Crear producto
-    @PostMapping
-    public Producto crearProducto(@RequestBody Producto producto) {
-        return productoService.guardarProducto(producto);
+    @PostMapping(consumes = "multipart/form-data")
+    public Producto crearProducto(
+
+            @RequestParam("nombre") String nombre,
+
+            @RequestParam("precio") Double precio,
+
+            @RequestPart(value = "imagenes", required = false) List<MultipartFile> imagenes
+
+    ) {
+
+        Producto producto = new Producto();
+
+        producto.setNombre(nombre);
+
+        producto.setPrecio(precio);
+
+        productoService.guardarProductoConImagenes(
+                producto,
+                imagenes);
+
+        return producto;
     }
 
     // 🔥 Listar productos (con precio final + stock)
@@ -36,6 +55,7 @@ public class ProductoController {
             data.put("precio", producto.getPrecio());
             data.put("precioFinal", productoService.calcularPrecioConDescuento(producto));
             data.put("stock", productoService.calcularStock(producto));
+            data.put("imagenes", producto.getImagenes());
 
             return data;
 
@@ -48,13 +68,35 @@ public class ProductoController {
         return productoService.obtenerPorId(id);
     }
 
-    // 🔥 ACTUALIZAR PRECIO (🔥 ESTE ES EL NUEVO)
+    // 🔥 ACTUALIZAR PRECIO
     @PutMapping("/{id}")
-    public Producto actualizarPrecio(@PathVariable Long id, @RequestBody Map<String, Object> datos) {
+    public Producto actualizarPrecio(
 
-        Double nuevoPrecio = Double.valueOf(datos.get("precioOriginal").toString());
+            @PathVariable Long id,
 
-        return productoService.actualizarPrecio(id, nuevoPrecio);
+            @RequestBody Map<String, Object> datos) {
+
+        Double nuevoPrecio = Double.valueOf(
+                datos.get("precioOriginal").toString());
+
+        return productoService.actualizarPrecio(
+                id,
+                nuevoPrecio);
+    }
+
+    // 🔥 EDITAR PRODUCTO
+    @PutMapping("/{id}/editar")
+    public Producto editarProducto(
+
+            @PathVariable Long id,
+
+            @RequestBody Map<String, Object> datos) {
+
+        String descripcion = datos.get("descripcion").toString();
+
+        return productoService.actualizarDescripcion(
+                id,
+                descripcion);
     }
 
     // 🔥 Eliminar producto

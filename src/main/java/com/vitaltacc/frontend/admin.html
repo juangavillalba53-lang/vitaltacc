@@ -67,6 +67,12 @@
                 <input type="text" id="nombreProducto" placeholder="Nombre del producto">
                 <input type="number" step="0.01" id="precioProducto" placeholder="Precio">
 
+                <label class="label-input">
+                    Imágenes del producto
+                </label>
+
+                <input type="file" id="imagenesProducto" multiple accept="image/*">
+
                 <button onclick="crearProducto()">Guardar producto</button>
             </div>
 
@@ -102,9 +108,9 @@
                 <p id="loteCreado"></p>
             </div>
 
-            <!-- 🔥 LOTES -->
         </section>
 
+        <!-- 🔥 LOTES -->
         <section class="admin-section">
 
             <div class="section-header">
@@ -162,8 +168,9 @@
                     <thead>
                         <tr>
                             <th>Producto</th>
-                            <th>Stock total</th>
-                            <th>Acción</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Acciones</th>
                         </tr>
                     </thead>
 
@@ -175,7 +182,7 @@
 
         </section>
 
-        <section class="admin-section">
+        <section class="admin-section" id="adminReportes">
 
             <div class="section-header">
 
@@ -238,7 +245,7 @@
 
         </section>
 
-        <section class="admin-section">
+        <section class="admin-section" id="adminPromociones">
 
             <div class="section-header">
 
@@ -304,7 +311,7 @@
 
         </section>
 
-        <section class="admin-section">
+        <section class="admin-section" id="adminUsuarios">
 
             <div class="section-header">
 
@@ -375,6 +382,36 @@
             <h2>Lotes del producto</h2>
 
             <div id="listaModalLotes"></div>
+
+        </div>
+
+    </div>
+
+    <!-- 🔥 MODAL EDITAR PRODUCTO -->
+
+    <div id="modalEditarProducto" class="modal-lotes">
+
+        <div class="contenido-modal-lotes">
+
+            <span class="cerrar-modal" onclick="cerrarModalEditarProducto()">
+                ✖
+            </span>
+
+            <h2>Editar producto</h2>
+
+            <h3 id="tituloEditarProducto"></h3>
+
+            <textarea id="editarDescripcion" placeholder="Descripción" rows="4"></textarea>
+
+            <label class="label-admin">
+                Nuevas imágenes
+            </label>
+
+            <input type="file" id="editarImagenes" multiple accept="image/*">
+
+            <button onclick="guardarEdicionProducto()">
+                Guardar cambios
+            </button>
 
         </div>
 
