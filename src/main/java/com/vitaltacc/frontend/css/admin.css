@@ -9,20 +9,70 @@
 
 /* 🔥 CONTENEDOR ADMIN */
 .container-admin {
-    padding: 0 20px 20px;
+
+    padding: 120px 25px 40px;
+
+    max-width: 1500px;
+
+    margin: auto;
+}
+
+/* 🔥 SECCIONES */
+
+.admin-section {
+
+    margin-bottom: 60px;
+}
+
+/* 🔥 HEADER SECCIÓN */
+
+.section-header {
+
+    margin-bottom: 30px;
+}
+
+.section-header span {
+
+    color: #14b8a6;
+
+    font-size: 13px;
+
+    font-weight: bold;
+
+    letter-spacing: 3px;
+}
+
+.section-header h2 {
+
+    font-size: 42px;
+
+    margin-top: 10px;
+
+    color: #111;
 }
 
 /* 🔥 FILTRO */
 .filtro {
+
     background: white;
-    padding: 15px;
-    border-radius: 10px;
-    margin-bottom: 20px;
+
+    padding: 25px;
+
+    border-radius: 24px;
+
+    margin-bottom: 25px;
+
     display: flex;
+
     align-items: center;
-    gap: 10px;
+
+    gap: 15px;
+
     flex-wrap: wrap;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+
+    border: 1px solid #f1f1f1;
 }
 
 .filtro select,
@@ -59,10 +109,16 @@
 
 /* 🔥 CARDS */
 .card-admin {
+
     background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+    padding: 30px;
+
+    border-radius: 24px;
+
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+
+    border: 1px solid #f1f1f1;
 }
 
 /* CARD GRANDE (GRÁFICO) */
@@ -72,7 +128,14 @@
 
 /* TITULOS */
 .card-admin h2 {
+
     margin-top: 0;
+
+    margin-bottom: 20px;
+
+    font-size: 28px;
+
+    color: #111;
 }
 
 /* LISTAS */
@@ -277,7 +340,7 @@ canvas {
 
     gap: 15px;
 
-    padding: 110px 20px 0;
+    padding: 0;
 
     margin-top: 10px;
 
@@ -328,12 +391,17 @@ canvas {
     margin-bottom: 25px;
 
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+
+    border: 1px solid #f1f1f1;
 }
 
 .tabla-usuarios {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
+    overflow: hidden;
+
+    border-radius: 14px;
 }
 
 .tabla-usuarios th,
@@ -522,4 +590,17 @@ canvas {
 .panel-admin:hover {
 
     transform: translateY(-3px);
+}
+
+.label-admin {
+
+    display: block;
+
+    margin-top: 10px;
+
+    margin-bottom: 6px;
+
+    font-weight: 600;
+
+    color: #333;
 }
