@@ -799,3 +799,23 @@ canvas {
 
     color: #111;
 }
+
+.img-preview-editar {
+
+    width: 150px;
+
+    height: 150px;
+
+    object-fit: cover;
+
+    border-radius: 16px;
+
+    margin: 15px 0;
+
+    border: 2px solid #eee;
+}
+
+#modalEditarProducto button {
+
+    margin-top: 20px;
+}

@@ -1294,6 +1294,30 @@ function abrirModalEditarProducto(id) {
             document.getElementById("editarDescripcion").value =
                 prod.descripcion || "";
 
+            const contenedor =
+                document.getElementById("imagenesActuales");
+
+            contenedor.innerHTML = "";
+
+            if (prod.imagenes && prod.imagenes.length > 0) {
+                console.log(prod.imagenes);
+                prod.imagenes.forEach(img => {
+
+                    contenedor.innerHTML += `
+                        <img
+                            src="http://localhost:8080${img.url}"
+                            class="img-preview-editar"
+                        >
+                    `;
+                });
+
+            } else {
+
+                contenedor.innerHTML = `
+                    <p>Este producto no tiene imágenes</p>
+                `;
+            }
+
             document.getElementById("modalEditarProducto").style.display =
                 "flex";
         })
@@ -1318,21 +1342,29 @@ function cerrarModalEditarProducto() {
 
 function guardarEdicionProducto() {
 
-    const body = {
+    const descripcion =
+        document.getElementById("editarDescripcion").value;
 
-        descripcion:
-            document.getElementById("editarDescripcion").value
-    };
+    const imagenes =
+        document.getElementById("editarImagenes").files;
+
+    const formData = new FormData();
+
+    formData.append("descripcion", descripcion);
+
+    for (let i = 0; i < imagenes.length; i++) {
+
+        formData.append(
+            "imagenes",
+            imagenes[i]
+        );
+    }
 
     fetch(`http://localhost:8080/productos/${productoEditando.id}/editar`, {
 
         method: "PUT",
 
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify(body)
+        body: formData
     })
 
         .then(res => {

@@ -85,18 +85,19 @@ public class ProductoController {
     }
 
     // 🔥 EDITAR PRODUCTO
-    @PutMapping("/{id}/editar")
+    @PutMapping(value = "/{id}/editar", consumes = "multipart/form-data")
     public Producto editarProducto(
 
             @PathVariable Long id,
 
-            @RequestBody Map<String, Object> datos) {
+            @RequestParam("descripcion") String descripcion,
 
-        String descripcion = datos.get("descripcion").toString();
+            @RequestPart(value = "imagenes", required = false) List<MultipartFile> imagenes) {
 
-        return productoService.actualizarDescripcion(
+        return productoService.editarProducto(
                 id,
-                descripcion);
+                descripcion,
+                imagenes);
     }
 
     // 🔥 Eliminar producto

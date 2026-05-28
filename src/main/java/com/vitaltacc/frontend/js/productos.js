@@ -6,133 +6,191 @@ const carritoKey = usuarioStorage
 
 let carrito = JSON.parse(localStorage.getItem(carritoKey)) || [];
 
-// 🔥 Cargar productos
+const contenedor = document.getElementById("lista-productos");
+
+const categorias = document.querySelectorAll(".categoria");
+
+const buscador = document.getElementById("buscador");
+
+let productosGlobal = [];
+
+// 🔥 CARGAR PRODUCTOS
+
 fetch("http://localhost:8080/productos")
     .then(res => res.json())
     .then(data => {
 
-        const contenedor = document.getElementById("lista-productos");
+        productosGlobal = data;
 
-        if (!contenedor) return;
+        renderProductos(data);
+    });
 
-        data.slice(0, 3).forEach(prod => {
+// 🔥 RENDER
 
-            // 🔥 ocultar si no hay stock
-            if (!prod.stock || prod.stock <= 0) return;
+function renderProductos(productos) {
 
-            const card = document.createElement("div");
-            card.classList.add("product-card");
+    contenedor.innerHTML = "";
 
-            // 🔥 PRECIOS CORRECTOS
-            let precioOriginal = Number(prod.precio || 0);
-            let precioFinal = prod.precioFinal != null
-                ? Number(prod.precioFinal)
-                : precioOriginal;
+    productos.forEach(prod => {
 
-            let imagenHTML = "";
+        if (!prod.stock || prod.stock <= 0) return;
 
-            if (prod.imagenes && prod.imagenes.length > 0) {
+        const card = document.createElement("div");
 
-                imagenHTML = `
-                    <img 
-                        src="http://localhost:8080${prod.imagenes[0].url}" 
-                        alt="${prod.nombre}"
-                        class="img-producto"
-                    >
-                `;
+        card.classList.add("product-card");
+
+        let precioOriginal = Number(prod.precio || 0);
+
+        let precioFinal = prod.precioFinal != null
+            ? Number(prod.precioFinal)
+            : precioOriginal;
+
+        let imagenHTML = "";
+
+        if (prod.imagenes && prod.imagenes.length > 0) {
+
+            imagenHTML = `
+                <img 
+                    src="http://localhost:8080${prod.imagenes[0].url}" 
+                    alt="${prod.nombre}"
+                    class="img-producto"
+                >
+            `;
+        }
+
+        card.innerHTML = `
+
+            <div class="product-img">
+
+                ${imagenHTML}
+
+                <span class="product-badge">
+                    Sin TACC
+                </span>
+
+            </div>
+
+            <div class="product-body">
+
+                <h3 class="product-name">
+                    ${prod.nombre}
+                </h3>
+
+                <p class="product-stock">
+                    Stock disponible: ${prod.stock}
+                </p>
+
+                <div class="product-footer">
+
+                    <div class="product-price">
+
+                        ${precioFinal < precioOriginal
+                ? `
+                                <div class="precio-original">
+                                    $${precioOriginal.toFixed(2)}
+                                </div>
+
+                                <div class="precio-final">
+                                    $${precioFinal.toFixed(2)}
+                                </div>
+                            `
+                : `
+                                <div class="precio-final">
+                                    $${precioOriginal.toFixed(2)}
+                                </div>
+                            `
             }
-
-            card.innerHTML = `
-
-                <div class="product-img">
-
-                    ${imagenHTML}
-
-                    <span class="product-badge">
-                        Sin TACC
-                    </span>
-
-                </div>
-
-                <div class="product-body">
-
-                    <h3 class="product-name">
-                        ${prod.nombre}
-                    </h3>
-
-                    <p class="product-stock">
-                        Stock disponible: ${prod.stock}
-                    </p>
-
-                    <div class="product-footer">
-
-                        <div class="product-price">
-
-                            ${precioFinal < precioOriginal
-                    ? `
-                                    <div class="precio-original">
-                                        $${precioOriginal.toFixed(2)}
-                                    </div>
-
-                                    <div class="precio-final">
-                                        $${precioFinal.toFixed(2)}
-                                    </div>
-                                `
-                    : `
-                                    <div class="precio-final">
-                                        $${precioOriginal.toFixed(2)}
-                                    </div>
-                                `
-                }
-
-                        </div>
-
-                        <div class="product-qty">
-
-                            <button
-                                class="qty-btn"
-                                onclick="cambiarCantidad(${prod.id}, -1)"
-                            >
-                                −
-                            </button>
-
-                            <span
-                                class="qty-num"
-                                id="cant-${prod.id}"
-                            >
-                                1
-                            </span>
-
-                            <button
-                                class="qty-btn"
-                                onclick="cambiarCantidad(${prod.id}, 1, ${prod.stock})"
-                            >
-                                +
-                            </button>
-
-                        </div>
 
                     </div>
 
-                    <button
-                        class="btn-add"
-                        onclick="agregarDesdeCard(
-                            ${prod.id},
-                            '${prod.nombre}',
-                            ${precioFinal},
-                            ${prod.stock}
-                        )"
-                    >
-                        Agregar al carrito
-                    </button>
+                    <div class="product-qty">
+
+                        <button
+                            class="qty-btn"
+                            onclick="cambiarCantidad(${prod.id}, -1)"
+                        >
+                            −
+                        </button>
+
+                        <span
+                            class="qty-num"
+                            id="cant-${prod.id}"
+                        >
+                            1
+                        </span>
+
+                        <button
+                            class="qty-btn"
+                            onclick="cambiarCantidad(${prod.id}, 1, ${prod.stock})"
+                        >
+                            +
+                        </button>
+
+                    </div>
 
                 </div>
-            `;
 
-            contenedor.appendChild(card);
-        });
+                <button
+                    class="btn-add"
+                    onclick="agregarDesdeCard(
+                        ${prod.id},
+                        '${prod.nombre}',
+                        ${precioFinal},
+                        ${prod.stock}
+                    )"
+                >
+                    Agregar al carrito
+                </button>
 
+            </div>
+        `;
+
+        contenedor.appendChild(card);
     });
+}
+
+// 🔥 BUSCADOR
+
+buscador.addEventListener("input", () => {
+
+    const texto = buscador.value.toLowerCase();
+
+    const filtrados = productosGlobal.filter(prod =>
+
+        prod.nombre.toLowerCase().includes(texto)
+    );
+
+    renderProductos(filtrados);
+});
+
+// 🔥 FILTROS POR CATEGORÍA
+
+categorias.forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+        categorias.forEach(b => b.classList.remove("active"));
+
+        btn.classList.add("active");
+
+        const categoria = btn.dataset.categoria;
+
+        if (categoria === "todos") {
+
+            renderProductos(productosGlobal);
+
+            return;
+        }
+
+        const filtrados = productosGlobal.filter(prod =>
+
+            prod.categoria &&
+            prod.categoria.toLowerCase() === categoria
+        );
+
+        renderProductos(filtrados);
+    });
+});
 
 // 🔥 Actualizar carrito
 function actualizarCarrito() {

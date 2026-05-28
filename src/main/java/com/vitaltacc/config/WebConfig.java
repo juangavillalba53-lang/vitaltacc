@@ -8,22 +8,22 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Override
-    public void addResourceHandlers(
-            ResourceHandlerRegistry registry) {
+        @Override
+        public void addResourceHandlers(
+                        ResourceHandlerRegistry registry) {
 
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations(
-                        "file:uploads/");
-    }
+                registry.addResourceHandler("/uploads/**")
+                                .addResourceLocations(
+                                                "file:" + System.getProperty("user.dir") + "/vitaltacc/uploads/");
+        }
 
-    @Override
-    public void addCorsMappings(
-            CorsRegistry registry) {
+        @Override
+        public void addCorsMappings(
+                        CorsRegistry registry) {
 
-        registry.addMapping("/**")
-                .allowedOrigins("*")
-                .allowedMethods("*")
-                .allowedHeaders("*");
-    }
+                registry.addMapping("/**")
+                                .allowedOrigins("*")
+                                .allowedMethods("*")
+                                .allowedHeaders("*");
+        }
 }

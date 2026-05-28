@@ -62,7 +62,7 @@ public class ProductoService {
                             + "_" +
                             imagen.getOriginalFilename();
 
-                    String carpetaUploads = System.getProperty("user.dir") + "/uploads/";
+                    String carpetaUploads = System.getProperty("user.dir") + "/vitaltacc/uploads/";
 
                     File carpeta = new File(carpetaUploads);
 
@@ -104,6 +104,56 @@ public class ProductoService {
         }
 
         return productoGuardado;
+    }
+
+    // 🔥 GUARDAR IMÁGENES
+    private void guardarImagenes(
+
+            Producto producto,
+
+            List<MultipartFile> imagenes) {
+
+        List<ProductoImagen> listaImagenes = new ArrayList<>();
+
+        for (MultipartFile imagen : imagenes) {
+
+            try {
+
+                String nombreArchivo = System.currentTimeMillis()
+                        + "_"
+                        + imagen.getOriginalFilename();
+
+                String carpetaUploads = System.getProperty("user.dir") + "/vitaltacc/uploads/";
+
+                File carpeta = new File(carpetaUploads);
+
+                if (!carpeta.exists()) {
+                    carpeta.mkdirs();
+                }
+
+                String ruta = carpetaUploads + nombreArchivo;
+
+                File destino = new File(ruta);
+
+                imagen.transferTo(destino);
+
+                ProductoImagen productoImagen = new ProductoImagen();
+
+                productoImagen.setUrl(
+                        "/uploads/" + nombreArchivo);
+
+                productoImagen.setProducto(producto);
+
+                listaImagenes.add(productoImagen);
+
+            } catch (IOException e) {
+
+                throw new RuntimeException(
+                        "Error guardando imagen");
+            }
+        }
+
+        productoImagenRepository.saveAll(listaImagenes);
     }
 
     // 🔥 Listar productos
@@ -184,6 +234,28 @@ public class ProductoService {
                 .orElseThrow();
 
         producto.setDescripcion(descripcion);
+
+        return productoRepository.save(producto);
+    }
+
+    public Producto editarProducto(
+
+            Long id,
+
+            String descripcion,
+
+            List<MultipartFile> imagenes) {
+
+        Producto producto = productoRepository
+                .findById(id)
+                .orElseThrow();
+
+        producto.setDescripcion(descripcion);
+
+        if (imagenes != null && !imagenes.isEmpty()) {
+
+            guardarImagenes(producto, imagenes);
+        }
 
         return productoRepository.save(producto);
     }

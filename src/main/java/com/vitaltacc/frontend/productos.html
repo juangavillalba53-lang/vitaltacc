@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Productos | VitalTacc</title>
+
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/productos.css">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+</head>
+
+<body>
+
+    <!-- NAVBAR -->
+
+    <header class="navbar">
+
+        <a href="index.html" class="logo">
+
+            <img src="img/logo.png" alt="VitalTacc">
+
+        </a>
+
+        <nav class="nav-links">
+
+            <a href="index.html">Inicio</a>
+
+            <a href="productos.html" class="active">
+                Productos
+            </a>
+
+            <a href="nosotras.html">
+                Nosotras
+            </a>
+
+        </nav>
+
+        <div class="nav-user" id="nav-user"></div>
+
+    </header>
+
+    <!-- HERO -->
+
+    <section class="productos-hero">
+
+        <div class="productos-hero-content">
+
+            <span>
+                CATÁLOGO VITALTACC
+            </span>
+
+            <h1>
+                Todos nuestros productos
+            </h1>
+
+            <p>
+                Descubrí opciones sin TACC seleccionadas
+                especialmente para vos.
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- FILTROS -->
+
+    <section class="productos-top">
+
+        <div class="buscador">
+
+            <input type="text" id="buscador" placeholder="Buscar productos...">
+
+        </div>
+
+        <div class="categorias">
+
+            <button class="categoria active" data-categoria="todos">
+                Todos
+            </button>
+
+            <button class="categoria" data-categoria="dulce">
+                Dulce
+            </button>
+
+            <button class="categoria" data-categoria="salado">
+                Salado
+            </button>
+
+            <button class="categoria" data-categoria="snacks">
+                Snacks
+            </button>
+
+        </div>
+
+    </section>
+
+    <!-- PRODUCTOS -->
+
+    <section class="productos-page">
+
+        <div class="productos-grid" id="lista-productos"></div>
+
+    </section>
+
+    <!-- CARRITO -->
+
+    <div class="modal-carrito" id="modalCarrito" style="display: none;">
+
+        <div class="contenido-carrito">
+
+            <button class="cerrar-carrito" onclick="cerrarCarrito()">
+                ✕
+            </button>
+
+            <h2>
+                Tu carrito
+            </h2>
+
+            <ul id="lista-carrito"></ul>
+
+            <p class="total">
+                Total: $<span id="total">0</span>
+            </p>
+
+            <button class="btn-finalizar">
+                Finalizar compra
+            </button>
+
+        </div>
+
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="js/global.js"></script>
+    <script src="js/productos.js"></script>
+
+</body>
+
+</html>

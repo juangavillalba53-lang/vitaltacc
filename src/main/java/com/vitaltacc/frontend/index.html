@@ -3,10 +3,18 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap"
+        rel="stylesheet" rel="stylesheet">
     <title>VitalTacc</title>
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 
 <body>
@@ -28,23 +36,48 @@
 
         </nav>
 
-        <!-- USUARIO -->
-        <div class="nav-user" id="nav-user"></div>
+        <button class="menu-toggle" id="menuToggle">
+
+            ☰
+
+        </button>
+
+        <!-- DERECHA -->
+        <div class="nav-user">
+
+            <div id="nav-user"></div>
+
+            <button class="cart-btn" onclick="abrirCarrito()">
+
+                🛒
+
+                <span id="contador-carrito">
+                    0
+                </span>
+
+            </button>
+
+        </div>
 
     </header>
 
     <section class="hero">
+
+        <div class="hero-bg-grid"></div>
+
+        <div class="hero-bg-glow"></div>
 
         <div class="overlay"></div>
 
         <div class="hero-content">
 
             <span class="subtitulo-hero">
-                ALIMENTOS LIBRES DE GLUTEN
+                Alimentos sin TACC
             </span>
 
             <h1>
-                Calidad, sabor y confianza
+                Calidad, sabor y
+                <em>confianza</em>
                 en cada producto
             </h1>
 
@@ -69,33 +102,95 @@
 
     </section>
 
+    <section class="beneficios">
+
+        <div class="beneficio">
+
+            <div class="beneficio-icono">
+                🛡️
+            </div>
+
+            <h3>Certificado sin TACC</h3>
+
+            <p>Todos nuestros productos</p>
+
+        </div>
+
+        <div class="beneficio">
+
+            <div class="beneficio-icono">
+                🚚
+            </div>
+
+            <h3>Envíos a todo el país</h3>
+
+            <p>Rápido y seguro</p>
+
+        </div>
+
+        <div class="beneficio">
+
+            <div class="beneficio-icono">
+                ♡
+            </div>
+
+            <h3>Hecho con amor</h3>
+
+            <p>Producción artesanal</p>
+
+        </div>
+
+    </section>
+
     <div class="container">
 
-        <!-- PRODUCTOS -->
-        <section class="productos-section" id="productos">
+        <section class="editorial-section" id="productos">
 
-            <div class="titulo-seccion">
+            <div class="editorial-content">
 
-                <span>NUESTROS PRODUCTOS</span>
+                <span>
+                    VITALTACC
+                </span>
 
-                <h2>Elegidos para disfrutar sin límites</h2>
+                <h2>
+                    Productos elaborados
+                    con dedicación y confianza
+                </h2>
+
+                <p>
+                    Creamos alimentos sin TACC pensando en la calidad,
+                    el sabor y la tranquilidad de cada familia.
+                </p>
+
+                <a href="productos.html" class="btn-hero">
+                    Explorar catálogo
+                </a>
 
             </div>
 
-            <div class="productos" id="lista-productos"></div>
+            <div class="carousel-wrapper">
+
+                <div class="carousel-track">
+
+                    <img src="img/local.JPG" alt="">
+                    <img src="img/producto2.jpg" alt="">
+                    <img src="img/producto3.jpg" alt="">
+                    <img src="img/producto4.jpg" alt="">
+                    <img src="img/producto5.jpg" alt="">
+
+                    <!-- DUPLICADAS PARA LOOP -->
+
+                    <img src="img/local.JPG" alt="">
+                    <img src="img/producto2.jpg" alt="">
+                    <img src="img/producto3.jpg" alt="">
+                    <img src="img/producto4.jpg" alt="">
+                    <img src="img/producto5.jpg" alt="">
+
+                </div>
+
+            </div>
 
         </section>
-
-        <!-- 🔥 BOTÓN CARRITO -->
-        <div class="carrito-flotante" onclick="abrirCarrito()">
-
-            🛒
-
-            <span id="contador-carrito">
-                0
-            </span>
-
-        </div>
 
         <!-- 🔥 MODAL CARRITO -->
         <div id="modalCarrito" class="modal-carrito">
@@ -126,64 +221,157 @@
 
     </div>
 
-    <!-- 🔥 MODAL BIENVENIDA -->
-    <div id="modalBienvenida" class="modal-overlay">
+    <footer class="footer">
 
-        <div class="modal-box">
+        <!-- BOTON -->
 
-            <button class="cerrar-modal" onclick="cerrarModal()">
-                ✕
+        <div class="footer-toggle-wrapper">
+
+            <button class="footer-toggle" id="footerToggle">
+
+                Más información
+
+                <i class="fa-solid fa-chevron-down"></i>
+
             </button>
 
-            <h2>Bienvenido a VitalTacc</h2>
+        </div>
 
-            <p>
-                Iniciá sesión para una experiencia completa.
+        <!-- PANEL DESPLEGABLE -->
+
+        <div class="footer-extra" id="footerExtra">
+
+            <div class="footer-grid">
+
+                <!-- UBICACION -->
+
+                <div class="footer-card">
+
+                    <div class="footer-icon">
+                        📍
+                    </div>
+
+                    <h3>Ubicación</h3>
+
+                    <p>
+                        Roque Pérez 1660<br>
+                        Posadas, Misiones
+                    </p>
+
+                    <a href="https://maps.app.goo.gl/hDy4N3ZFMr4rXz6CA?g_st=iwb" target="_blank" class="footer-map-btn">
+
+                        Abrir ubicación
+
+                    </a>
+
+                </div>
+
+                <!-- HORARIOS -->
+
+                <div class="footer-card">
+
+                    <div class="footer-icon">
+                        🕒
+                    </div>
+
+                    <h3>Horarios</h3>
+
+                    <div class="footer-hours">
+
+                        <div>
+                            <span>Lunes a Viernes</span>
+                            <strong>09:00 - 20:00</strong>
+                        </div>
+
+                        <div>
+                            <span>Sábados</span>
+                            <strong>09:00 - 20:00</strong>
+                        </div>
+
+                        <div>
+                            <span>Domingos</span>
+                            <strong>Cerrado</strong>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- REDES -->
+
+                <div class="footer-card">
+
+                    <div class="footer-icon">
+                        ♡
+                    </div>
+
+                    <h3>Redes sociales</h3>
+
+                    <div class="footer-socials">
+
+                        <a href="https://instagram.com/" target="_blank">
+
+                            <i class="fa-brands fa-instagram"></i>
+                            Instagram
+
+                        </a>
+
+                        <a href="https://wa.me/" target="_blank">
+
+                            <i class="fa-brands fa-whatsapp"></i>
+                            WhatsApp
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- FOOTER NORMAL -->
+
+        <div class="footer-main">
+
+            <!-- LOGO -->
+
+            <div class="footer-brand">
+
+                <img src="img/logo.png" alt="VitalTacc">
+
+            </div>
+
+            <!-- COPYRIGHT -->
+
+            <p class="footer-copy">
+
+                © 2026 VitalTacc — Todos los derechos reservados
+
             </p>
 
-            <button class="btn-modal" onclick="abrirLogin()">
-                Acceder ahora
-            </button>
+            <!-- REDES -->
+
+            <div class="footer-socials-inline">
+
+                <a href="https://instagram.com/" target="_blank">
+
+                    <i class="fa-brands fa-instagram"></i>
+
+                </a>
+
+                <a href="https://wa.me/" target="_blank">
+
+                    <i class="fa-brands fa-whatsapp"></i>
+
+                </a>
+
+            </div>
 
         </div>
 
-    </div>
-
-    <!-- 🔥 BOTÓN REGISTRO -->
-    <button id="btnRegistro" class="btn-registro" onclick="abrirRegistro()">
-        REGÍSTRATE
-    </button>
-
-    <!-- 🔥 MODAL REGISTRO -->
-    <div id="modalRegistro" class="modal-overlay" style="display: none;">
-
-        <div class="modal-registro">
-
-            <button class="cerrar-modal" onclick="cerrarRegistro()">
-                ✕
-            </button>
-
-            <h2>Crear cuenta</h2>
-
-            <input type="text" id="registroNombre" placeholder="Nombre y apellido">
-
-            <input type="text" id="registroDni" placeholder="DNI">
-
-            <input type="text" id="registroTelefono" placeholder="Número de teléfono">
-
-            <input type="email" id="registroEmail" placeholder="Email">
-
-            <input type="password" id="registroContrasena" placeholder="Contraseña">
-
-            <input type="password" id="registroContrasena2" placeholder="Repetir contraseña">
-
-            <button class="btn-modal" onclick="registrarse()">
-                Registrarse
-            </button>
-
-        </div>
-
-    </div>
+    </footer>
 
     <!-- 🔥 TOAST -->
 
