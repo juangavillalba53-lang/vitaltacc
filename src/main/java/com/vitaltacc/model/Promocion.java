@@ -17,14 +17,16 @@ public class Promocion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String descripcion;
 
+    @Column(nullable = false)
     private Double descuento;
 
-    @Column(name = "fecha_inicio")
+    @Column(name = "fecha_inicio", nullable = false)
     private LocalDate fechaInicio;
 
-    @Column(name = "fecha_fin")
+    @Column(name = "fecha_fin", nullable = false)
     private LocalDate fechaFin;
 
     // opcional: promoción sobre producto

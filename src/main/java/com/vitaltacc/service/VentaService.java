@@ -7,6 +7,14 @@ import com.vitaltacc.repository.LoteRepository;
 import com.vitaltacc.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.vitaltacc.dto.VentaRequest;
+import com.vitaltacc.model.Producto;
+import com.vitaltacc.model.Usuario;
+import com.vitaltacc.model.Rol;
+import com.vitaltacc.repository.ProductoRepository;
+import com.vitaltacc.repository.UsuarioRepository;
+import com.vitaltacc.dto.VentaItemRequest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -20,63 +28,130 @@ public class VentaService {
     @Autowired
     private LoteRepository loteRepository;
 
-    public Venta crearVenta(Venta venta) {
+    @Autowired
+    private ProductoRepository productoRepository;
 
-        double total = 0;
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Transactional
+    public Venta crearVenta(VentaRequest ventaRequest) {
+
+        Venta venta = new Venta();
 
         venta.setFecha(LocalDate.now());
+        venta.setMetodoPago(ventaRequest.getMetodoPago());
+        venta.setTipoVenta(ventaRequest.getTipoVenta());
+        venta.setTotal(0.0);
 
-        if (venta.getDetalles() != null) {
+        if (ventaRequest.getDetalles() == null || ventaRequest.getDetalles().isEmpty()) {
+            throw new RuntimeException("La venta no contiene productos.");
+        }
 
-            for (DetalleVenta detalle : venta.getDetalles()) {
+        Usuario empleado = usuarioRepository.findById(ventaRequest.getEmpleadoId())
+                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
 
-                if (detalle.getProducto() == null)
-                    continue;
+        venta.setEmpleado(empleado);
 
-                int cantidadADescontar = detalle.getCantidad();
+        if (ventaRequest.getClienteId() != null) {
 
-                // 🔥 OBTENER LOTES ORDENADOS (FIFO)
-                List<Lote> lotes = loteRepository
-                        .findByProductoIdOrderByFechaVencimientoAsc(detalle.getProducto().getId());
+            Usuario cliente = usuarioRepository.findById(ventaRequest.getClienteId())
+                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-                // 🔥 CALCULAR STOCK TOTAL DISPONIBLE
-                int stockTotal = lotes.stream()
-                        .mapToInt(Lote::getCantidad)
-                        .sum();
+            venta.setCliente(cliente);
 
-                // 🔥 VALIDAR STOCK ANTES DE DESCONTAR
-                if (stockTotal < cantidadADescontar) {
-                    throw new RuntimeException("No hay stock suficiente para el producto: "
-                            + detalle.getProducto().getNombre());
-                }
+        } else if (ventaRequest.getDniCliente() != null &&
+                !ventaRequest.getDniCliente().isBlank()) {
 
-                // 🔥 DESCONTAR FIFO
-                for (Lote lote : lotes) {
+            Usuario cliente = usuarioRepository
+                    .findByDni(ventaRequest.getDniCliente())
+                    .orElse(null);
 
-                    if (cantidadADescontar <= 0)
-                        break;
+            if (cliente == null) {
 
-                    int stockLote = lote.getCantidad();
+                cliente = new Usuario();
 
-                    if (stockLote <= 0)
-                        continue;
+                cliente.setNombre(
+                        ventaRequest.getNombreCliente() != null
+                                ? ventaRequest.getNombreCliente()
+                                : "Consumidor");
 
-                    if (stockLote <= cantidadADescontar) {
-                        cantidadADescontar -= stockLote;
-                        lote.setCantidad(0);
-                    } else {
-                        lote.setCantidad(stockLote - cantidadADescontar);
-                        cantidadADescontar = 0;
-                    }
+                cliente.setApellido(
+                        ventaRequest.getApellidoCliente() != null
+                                ? ventaRequest.getApellidoCliente()
+                                : "Final");
 
-                    loteRepository.save(lote);
-                }
+                cliente.setDni(ventaRequest.getDniCliente());
 
-                total += detalle.getPrecioUnitario() * detalle.getCantidad();
+                cliente.setEmail(
+                        "cliente_" + ventaRequest.getDniCliente() + "@local.com");
+
+                cliente.setContrasena("TEMP");
+
+                cliente.setRol(Rol.CLIENTE);
+
+                cliente = usuarioRepository.save(cliente);
+            }
+
+            venta.setCliente(cliente);
+        }
+
+        double totalVenta = 0.0;
+
+        for (VentaItemRequest item : ventaRequest.getDetalles()) {
+
+            if (item.getCantidad() == null || item.getCantidad() <= 0) {
+                throw new RuntimeException("Cantidad inválida.");
+            }
+
+            Producto producto = productoRepository.findById(item.getProductoId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            List<Lote> lotes = loteRepository
+                    .findByProductoIdOrderByFechaVencimientoAsc(producto.getId());
+
+            lotes.removeIf(l -> l.getCantidad() <= 0);
+
+            int stockDisponible = lotes.stream()
+                    .mapToInt(Lote::getCantidad)
+                    .sum();
+
+            if (stockDisponible < item.getCantidad()) {
+
+                throw new RuntimeException(
+                        "Stock insuficiente para " + producto.getNombre());
+            }
+
+            int cantidadPendiente = item.getCantidad();
+
+            for (Lote lote : lotes) {
+
+                if (cantidadPendiente == 0)
+                    break;
+
+                int cantidadTomada = Math.min(
+                        cantidadPendiente,
+                        lote.getCantidad());
+
+                DetalleVenta detalle = new DetalleVenta();
+
+                detalle.setVenta(venta);
+                detalle.setProducto(producto);
+                detalle.setLote(lote);
+                detalle.setCantidad(cantidadTomada);
+                detalle.setPrecioUnitario(producto.getPrecio());
+
+                venta.getDetalles().add(detalle);
+
+                lote.setCantidad(lote.getCantidad() - cantidadTomada);
+
+                totalVenta += cantidadTomada * producto.getPrecio();
+
+                cantidadPendiente -= cantidadTomada;
             }
         }
 
-        venta.setTotal(total);
+        venta.setTotal(totalVenta);
 
         return ventaRepository.save(venta);
     }
@@ -244,5 +319,60 @@ public class VentaService {
                 .sorted((a, b) -> ((Integer) b.get("cantidadVendida"))
                         .compareTo((Integer) a.get("cantidadVendida")))
                 .toList();
+    }
+
+    public Map<String, Object> obtenerCierreCajaHoy() {
+
+        return obtenerReportePorDia(LocalDate.now());
+
+    }
+
+    public Map<String, Object> obtenerReportePorDia(LocalDate fecha) {
+
+        List<Venta> ventas = ventaRepository.findAll();
+
+        double efectivo = 0;
+        double transferencia = 0;
+        double tarjeta = 0;
+
+        int cantidadVentas = 0;
+
+        for (Venta venta : ventas) {
+
+            if (!venta.getFecha().equals(fecha))
+                continue;
+
+            cantidadVentas++;
+
+            double total = venta.getTotal();
+
+            switch (venta.getMetodoPago()) {
+
+                case EFECTIVO:
+                    efectivo += total;
+                    break;
+
+                case TRANSFERENCIA:
+                case MERCADO_PAGO:
+                case MODO:
+                    transferencia += total;
+                    break;
+
+                case TARJETA_DEBITO:
+                case TARJETA_CREDITO:
+                    tarjeta += total;
+                    break;
+            }
+        }
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("ventas", cantidadVentas);
+        data.put("efectivo", efectivo);
+        data.put("transferencia", transferencia);
+        data.put("tarjeta", tarjeta);
+        data.put("total", efectivo + transferencia + tarjeta);
+
+        return data;
     }
 }

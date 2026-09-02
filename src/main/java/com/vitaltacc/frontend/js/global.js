@@ -8,6 +8,8 @@ const footerToggle = document.getElementById("footerToggle");
 
 const footerExtra = document.getElementById("footerExtra");
 
+const menuPanel = document.getElementById("menuPanel");
+
 // 🔥 NAVBAR SCROLL
 
 window.addEventListener("scroll", () => {
@@ -96,6 +98,26 @@ if (footerToggle && footerExtra) {
                 });
 
             }, 150);
+        }
+    });
+}
+
+if (menuToggle && menuPanel) {
+
+    menuToggle.addEventListener("click", () => {
+
+        menuPanel.classList.toggle("active");
+    });
+
+    document.addEventListener("click", (e) => {
+
+        const dentroPanel = menuPanel.contains(e.target);
+
+        const clickBoton = menuToggle.contains(e.target);
+
+        if (!dentroPanel && !clickBoton) {
+
+            menuPanel.classList.remove("active");
         }
     });
 }

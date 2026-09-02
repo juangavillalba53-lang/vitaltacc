@@ -25,6 +25,12 @@ public class ProductoController {
 
             @RequestParam("precio") Double precio,
 
+            @RequestParam("descripcion") String descripcion,
+
+            @RequestParam("stockMinimo") Integer stockMinimo,
+
+            @RequestParam("categoriaId") Long categoriaId,
+
             @RequestPart(value = "imagenes", required = false) List<MultipartFile> imagenes
 
     ) {
@@ -32,14 +38,14 @@ public class ProductoController {
         Producto producto = new Producto();
 
         producto.setNombre(nombre);
-
         producto.setPrecio(precio);
+        producto.setDescripcion(descripcion);
+        producto.setStockMinimo(stockMinimo);
 
-        productoService.guardarProductoConImagenes(
+        return productoService.guardarProductoConImagenes(
                 producto,
+                categoriaId,
                 imagenes);
-
-        return producto;
     }
 
     // 🔥 Listar productos (con precio final + stock)
@@ -64,8 +70,25 @@ public class ProductoController {
 
     // 🔥 Obtener producto por ID
     @GetMapping("/{id}")
-    public Producto obtenerProducto(@PathVariable Long id) {
-        return productoService.obtenerPorId(id);
+    public Map<String, Object> obtenerProducto(@PathVariable Long id) {
+
+        Producto producto = productoService.obtenerPorId(id);
+
+        Map<String, Object> data = new HashMap<>();
+
+        data.put("id", producto.getId());
+        data.put("nombre", producto.getNombre());
+        data.put("descripcion", producto.getDescripcion());
+        data.put("precio", producto.getPrecio());
+        data.put("stockMinimo", producto.getStockMinimo());
+        data.put("imagenes", producto.getImagenes());
+        data.put("categoria", producto.getCategoria());
+
+        data.put(
+                "tipoCategoria",
+                producto.getCategoria().getTipoCategoria());
+
+        return data;
     }
 
     // 🔥 ACTUALIZAR PRECIO
@@ -90,13 +113,22 @@ public class ProductoController {
 
             @PathVariable Long id,
 
+            @RequestParam("nombre") String nombre,
+
+            @RequestParam("precio") Double precio,
+
             @RequestParam("descripcion") String descripcion,
+
+            @RequestParam("categoriaId") Long categoriaId,
 
             @RequestPart(value = "imagenes", required = false) List<MultipartFile> imagenes) {
 
         return productoService.editarProducto(
                 id,
+                nombre,
+                precio,
                 descripcion,
+                categoriaId,
                 imagenes);
     }
 

@@ -1,21 +1,22 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.Categoria;
 import com.vitaltacc.model.Producto;
+import com.vitaltacc.model.ProductoImagen;
 import com.vitaltacc.model.Promocion;
-import com.vitaltacc.repository.ProductoRepository;
-import com.vitaltacc.repository.PromocionRepository;
+import com.vitaltacc.repository.CategoriaRepository;
 import com.vitaltacc.repository.LoteRepository;
 import com.vitaltacc.repository.ProductoImagenRepository;
-
+import com.vitaltacc.repository.ProductoRepository;
+import com.vitaltacc.repository.PromocionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.vitaltacc.model.ProductoImagen;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,18 +34,29 @@ public class ProductoService {
     @Autowired
     private ProductoImagenRepository productoImagenRepository;
 
+    @Autowired
+    private CategoriaRepository categoriaRepository;
+
     // 🔥 Guardar producto
     public Producto guardarProducto(Producto producto) {
         return productoRepository.save(producto);
     }
 
+    // 🔥 Guardar producto con imágenes y categoría
     public Producto guardarProductoConImagenes(
 
             Producto producto,
 
+            Long categoriaId,
+
             List<MultipartFile> imagenes
 
     ) {
+
+        Categoria categoria = categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+
+        producto.setCategoria(categoria);
 
         Producto productoGuardado = productoRepository.save(producto);
 
@@ -59,8 +71,8 @@ public class ProductoService {
                 try {
 
                     String nombreArchivo = System.currentTimeMillis()
-                            + "_" +
-                            imagen.getOriginalFilename();
+                            + "_"
+                            + imagen.getOriginalFilename();
 
                     String carpetaUploads = System.getProperty("user.dir") + "/vitaltacc/uploads/";
 
@@ -71,11 +83,6 @@ public class ProductoService {
                     }
 
                     String ruta = carpetaUploads + nombreArchivo;
-
-                    if (!carpeta.exists()) {
-
-                        carpeta.mkdirs();
-                    }
 
                     File destino = new File(ruta);
 
@@ -90,8 +97,6 @@ public class ProductoService {
                     listaImagenes.add(productoImagen);
 
                 } catch (Exception e) {
-
-                    e.printStackTrace();
 
                     throw new RuntimeException(
                             "Error al guardar imagen: " + e.getMessage());
@@ -139,8 +144,7 @@ public class ProductoService {
 
                 ProductoImagen productoImagen = new ProductoImagen();
 
-                productoImagen.setUrl(
-                        "/uploads/" + nombreArchivo);
+                productoImagen.setUrl("/uploads/" + nombreArchivo);
 
                 productoImagen.setProducto(producto);
 
@@ -148,12 +152,36 @@ public class ProductoService {
 
             } catch (IOException e) {
 
-                throw new RuntimeException(
-                        "Error guardando imagen");
+                throw new RuntimeException("Error guardando imagen");
             }
         }
 
         productoImagenRepository.saveAll(listaImagenes);
+    }
+
+    // 🔥 Eliminar imágenes anteriores del producto
+    private void eliminarImagenesProducto(Producto producto) {
+
+        List<ProductoImagen> imagenes = productoImagenRepository.findByProductoId(producto.getId());
+
+        if (imagenes.isEmpty()) {
+            return;
+        }
+
+        for (ProductoImagen imagen : imagenes) {
+
+            String rutaArchivo = System.getProperty("user.dir")
+                    + "/vitaltacc"
+                    + imagen.getUrl();
+
+            File archivo = new File(rutaArchivo);
+
+            if (archivo.exists()) {
+                archivo.delete();
+            }
+        }
+
+        productoImagenRepository.deleteAll(imagenes);
     }
 
     // 🔥 Listar productos
@@ -163,7 +191,9 @@ public class ProductoService {
 
     // 🔥 Buscar por ID
     public Producto obtenerPorId(Long id) {
-        return productoRepository.findById(id).orElse(null);
+
+        return productoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 
     // 🔥 Eliminar producto
@@ -171,7 +201,7 @@ public class ProductoService {
         productoRepository.deleteById(id);
     }
 
-    // 🔥 ACTUALIZAR PRECIO (🔥 ESTE ES EL NUEVO)
+    // 🔥 Actualizar precio
     public Producto actualizarPrecio(Long id, Double precio) {
 
         Producto producto = productoRepository.findById(id)
@@ -195,18 +225,13 @@ public class ProductoService {
 
         for (Promocion promo : promociones) {
 
-            // Promoción global
             if (promo.getProducto() == null) {
                 precio = precio - (precio * promo.getDescuento() / 100);
-            }
-
-            // Promoción por producto
-            else if (promo.getProducto().getId().equals(producto.getId())) {
+            } else if (promo.getProducto().getId().equals(producto.getId())) {
                 precio = precio - (precio * promo.getDescuento() / 100);
             }
         }
 
-        // 🔥 Si no cambió el precio → no hay descuento
         if (precio.equals(precioOriginal)) {
             return null;
         }
@@ -214,7 +239,7 @@ public class ProductoService {
         return precio;
     }
 
-    // 🔥 Calcular stock total del producto
+    // 🔥 Calcular stock
     public Integer calcularStock(Producto producto) {
 
         return loteRepository.findByProductoId(producto.getId())
@@ -223,7 +248,7 @@ public class ProductoService {
                 .sum();
     }
 
-    // 🔥 ACTUALIZAR DESCRIPCIÓN
+    // 🔥 Actualizar descripción
     public Producto actualizarDescripcion(
 
             Long id,
@@ -231,28 +256,44 @@ public class ProductoService {
             String descripcion) {
 
         Producto producto = productoRepository.findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
         producto.setDescripcion(descripcion);
 
         return productoRepository.save(producto);
     }
 
+    // 🔥 Editar producto
     public Producto editarProducto(
 
             Long id,
 
+            String nombre,
+
+            Double precio,
+
             String descripcion,
+
+            Long categoriaId,
 
             List<MultipartFile> imagenes) {
 
         Producto producto = productoRepository
                 .findById(id)
-                .orElseThrow();
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
+        Categoria categoria = categoriaRepository
+                .findById(categoriaId)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+
+        producto.setNombre(nombre);
+        producto.setPrecio(precio);
         producto.setDescripcion(descripcion);
+        producto.setCategoria(categoria);
 
         if (imagenes != null && !imagenes.isEmpty()) {
+
+            eliminarImagenesProducto(producto);
 
             guardarImagenes(producto, imagenes);
         }

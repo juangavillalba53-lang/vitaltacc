@@ -1,55 +1,168 @@
 function mostrarUsuario() {
 
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    const usuario =
+        JSON.parse(localStorage.getItem("usuario"));
 
-    const navUser = document.getElementById("nav-user");
+    const navUser =
+        document.getElementById("nav-user");
 
-    if (!navUser) return;
+    const navbarActions =
+        document.getElementById("navbar-actions");
 
+    // LIMPIAR
+
+    if (navUser) {
+        navUser.innerHTML = "";
+    }
+
+    if (navbarActions) {
+        navbarActions.innerHTML = "";
+    }
+
+    // =========================
     // INVITADO
+    // =========================
+
     if (!usuario) {
 
-        navUser.innerHTML = `
-            <a href="login.html" class="btn-nav">
-                Iniciar sesión
-            </a>
-        `;
+        if (navUser) {
+
+            navUser.innerHTML = `
+
+                <a href="login.html" class="menu-link">
+
+                    <i class="fa-regular fa-user"></i>
+
+                    Iniciar sesión
+
+                </a>
+
+            `;
+        }
 
         return;
     }
 
-    // ADMIN / EMPLEADO
+    // =========================
+    // PANEL SOLO ADMIN/EMPLEADO
+    // =========================
+
     if (
         usuario.rol === "ADMIN" ||
         usuario.rol === "EMPLEADO"
     ) {
 
-        navUser.innerHTML = `
-            <span>
-                Hola, ${usuario.nombre}
-            </span>
+        if (navbarActions) {
 
-            <button class="btn-nav" onclick="irPanel()">
-                Panel
-            </button>
+            navbarActions.innerHTML = `
 
-            <button class="btn-nav" onclick="logout()">
-                Cerrar sesión
-            </button>
-        `;
+                <button
+                    class="btn-nav"
+                    onclick="irPanel()"
+                >
+                    Panel
+                </button>
+
+            `;
+        }
     }
 
-    // CLIENTE
-    else {
+    // =========================
+    // MENU ADMIN / EMPLEADO
+    // =========================
+
+    if (navUser && (
+        usuario.rol === "ADMIN" ||
+        usuario.rol === "EMPLEADO"
+    )) {
 
         navUser.innerHTML = `
-            <span>
-                Hola, ${usuario.nombre}
-            </span>
 
-            <button class="btn-nav" onclick="logout()">
+            <p class="menu-user">
+
+                Hola, ${usuario.nombre} 👋
+
+            </p>
+
+            <a href="#" class="menu-link">
+
+                <i class="fa-regular fa-user"></i>
+
+                Mi cuenta
+
+            </a>
+
+            <button
+                class="menu-link logout-link"
+                onclick="logout()"
+            >
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
                 Cerrar sesión
+
             </button>
+
+        `;
+
+        return;
+    }
+
+    // MENU CLIENTE
+
+    if (navUser) {
+
+        navUser.innerHTML = `
+
+            <p class="menu-user">
+
+                Hola, ${usuario.nombre} 👋
+
+            </p>
+
+            <a href="#" class="menu-link">
+
+                <i class="fa-regular fa-user"></i>
+
+                Mi cuenta
+
+            </a>
+
+            <a href="#" class="menu-link">
+
+                <i class="fa-solid fa-box"></i>
+
+                Mis pedidos
+
+            </a>
+
+            <a href="#" class="menu-link">
+
+                <i class="fa-regular fa-circle-question"></i>
+
+                Preguntas frecuentes
+
+            </a>
+
+            <a href="#" class="menu-link">
+
+                <i class="fa-regular fa-envelope"></i>
+
+                Contacto
+
+            </a>
+
+            <button
+                class="menu-link logout-link"
+                onclick="logout()"
+            >
+
+                <i class="fa-solid fa-right-from-bracket"></i>
+
+                Cerrar sesión
+
+            </button>
+
         `;
     }
 }
@@ -63,7 +176,8 @@ function logout() {
 
 function irPanel() {
 
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    const usuario =
+        JSON.parse(localStorage.getItem("usuario"));
 
     if (!usuario) return;
 
@@ -77,12 +191,3 @@ function irPanel() {
 }
 
 mostrarUsuario();
-
-const usuarioLogueado = JSON.parse(localStorage.getItem("usuario"));
-
-const btnRegistro = document.getElementById("btnRegistro");
-
-if (usuarioLogueado && btnRegistro) {
-
-    btnRegistro.style.display = "none";
-}

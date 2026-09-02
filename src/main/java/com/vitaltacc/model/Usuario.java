@@ -2,6 +2,7 @@ package com.vitaltacc.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "usuario")
@@ -15,18 +16,25 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String nombre;
 
-    @Column(unique = true)
+    @Column(nullable = false)
+    private String apellido;
+
+    @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false)
+    @JsonIgnore
     private String contrasena;
 
-    @Column(unique = true)
+    @Column(nullable = false, unique = true)
     private String dni;
 
     private String telefono;
 
+    @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Rol rol;
 }

@@ -4,8 +4,11 @@ import com.vitaltacc.model.Venta;
 import com.vitaltacc.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import com.vitaltacc.dto.VentaRequest;
+import java.time.LocalDate;
 
 import java.util.Map;
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -18,8 +21,8 @@ public class VentaController {
 
     // 🔥 Crear venta
     @PostMapping
-    public Venta crearVenta(@RequestBody Venta venta) {
-        return ventaService.crearVenta(venta);
+    public Venta crearVenta(@RequestBody VentaRequest ventaRequest) {
+        return ventaService.crearVenta(ventaRequest);
     }
 
     // 🔥 Listar ventas
@@ -73,5 +76,18 @@ public class VentaController {
             @RequestParam int anio) {
 
         return ventaService.obtenerTopClientesPorMes(mes, anio);
+    }
+
+    @GetMapping("/cierre-caja")
+    public Map<String, Object> obtenerReportePorDia(LocalDate fecha) {
+        return ventaService.obtenerCierreCajaHoy();
+    }
+
+    @GetMapping("/reporte-dia")
+    public Map<String, Object> obtenerReporteDia(
+            @RequestParam String fecha) {
+
+        return ventaService.obtenerReportePorDia(
+                java.time.LocalDate.parse(fecha));
     }
 }

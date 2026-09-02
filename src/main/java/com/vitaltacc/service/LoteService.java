@@ -1,8 +1,10 @@
 package com.vitaltacc.service;
 
 import com.vitaltacc.model.Lote;
+import com.vitaltacc.repository.DetalleVentaRepository;
 import com.vitaltacc.repository.LoteRepository;
 import com.vitaltacc.repository.ProductoRepository;
+import com.vitaltacc.repository.DetalleVentaRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,9 @@ public class LoteService {
     // Guardar lote
     @Autowired
     private ProductoRepository productoRepository;
+
+    @Autowired
+    private DetalleVentaRepository detalleVentaRepository;
 
     public Lote guardarLote(Lote lote) {
 
@@ -40,6 +45,8 @@ public class LoteService {
 
         // 🔥 asignar fecha producción
         lote.setFechaProduccion(hoy);
+
+        lote.setCantidadInicial(lote.getCantidad());
 
         // 🔥 asegurar producto correcto
         Long productoId = lote.getProducto().getId();
@@ -64,14 +71,23 @@ public class LoteService {
         return loteRepository.findAll();
     }
 
-    // Obtener lotes por producto
+    // Obtener lotes activos por producto
     public List<Lote> obtenerPorProducto(Long productoId) {
-        return loteRepository.findByProductoId(productoId);
+        return loteRepository.findByProductoIdAndCantidadGreaterThan(productoId, 0);
     }
 
     // Eliminar lote
     public void eliminarLote(Long id) {
-        loteRepository.deleteById(id);
+
+        Lote lote = loteRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Lote no encontrado"));
+
+        if (detalleVentaRepository.existsByLoteId(id)) {
+            throw new RuntimeException(
+                    "No se puede eliminar un lote que ya fue utilizado en una venta.");
+        }
+
+        loteRepository.delete(lote);
     }
 
     // 🔥 NUEVO: Lotes por vencer (2 meses)

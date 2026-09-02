@@ -8,12 +8,15 @@ import java.util.List;
 
 public interface LoteRepository extends JpaRepository<Lote, Long> {
 
-    // 🔹 Lotes por producto
+    // 🔥 Buscar todos los lotes de un producto
     List<Lote> findByProductoId(Long productoId);
 
-    // 🔹 Lotes ordenados por vencimiento (FIFO)
+    // 🔥 Lotes activos (con stock)
+    List<Lote> findByProductoIdAndCantidadGreaterThan(Long productoId, Integer cantidad);
+
+    // 🔥 Lotes ordenados por fecha de vencimiento (FEFO)
     List<Lote> findByProductoIdOrderByFechaVencimientoAsc(Long productoId);
 
-    // 🔥 NUEVO: contar lotes por día (para generar número de lote)
+    // 🔥 Cantidad de lotes creados en una fecha (para generar el número de lote)
     int countByFechaProduccion(LocalDate fechaProduccion);
 }

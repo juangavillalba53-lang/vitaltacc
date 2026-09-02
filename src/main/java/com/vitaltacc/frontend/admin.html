@@ -13,368 +13,571 @@
     <title>Admin - VitalTacc</title>
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/sidebar.css">
 </head>
 
 <body>
 
-    <header class="navbar">
+    <div class="admin-layout">
 
-        <a href="index.html" class="logo">
-            <img src="img/logo.png" alt="VitalTacc">
-        </a>
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
 
-        <nav class="nav-links">
-
-            <a href="index.html">Tienda</a>
-
-            <a href="#" onclick="mostrarPanel('producto')">
-                Productos
-            </a>
-
-            <a href="#seccion-usuarios">Usuarios</a>
-
-        </nav>
-
-        <div class="nav-user" id="nav-user"></div>
-
-    </header>
-
-    <div class="container-admin">
-        <section class="admin-section">
-
-            <div class="section-header">
-
-                <span>GESTIÓN</span>
-
-                <h2>Productos</h2>
-
+            <div class="sidebar-logo">
+                VitalTacc
             </div>
 
-            <div class="tabs-admin">
+            <div class="sidebar-title">
+                Principal
+            </div>
 
-                <button type="button" onclick="mostrarPanel('producto')">
-                    Agregar producto
+            <div class="sidebar-menu">
+
+                <button class="menu-principal" data-seccion="adminDashboard" onclick="mostrarSeccion('adminDashboard')">
+                    🏠 Dashboard
                 </button>
 
-                <button type="button" onclick="mostrarPanel('precio')">
-                    Editar precio
+                <button class="menu-principal" data-seccion="adminProductos" onclick="mostrarSeccion('adminProductos')">
+                    📦 Catálogo
                 </button>
 
-                <button type="button" onclick="mostrarPanel('lote')">
-                    Agregar lote
+                <button class="menu-principal" data-seccion="adminInventario"
+                    onclick="mostrarSeccion('adminInventario')">
+                    📋 Inventario
+                </button>
+
+                <button class="menu-principal" data-seccion="adminVentas" onclick="mostrarSeccion('adminVentas')">
+                    🛒 Ventas
+                </button>
+
+                <button class="menu-principal" data-seccion="adminPromociones"
+                    onclick="mostrarSeccion('adminPromociones')">
+                    💰 Promociones
+                </button>
+
+                <button class="menu-principal">
+                    👥 Clientes
+                </button>
+
+                <button class="menu-principal" data-seccion="adminUsuarios" onclick="mostrarSeccion('adminUsuarios')">
+                    👤 Usuarios
+                </button>
+
+                <button class="menu-principal" data-seccion="adminReportes" onclick="mostrarSeccion('adminReportes')">
+                    📊 Reportes
+                </button>
+
+                <button class="menu-principal">
+                    ⚙ Configuración
                 </button>
 
             </div>
 
-            <!-- 🔥 AGREGAR PRODUCTO -->
-            <div id="panel-producto" class="panel-admin">
-                <h2>Agregar producto</h2>
+        </aside>
 
-                <input type="text" id="nombreProducto" placeholder="Nombre del producto">
-                <input type="number" step="0.01" id="precioProducto" placeholder="Precio">
+        <!-- CONTENIDO -->
+        <main class="admin-content">
 
-                <label class="label-input">
-                    Imágenes del producto
-                </label>
+            <div class="container-admin">
+                <section class="admin-section vista-admin" id="adminDashboard">
 
-                <input type="file" id="imagenesProducto" multiple accept="image/*">
+                    <div class="section-header">
 
-                <button onclick="crearProducto()">Guardar producto</button>
+                        <span>RESUMEN</span>
+
+                        <h2>Dashboard</h2>
+
+                    </div>
+
+                    <div class="grid-admin">
+
+                        <div class="card-admin">
+                            <h2>Productos</h2>
+                            <p id="dashboardProductos">0</p>
+                        </div>
+
+                        <div class="card-admin">
+                            <h2>Lotes</h2>
+                            <p id="dashboardLotes">0</p>
+                        </div>
+
+                        <div class="card-admin">
+                            <h2>Promociones</h2>
+                            <p id="dashboardPromociones">0</p>
+                        </div>
+
+                        <div class="card-admin">
+                            <h2>Usuarios</h2>
+                            <p id="dashboardUsuarios">0</p>
+                        </div>
+
+                    </div>
+
+                </section>
+                <section class="admin-section vista-admin" id="adminProductos">
+
+                    <div class="section-header">
+
+                        <span>GESTIÓN</span>
+
+                        <h2>Productos</h2>
+
+                    </div>
+
+                    <div class="tabs-admin">
+
+                        <button type="button" onclick="mostrarPanel('producto')">
+                            Agregar producto
+                        </button>
+
+                        <button type="button" onclick="mostrarPanel('lote')">
+                            Agregar lote
+                        </button>
+
+                    </div>
+
+                    <!-- 🔥 AGREGAR PRODUCTO -->
+                    <div id="panel-producto" class="panel-admin">
+
+                        <h2>Agregar producto</h2>
+
+                        <input type="text" id="nombreProducto" placeholder="Nombre del producto">
+
+                        <input type="number" step="0.01" id="precioProducto" placeholder="Precio">
+
+                        <textarea id="descripcionProducto" rows="4" placeholder="Descripción"></textarea>
+
+                        <input type="number" id="stockMinimoProducto" placeholder="Stock mínimo">
+
+                        <label class="label-admin">
+                            Tipo de categoría
+                        </label>
+
+                        <select id="tipoCategoriaProducto">
+
+                            <option value="">
+                                Seleccionar tipo
+                            </option>
+
+                        </select>
+
+                        <label class="label-admin">
+                            Categoría
+                        </label>
+
+                        <select id="categoriaProducto">
+
+                            <option value="">
+                                Seleccionar categoría
+                            </option>
+
+                        </select>
+
+                        <label class="label-admin">
+                            Imágenes del producto
+                        </label>
+
+                        <input type="file" id="imagenesProducto" multiple accept="image/*">
+
+                        <button onclick="crearProducto()">
+                            Guardar producto
+                        </button>
+
+                    </div>
+
+                    <!-- 🔥 AGREGAR LOTE -->
+                    <div id="panel-lote" class="panel-admin">
+                        <h2>Agregar lote</h2>
+
+                        <select id="productoLote"></select>
+
+                        <input type="text" id="precioLote" placeholder="Precio" readonly>
+
+                        <input type="number" id="cantidadLote" placeholder="Cantidad">
+
+                        <label for="vencimientoLote" class="label-admin">
+                            Fecha de vencimiento
+                        </label>
+
+                        <input type="date" id="vencimientoLote">
+
+                        <button onclick="crearLote()">Guardar lote</button>
+
+                        <p id="loteCreado"></p>
+                    </div>
+
+                </section>
+
+                <!-- 🔥 LOTES -->
+                <section class="admin-section vista-admin" id="adminInventario">
+
+                    <div class="section-header">
+
+                        <span>CONTROL</span>
+
+                        <h2>Stock y lotes</h2>
+
+                    </div>
+
+                    <div class="card-admin full">
+
+                        <div class="header-lotes">
+
+                            <h2>Lotes por vencer</h2>
+
+                            <button onclick="toggleBusqueda()">
+                                Buscar
+                            </button>
+
+                        </div>
+
+                        <input type="text" id="busquedaLote" placeholder="Buscar producto o lote"
+                            oninput="buscarLotes()" style="display: none;">
+
+                        <div class="filtros-lotes">
+
+                            <button onclick="setFiltro('URGENTE')">
+                                Urgentes
+                            </button>
+
+                            <button onclick="setFiltro('ATENCION')">
+                                Atención
+                            </button>
+
+                            <button onclick="setFiltro('TODOS')">
+                                Todos
+                            </button>
+
+                        </div>
+
+                        <ul id="lotesVencer"></ul>
+
+                    </div>
+
+                    <!-- 🔥 GESTIÓN STOCK -->
+                    <div class="card-admin full">
+
+                        <h2>Gestión de stock</h2>
+
+                        <input type="text" id="buscarStock" placeholder="Buscar producto" oninput="filtrarStock()">
+
+                        <table class="tabla-stock">
+
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Precio</th>
+                                    <th>Stock</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tablaStock"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+                <section class="admin-section vista-admin" id="adminVentas">
+
+                    <div class="section-header">
+                        <span>COMERCIAL</span>
+                        <h2>Ventas</h2>
+                    </div>
+
+                    <h3>Nueva venta</h3>
+
+                    <input type="text" id="buscarProductoVenta" placeholder="Buscar producto..."
+                        oninput="buscarProductosVenta()">
+
+                    <div id="resultadosBusquedaVenta"></div>
+
+                    <table class="tabla-stock">
+
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Precio Unit.</th>
+                                <th>Subtotal</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="carritoVenta"></tbody>
+
+                    </table>
+
+                    <div class="resumen-venta">
+
+                        <div class="total-venta">
+                            <h2 id="totalVenta">Total: $0</h2>
+                        </div>
+
+                        <div class="datos-venta">
+
+                            <div class="izquierda-venta">
+
+                                <div class="campo-venta">
+
+                                    <label>Cliente</label>
+
+                                    <select id="tipoClienteVenta">
+                                        <option value="CONSUMIDOR_FINAL">Consumidor Final</option>
+                                        <option value="REGISTRADO">Cliente registrado</option>
+                                    </select>
+
+                                    <div id="contenedorDniVenta" class="contenedor-dni">
+                                        <input type="text" id="dniClienteVenta" placeholder="DNI del cliente"
+                                            onblur="buscarClientePorDni()">
+                                        <small id="estadoClienteVenta"></small>
+                                        <div id="nuevoClienteVenta" class="oculto">
+
+                                            <div class="campo-venta">
+                                                <label>Nombre</label>
+                                                <input type="text" id="nombreClienteVenta">
+                                            </div>
+
+                                            <div class="campo-venta">
+                                                <label>Apellido</label>
+                                                <input type="text" id="apellidoClienteVenta">
+                                            </div>
+
+                                            <div class="campo-venta">
+                                                <label>Teléfono (opcional)</label>
+                                                <input type="text" id="telefonoClienteVenta">
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div class="campo-venta">
+
+                                    <label>Método de pago</label>
+
+                                    <select id="metodoPagoVenta">
+                                        <option value="EFECTIVO">Efectivo</option>
+                                        <option value="TRANSFERENCIA">Transferencia</option>
+                                        <option value="TARJETA_DEBITO">Tarjeta Débito</option>
+                                        <option value="TARJETA_CREDITO">Tarjeta Crédito</option>
+                                        <option value="MERCADO_PAGO">Mercado Pago</option>
+                                        <option value="MODO">MODO</option>
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                            <div class="acciones-venta">
+
+                                <button class="btn-cancelar">
+                                    Cancelar
+                                </button>
+
+                                <button class="btn-confirmar">
+                                    Confirmar venta
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <section class="admin-section vista-admin" id="adminReportes">
+
+                    <div class="section-header">
+
+                        <span>REPORTES</span>
+
+                        <h2>Ventas y estadísticas</h2>
+
+                    </div>
+
+                    <!-- 🔥 FILTRO -->
+                    <div id="seccion-filtro" class="filtro">
+                        <h2>Filtrar por mes</h2>
+
+                        <select id="mes">
+                            <option value="1">Enero</option>
+                            <option value="2">Febrero</option>
+                            <option value="3">Marzo</option>
+                            <option value="4">Abril</option>
+                            <option value="5">Mayo</option>
+                            <option value="6">Junio</option>
+                            <option value="7">Julio</option>
+                            <option value="8">Agosto</option>
+                            <option value="9">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+
+                        <input type="number" id="anio" value="2026">
+
+                        <button onclick="filtrar()">Filtrar</button>
+
+                        <p id="filtroActual"></p>
+                    </div>
+
+                    <!-- 🔥 RESULTADOS (SOLO ADMIN) -->
+                    <div id="seccion-reportes" class="grid-admin">
+
+                        <div class="card-admin">
+                            <h2>Total facturado</h2>
+                            <p id="total"></p>
+                        </div>
+
+                        <div class="card-admin">
+                            <h2>Productos más vendidos</h2>
+                            <ul id="masVendidos"></ul>
+                        </div>
+
+                        <div class="card-admin">
+                            <h2>Top clientes</h2>
+                            <ul id="topClientes"></ul>
+                        </div>
+
+                        <div class="card-admin full">
+                            <h2>Ventas por año</h2>
+                            <canvas id="graficoVentas"></canvas>
+                        </div>
+
+                    </div>
+
+                </section>
+
+                <section class="admin-section vista-admin" id="adminPromociones">
+
+                    <div class="section-header">
+
+                        <span>COMERCIAL</span>
+
+                        <h2>Promociones</h2>
+
+                    </div>
+
+
+                    <!-- 🔥 PROMOCIONES -->
+                    <div id="seccion-promociones" class="card-admin full">
+
+                        <h3>Crear promoción</h3>
+
+                        <div class="crear-promocion">
+
+                            <select id="productoPromo">
+                                <option value="">
+                                    Promoción global (toda la tienda)
+                                </option>
+                            </select>
+
+                            <input type="text" id="descripcionPromo" placeholder="Descripción">
+
+                            <input type="number" id="descuentoPromo" placeholder="% descuento">
+
+                            <label for="inicioPromo" class="label-admin">
+                                Fecha inicio promoción
+                            </label>
+
+                            <input type="date" id="inicioPromo">
+
+                            <label for="finPromo" class="label-admin">
+                                Fecha fin promoción
+                            </label>
+
+                            <input type="date" id="finPromo">
+
+                            <button onclick="crearPromocion()">
+                                Crear promoción
+                            </button>
+
+                        </div>
+
+                        <table class="tabla-usuarios">
+
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Descripción</th>
+                                    <th>Descuento</th>
+                                    <th>Vigencia</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tablaPromociones"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+                <section class="admin-section vista-admin" id="adminUsuarios">
+
+                    <div class="section-header">
+
+                        <span>ADMINISTRACIÓN</span>
+
+                        <h2>Usuarios</h2>
+
+                    </div>
+
+                    <!-- 🔥 GESTIÓN USUARIOS -->
+                    <div id="seccion-usuarios" class="card-admin full">
+
+                        <h2>Gestionar usuarios</h2>
+
+                        <!-- 🔥 CREAR USUARIO -->
+                        <div class="crear-usuario">
+
+                            <input type="text" id="nombreUsuario" placeholder="Nombre">
+
+                            <input type="email" id="emailUsuario" placeholder="Email">
+
+                            <input type="password" id="contrasenaUsuario" placeholder="Contraseña temporal">
+
+                            <select id="rolUsuario">
+                                <option value="EMPLEADO">EMPLEADO</option>
+                                <option value="ADMIN">ADMIN</option>
+                            </select>
+
+                            <button onclick="crearUsuario()">
+                                Crear usuario
+                            </button>
+
+                        </div>
+
+                        <!-- 🔥 TABLA -->
+                        <table class="tabla-usuarios">
+
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nombre</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tablaUsuarios"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
             </div>
-
-            <!-- 🔥 EDITAR PRECIO -->
-            <div id="panel-precio" class="panel-admin">
-                <h2>Editar precio</h2>
-
-                <select id="productoEditar"></select>
-
-                <input type="number" step="0.01" id="nuevoPrecio" placeholder="Nuevo precio">
-
-                <button type="button" onclick="actualizarPrecio()">Actualizar precio</button>
-            </div>
-
-            <!-- 🔥 AGREGAR LOTE -->
-            <div id="panel-lote" class="panel-admin">
-                <h2>Agregar lote</h2>
-
-                <select id="productoLote"></select>
-
-                <input type="text" id="precioLote" placeholder="Precio" readonly>
-
-                <input type="number" id="cantidadLote" placeholder="Cantidad">
-
-                <label for="vencimientoLote" class="label-admin">
-                    Fecha de vencimiento
-                </label>
-
-                <input type="date" id="vencimientoLote">
-
-                <button onclick="crearLote()">Guardar lote</button>
-
-                <p id="loteCreado"></p>
-            </div>
-
-        </section>
-
-        <!-- 🔥 LOTES -->
-        <section class="admin-section">
-
-            <div class="section-header">
-
-                <span>CONTROL</span>
-
-                <h2>Stock y lotes</h2>
-
-            </div>
-
-            <div class="card-admin full">
-
-                <div class="header-lotes">
-
-                    <h2>Lotes por vencer</h2>
-
-                    <button onclick="toggleBusqueda()">
-                        Buscar
-                    </button>
-
-                </div>
-
-                <input type="text" id="busquedaLote" placeholder="Buscar producto o lote" oninput="buscarLotes()"
-                    style="display: none;">
-
-                <div class="filtros-lotes">
-
-                    <button onclick="setFiltro('URGENTE')">
-                        Urgentes
-                    </button>
-
-                    <button onclick="setFiltro('ATENCION')">
-                        Atención
-                    </button>
-
-                    <button onclick="setFiltro('TODOS')">
-                        Todos
-                    </button>
-
-                </div>
-
-                <ul id="lotesVencer"></ul>
-
-            </div>
-
-            <!-- 🔥 GESTIÓN STOCK -->
-            <div class="card-admin full">
-
-                <h2>Gestión de stock</h2>
-
-                <input type="text" id="buscarStock" placeholder="Buscar producto" oninput="filtrarStock()">
-
-                <table class="tabla-stock">
-
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Precio</th>
-                            <th>Stock</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="tablaStock"></tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-        <section class="admin-section" id="adminReportes">
-
-            <div class="section-header">
-
-                <span>REPORTES</span>
-
-                <h2>Ventas y estadísticas</h2>
-
-            </div>
-
-            <!-- 🔥 FILTRO -->
-            <div id="seccion-filtro" class="filtro">
-                <h2>Filtrar por mes</h2>
-
-                <select id="mes">
-                    <option value="1">Enero</option>
-                    <option value="2">Febrero</option>
-                    <option value="3">Marzo</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Mayo</option>
-                    <option value="6">Junio</option>
-                    <option value="7">Julio</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Septiembre</option>
-                    <option value="10">Octubre</option>
-                    <option value="11">Noviembre</option>
-                    <option value="12">Diciembre</option>
-                </select>
-
-                <input type="number" id="anio" value="2026">
-
-                <button onclick="filtrar()">Filtrar</button>
-
-                <p id="filtroActual"></p>
-            </div>
-
-            <!-- 🔥 RESULTADOS (SOLO ADMIN) -->
-            <div id="seccion-reportes" class="grid-admin">
-
-                <div class="card-admin">
-                    <h2>Total facturado</h2>
-                    <p id="total"></p>
-                </div>
-
-                <div class="card-admin">
-                    <h2>Productos más vendidos</h2>
-                    <ul id="masVendidos"></ul>
-                </div>
-
-                <div class="card-admin">
-                    <h2>Top clientes</h2>
-                    <ul id="topClientes"></ul>
-                </div>
-
-                <div class="card-admin full">
-                    <h2>Ventas por año</h2>
-                    <canvas id="graficoVentas"></canvas>
-                </div>
-
-            </div>
-
-        </section>
-
-        <section class="admin-section" id="adminPromociones">
-
-            <div class="section-header">
-
-                <span>COMERCIAL</span>
-
-                <h2>Promociones</h2>
-
-            </div>
-
-
-            <!-- 🔥 PROMOCIONES -->
-            <div id="seccion-promociones" class="card-admin full">
-
-                <h3>Crear promoción</h3>
-
-                <div class="crear-promocion">
-
-                    <select id="productoPromo">
-                        <option value="">
-                            Promoción global (toda la tienda)
-                        </option>
-                    </select>
-
-                    <input type="text" id="descripcionPromo" placeholder="Descripción">
-
-                    <input type="number" id="descuentoPromo" placeholder="% descuento">
-
-                    <label for="inicioPromo" class="label-admin">
-                        Fecha inicio promoción
-                    </label>
-
-                    <input type="date" id="inicioPromo">
-
-                    <label for="finPromo" class="label-admin">
-                        Fecha fin promoción
-                    </label>
-
-                    <input type="date" id="finPromo">
-
-                    <button onclick="crearPromocion()">
-                        Crear promoción
-                    </button>
-
-                </div>
-
-                <table class="tabla-usuarios">
-
-                    <thead>
-                        <tr>
-                            <th>Producto</th>
-                            <th>Descripción</th>
-                            <th>Descuento</th>
-                            <th>Vigencia</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="tablaPromociones"></tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-        <section class="admin-section" id="adminUsuarios">
-
-            <div class="section-header">
-
-                <span>ADMINISTRACIÓN</span>
-
-                <h2>Usuarios</h2>
-
-            </div>
-
-            <!-- 🔥 GESTIÓN USUARIOS -->
-            <div id="seccion-usuarios" class="card-admin full">
-
-                <h2>Gestionar usuarios</h2>
-
-                <!-- 🔥 CREAR USUARIO -->
-                <div class="crear-usuario">
-
-                    <input type="text" id="nombreUsuario" placeholder="Nombre">
-
-                    <input type="email" id="emailUsuario" placeholder="Email">
-
-                    <input type="password" id="contrasenaUsuario" placeholder="Contraseña temporal">
-
-                    <select id="rolUsuario">
-                        <option value="EMPLEADO">EMPLEADO</option>
-                        <option value="ADMIN">ADMIN</option>
-                    </select>
-
-                    <button onclick="crearUsuario()">
-                        Crear usuario
-                    </button>
-
-                </div>
-
-                <!-- 🔥 TABLA -->
-                <table class="tabla-usuarios">
-
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Nombre</th>
-                            <th>Email</th>
-                            <th>Rol</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="tablaUsuarios"></tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
+        </main>
     </div>
-
     <!-- 🔥 MODAL LOTES -->
 
     <div id="modalLotes" class="modal-lotes">
@@ -407,6 +610,22 @@
 
             <h3 id="tituloEditarProducto"></h3>
 
+            <input type="text" id="editarNombre" placeholder="Nombre del producto">
+
+            <input type="number" step="0.01" id="editarPrecio" placeholder="Precio">
+
+            <label class="label-admin">
+                Tipo de categoría
+            </label>
+
+            <input type="text" id="editarTipoCategoria" readonly>
+
+            <label class="label-admin">
+                Categoría
+            </label>
+
+            <input type="text" id="editarCategoria" readonly>
+
             <textarea id="editarDescripcion" placeholder="Descripción" rows="4"></textarea>
 
             <div id="imagenesActuales" class="preview-imagenes"></div>
@@ -426,9 +645,13 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script src="js/global.js"></script>
+
     <script src="js/auth.js"></script>
+
     <script src="js/admin.js"></script>
+
 
 </body>
 

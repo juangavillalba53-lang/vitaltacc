@@ -819,3 +819,84 @@ canvas {
 
     margin-top: 20px;
 }
+
+.resumen-venta {
+    margin-top: 30px;
+}
+
+.total-venta {
+    margin-bottom: 25px;
+}
+
+.datos-venta {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 25px;
+}
+
+.izquierda-venta {
+    display: flex;
+    gap: 40px;
+}
+
+.campo-venta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.campo-venta label {
+    font-weight: 600;
+}
+
+.campo-venta select,
+.campo-venta input {
+    min-width: 220px;
+}
+
+.acciones-venta {
+    display: flex;
+    gap: 15px;
+    align-self: flex-end;
+}
+
+.btn-cancelar {
+    background: #e5e7eb;
+}
+
+.btn-confirmar {
+    background: #22c55e;
+    color: white;
+}
+
+.contenedor-dni {
+    height: 42px;
+    margin-top: 8px;
+}
+
+#dniClienteVenta {
+    width: 100%;
+}
+
+.oculto {
+    visibility: hidden;
+}
+
+.campo-venta input,
+.campo-venta select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#nuevoClienteVenta {
+    margin-top: 10px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+#nuevoClienteVenta .campo-venta {
+    flex: 1;
+    min-width: 180px;
+}

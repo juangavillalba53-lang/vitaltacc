@@ -338,36 +338,34 @@ function mostrarToast(texto) {
     }, 2000);
 }
 
-// 🔥 MODAL BIENVENIDA
+// 🔥 BIENVENIDA INVITADO
 
-function verificarModalBienvenida() {
+function cerrarBienvenida() {
 
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
+    document.getElementById(
+        "bienvenidaInvitado"
+    ).style.display = "none";
+}
 
-    const modal = document.getElementById("modalBienvenida");
+window.addEventListener("load", () => {
 
-    // 🔥 si está logueado NO mostrar
+    const usuario =
+        JSON.parse(localStorage.getItem("usuario"));
+
+    const bienvenida =
+        document.getElementById("bienvenidaInvitado");
+
+    if (!bienvenida) return;
+
     if (usuario) {
 
-        modal.style.display = "none";
-        return;
+        bienvenida.style.display = "none";
+
+    } else {
+
+        bienvenida.style.display = "block";
     }
-
-    // 🔥 mostrar modal
-    modal.style.display = "flex";
-}
-
-function cerrarModal() {
-
-    document.getElementById("modalBienvenida").style.display = "none";
-}
-
-function abrirLogin() {
-
-    window.location.href = "login.html";
-}
-
-verificarModalBienvenida();
+});
 
 // 🔥 MODAL REGISTRO
 
@@ -442,4 +440,54 @@ function registrarse() {
             alert("Error al registrarse");
         });
 }
+
+function controlarGuestCard() {
+
+    const card =
+        document.getElementById("guestCard");
+
+    if (!card) return;
+
+    const usuario =
+        JSON.parse(localStorage.getItem("usuario"));
+
+    if (usuario) {
+
+        card.style.display = "none";
+
+    } else {
+
+        card.style.display = "block";
+    }
+}
+
+controlarGuestCard();
+
+function cerrarBienvenida() {
+
+    document.getElementById(
+        "bienvenidaInvitado"
+    ).style.display = "none";
+}
+
+window.addEventListener("load", () => {
+
+    const usuario =
+        JSON.parse(localStorage.getItem("usuario"));
+
+    const bienvenida =
+        document.getElementById("bienvenidaInvitado");
+
+    const guestCard =
+        document.getElementById("guestCard");
+
+    if (usuario) {
+
+        if (bienvenida)
+            bienvenida.style.display = "none";
+
+        if (guestCard)
+            guestCard.style.display = "none";
+    }
+});
 

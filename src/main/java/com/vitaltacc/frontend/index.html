@@ -21,31 +21,38 @@
     <header class="navbar">
 
         <!-- LOGO -->
+
         <a href="index.html" class="logo">
+
             <img src="img/logo.png" alt="VitalTacc">
+
         </a>
 
-        <!-- MENU -->
+        <!-- LINKS -->
+
         <nav class="nav-links">
 
-            <a href="index.html">Inicio</a>
+            <a href="index.html">
+                Inicio
+            </a>
 
-            <a href="nosotras.html">Nosotras</a>
+            <a href="nosotras.html">
+                Nosotras
+            </a>
 
-            <a href="#productos">Productos</a>
+            <a href="#productos">
+                Productos
+            </a>
 
         </nav>
 
-        <button class="menu-toggle" id="menuToggle">
-
-            ☰
-
-        </button>
-
         <!-- DERECHA -->
+
         <div class="nav-user">
 
-            <div id="nav-user"></div>
+            <div id="navbar-actions"></div>
+
+            <!-- CARRITO -->
 
             <button class="cart-btn" onclick="abrirCarrito()">
 
@@ -56,6 +63,26 @@
                 </span>
 
             </button>
+
+            <!-- MENU -->
+
+            <button class="menu-toggle" id="menuToggle">
+
+                <i class="fa-solid fa-bars"></i>
+
+            </button>
+
+        </div>
+
+        <!-- PANEL MENU -->
+
+        <div class="menu-panel" id="menuPanel">
+
+            <div class="menu-panel-content">
+
+                <div id="nav-user"></div>
+
+            </div>
 
         </div>
 
@@ -198,22 +225,41 @@
             <div class="contenido-carrito">
 
                 <button class="cerrar-carrito" onclick="cerrarCarrito()">
-
                     ✖
                 </button>
 
-                <h2>Tu carrito</h2>
+                <div class="carrito-header">
+
+                    <div class="carrito-icono">
+                        🛒
+                    </div>
+
+                    <h2>Tu carrito</h2>
+
+                    <p>
+                        Revisá tus productos antes de finalizar la compra
+                    </p>
+
+                </div>
 
                 <ul id="lista-carrito"></ul>
 
-                <p class="total">
-                    Total: $<span id="total">0</span>
-                </p>
+                <div class="resumen-carrito">
 
-                <button class="btn-finalizar" onclick="finalizarCompra()">
+                    <p class="total">
 
-                    Finalizar compra
-                </button>
+                        Total:
+                        <span>
+                            $<span id="total">0</span>
+                        </span>
+
+                    </p>
+
+                    <button class="btn-finalizar" onclick="finalizarCompra()">
+                        Finalizar compra
+                    </button>
+
+                </div>
 
             </div>
 
@@ -380,6 +426,74 @@
         Producto agregado al carrito
 
     </div>
+
+    <!-- BIENVENIDA INVITADO -->
+
+    <div id="bienvenidaInvitado" class="bienvenida-invitado">
+
+        <button class="cerrar-bienvenida" onclick="cerrarBienvenida()">
+            ✕
+        </button>
+
+        <h3>
+            👋 Bienvenido a VitalTacc
+        </h3>
+
+        <p>
+            Iniciá sesión / Registrate para guardar tus pedidos,
+            ver tu historial y comprar más rápido.
+        </p>
+
+        <div class="bienvenida-botones">
+
+            <a href="login.html" class="btn-login-mini">
+                Iniciar sesión
+            </a>
+
+            <button class="btn-registro-mini" onclick="abrirRegistro()">
+                Registrarme
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- MODAL REGISTRO -->
+
+    <div id="modalRegistro" class="modal-registro">
+
+        <div class="contenido-registro">
+
+            <button class="cerrar-registro" onclick="cerrarRegistro()">
+                ✕
+            </button>
+
+            <h2>Crear cuenta</h2>
+
+            <p>
+                Registrate para guardar tus compras y acceder a promociones.
+            </p>
+
+            <input type="text" id="registroNombre" placeholder="Nombre completo">
+
+            <input type="text" id="registroDni" placeholder="DNI">
+
+            <input type="text" id="registroTelefono" placeholder="Teléfono">
+
+            <input type="email" id="registroEmail" placeholder="Email">
+
+            <input type="password" id="registroContrasena" placeholder="Contraseña">
+
+            <input type="password" id="registroContrasena2" placeholder="Repetir contraseña">
+
+            <button class="btn-hero" onclick="registrarse()">
+                Crear cuenta
+            </button>
+
+        </div>
+
+    </div>
+
     <script src="js/global.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/app.js"></script>

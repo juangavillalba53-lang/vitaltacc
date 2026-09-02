@@ -1,0 +1,180 @@
+/* ===========================
+   SIDEBAR ADMIN
+===========================*/
+
+body {
+
+    background: #f5f7fb;
+
+}
+
+.admin-layout {
+
+    display: flex;
+    min-height: 100vh;
+
+}
+
+.sidebar {
+
+    width: 260px;
+
+    background: #ffffff;
+
+    border-right: 1px solid #e5e7eb;
+
+    position: fixed;
+
+    left: 0;
+
+    top: 0;
+
+    bottom: 0;
+
+    padding: 25px;
+
+    overflow-y: auto;
+
+}
+
+.sidebar-logo {
+
+    font-size: 28px;
+
+    font-weight: 700;
+
+    color: #14b8a6;
+
+    margin-bottom: 40px;
+
+}
+
+.sidebar-title {
+
+    color: #9ca3af;
+
+    font-size: 12px;
+
+    margin: 25px 0 10px;
+
+    text-transform: uppercase;
+
+    letter-spacing: 2px;
+
+}
+
+.sidebar-menu {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+
+}
+
+.sidebar-menu button {
+
+    width: 100%;
+
+    text-align: left;
+
+    background: none;
+
+    border: none;
+
+    padding: 14px 18px;
+
+    border-radius: 12px;
+
+    cursor: pointer;
+
+    font-size: 15px;
+
+    font-weight: 600;
+
+    transition: .25s;
+
+}
+
+.sidebar-menu button:hover {
+
+    background: #ecfeff;
+
+    color: #14b8a6;
+
+}
+
+.menu-principal.activo {
+    background: #eefaf8;
+    color: #19b5a5;
+    font-weight: 700;
+    border-left: 4px solid #19b5a5;
+}
+
+.admin-content {
+
+    margin-left: 260px;
+
+    width: calc(100% - 260px);
+
+    padding: 40px;
+
+}
+
+.menu-principal {
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+}
+
+.submenu {
+
+    margin-left: 18px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 4px;
+
+    margin-bottom: 15px;
+
+}
+
+.submenu button {
+
+    background: transparent;
+
+    border: none;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    color: #666;
+
+    padding: 8px 12px;
+
+    border-radius: 8px;
+
+    transition: .2s;
+
+}
+
+.submenu button:hover {
+
+    background: #ecfeff;
+
+    color: #14b8a6;
+
+}
+
+.menu-principal.activo {
+    background: #eefaf8;
+    color: #19b5a5;
+    font-weight: 700;
+    border-left: 4px solid #19b5a5;
+}
