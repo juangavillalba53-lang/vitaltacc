@@ -8,7 +8,6 @@ import com.vitaltacc.dto.VentaRequest;
 import java.time.LocalDate;
 
 import java.util.Map;
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -79,7 +78,7 @@ public class VentaController {
     }
 
     @GetMapping("/cierre-caja")
-    public Map<String, Object> obtenerReportePorDia(LocalDate fecha) {
+    public Map<String, Object> obtenerCierreCaja() {
         return ventaService.obtenerCierreCajaHoy();
     }
 
@@ -89,5 +88,50 @@ public class VentaController {
 
         return ventaService.obtenerReportePorDia(
                 java.time.LocalDate.parse(fecha));
+    }
+
+    @GetMapping("/cantidad-ventas/mes")
+    public int obtenerCantidadVentasMes(
+            @RequestParam int mes,
+            @RequestParam int anio) {
+
+        return ventaService.obtenerCantidadVentasPorMes(mes, anio);
+    }
+
+    @GetMapping("/cantidad-ventas/anio")
+    public int obtenerCantidadVentasAnio(
+            @RequestParam int anio) {
+
+        return ventaService.obtenerCantidadVentasPorAnio(anio);
+    }
+
+    @GetMapping("/mas-vendidos/por-dia")
+    public List<Map<String, Object>> obtenerMasVendidosPorDia(
+            @RequestParam String fecha) {
+
+        return ventaService.obtenerProductosMasVendidosPorDia(
+                LocalDate.parse(fecha));
+    }
+
+    @GetMapping("/top-clientes/por-dia")
+    public List<Map<String, Object>> obtenerTopClientesPorDia(
+            @RequestParam String fecha) {
+
+        return ventaService.obtenerTopClientesPorDia(
+                LocalDate.parse(fecha));
+    }
+
+    @GetMapping("/mas-vendidos/por-anio")
+    public List<Map<String, Object>> obtenerMasVendidosPorAnio(
+            @RequestParam int anio) {
+
+        return ventaService.obtenerProductosMasVendidosPorAnio(anio);
+    }
+
+    @GetMapping("/top-clientes/por-anio")
+    public List<Map<String, Object>> obtenerTopClientesPorAnio(
+            @RequestParam int anio) {
+
+        return ventaService.obtenerTopClientesPorAnio(anio);
     }
 }

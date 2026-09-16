@@ -1009,3 +1009,8 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.numero-grande {
+    font-size: 40px;
+    font-weight: 700;
+}

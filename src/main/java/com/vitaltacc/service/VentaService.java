@@ -375,4 +375,141 @@ public class VentaService {
 
         return data;
     }
+
+    public int obtenerCantidadVentasPorMes(int mes, int anio) {
+
+        return (int) ventaRepository.findAll().stream()
+                .filter(v -> v.getFecha() != null
+                        && v.getFecha().getMonthValue() == mes
+                        && v.getFecha().getYear() == anio)
+                .count();
+    }
+
+    public int obtenerCantidadVentasPorAnio(int anio) {
+
+        return (int) ventaRepository.findAll().stream()
+                .filter(v -> v.getFecha() != null
+                        && v.getFecha().getYear() == anio)
+                .count();
+    }
+
+    public List<Map<String, Object>> obtenerProductosMasVendidosPorDia(LocalDate fecha) {
+
+        Map<String, Integer> conteo = new HashMap<>();
+
+        for (Venta venta : ventaRepository.findAll()) {
+
+            if (!venta.getFecha().equals(fecha))
+                continue;
+
+            for (DetalleVenta detalle : venta.getDetalles()) {
+
+                String nombre = detalle.getProducto().getNombre();
+
+                conteo.put(
+                        nombre,
+                        conteo.getOrDefault(nombre, 0)
+                                + detalle.getCantidad());
+            }
+        }
+
+        return ordenarResultados(conteo);
+    }
+
+    public List<Map<String, Object>> obtenerProductosMasVendidosPorAnio(int anio) {
+
+        Map<String, Integer> conteo = new HashMap<>();
+
+        for (Venta venta : ventaRepository.findAll()) {
+
+            if (venta.getFecha().getYear() != anio)
+                continue;
+
+            for (DetalleVenta detalle : venta.getDetalles()) {
+
+                String nombre = detalle.getProducto().getNombre();
+
+                conteo.put(
+                        nombre,
+                        conteo.getOrDefault(nombre, 0)
+                                + detalle.getCantidad());
+            }
+        }
+
+        return ordenarResultados(conteo);
+    }
+
+    public List<Map<String, Object>> obtenerTopClientesPorDia(LocalDate fecha) {
+
+        Map<String, Double> clientes = new HashMap<>();
+
+        for (Venta venta : ventaRepository.findAll()) {
+
+            if (!venta.getFecha().equals(fecha))
+                continue;
+
+            if (venta.getCliente() == null)
+                continue;
+
+            String nombre = venta.getCliente().getNombre();
+
+            clientes.put(
+                    nombre,
+                    clientes.getOrDefault(nombre, 0.0)
+                            + venta.getTotal());
+        }
+
+        return clientes.entrySet()
+                .stream()
+                .map(entry -> {
+
+                    Map<String, Object> data = new HashMap<>();
+
+                    data.put("cliente", entry.getKey());
+                    data.put("totalGastado", entry.getValue());
+
+                    return data;
+
+                })
+                .sorted((a, b) -> ((Double) b.get("totalGastado"))
+                        .compareTo((Double) a.get("totalGastado")))
+                .toList();
+    }
+
+    public List<Map<String, Object>> obtenerTopClientesPorAnio(int anio) {
+
+        Map<String, Double> clientes = new HashMap<>();
+
+        for (Venta venta : ventaRepository.findAll()) {
+
+            if (venta.getFecha().getYear() != anio)
+                continue;
+
+            if (venta.getCliente() == null)
+                continue;
+
+            String nombre = venta.getCliente().getNombre();
+
+            clientes.put(
+                    nombre,
+                    clientes.getOrDefault(nombre, 0.0)
+                            + venta.getTotal());
+        }
+
+        return clientes.entrySet()
+                .stream()
+                .map(entry -> {
+
+                    Map<String, Object> data = new HashMap<>();
+
+                    data.put("cliente", entry.getKey());
+                    data.put("totalGastado", entry.getValue());
+
+                    return data;
+
+                })
+                .sorted((a, b) -> ((Double) b.get("totalGastado"))
+                        .compareTo((Double) a.get("totalGastado")))
+                .toList();
+    }
 }

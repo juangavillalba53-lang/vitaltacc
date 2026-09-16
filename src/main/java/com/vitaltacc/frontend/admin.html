@@ -400,30 +400,65 @@
 
                     </div>
 
-                    <!-- 🔥 FILTRO -->
                     <div id="seccion-filtro" class="filtro">
-                        <h2>Filtrar por mes</h2>
 
-                        <select id="mes">
-                            <option value="1">Enero</option>
-                            <option value="2">Febrero</option>
-                            <option value="3">Marzo</option>
-                            <option value="4">Abril</option>
-                            <option value="5">Mayo</option>
-                            <option value="6">Junio</option>
-                            <option value="7">Julio</option>
-                            <option value="8">Agosto</option>
-                            <option value="9">Septiembre</option>
-                            <option value="10">Octubre</option>
-                            <option value="11">Noviembre</option>
-                            <option value="12">Diciembre</option>
-                        </select>
+                        <div class="tabs-reportes">
 
-                        <input type="number" id="anio" value="2026">
+                            <button onclick="mostrarFiltro('dia')">Día</button>
 
-                        <button onclick="filtrar()">Filtrar</button>
+                            <button onclick="mostrarFiltro('mes')">Mes</button>
+
+                            <button onclick="mostrarFiltro('anio')">Año</button>
+
+                        </div>
+
+                        <div id="filtroDia" style="display:none;">
+
+                            <h3>Reporte por día</h3>
+
+                            <input type="date" id="fechaReporte">
+
+                            <button onclick="filtrarDia()">Buscar</button>
+
+                        </div>
+
+                        <div id="filtroMes">
+
+                            <h3>Reporte por mes</h3>
+
+                            <select id="mes">
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+
+                            <input type="number" id="anio" value="2026">
+
+                            <button onclick="filtrar()">Filtrar</button>
+
+                        </div>
+
+                        <div id="filtroAnio" style="display:none;">
+
+                            <h3>Reporte por año</h3>
+
+                            <input type="number" id="anioReporte" value="2026">
+
+                            <button onclick="filtrarAnio()">Buscar</button>
+
+                        </div>
 
                         <p id="filtroActual"></p>
+
                     </div>
 
                     <!-- 🔥 RESULTADOS (SOLO ADMIN) -->
@@ -432,6 +467,11 @@
                         <div class="card-admin">
                             <h2>Total facturado</h2>
                             <p id="total"></p>
+                        </div>
+
+                        <div class="card-admin">
+                            <h2>Cantidad de ventas</h2>
+                            <p id="cantidadVentas" class="numero-grande"></p>
                         </div>
 
                         <div class="card-admin">
@@ -651,6 +691,8 @@
     <script src="js/auth.js"></script>
 
     <script src="js/admin.js"></script>
+
+    <script src="js/admin/estadisticas.js"></script>
 
 
 </body>
