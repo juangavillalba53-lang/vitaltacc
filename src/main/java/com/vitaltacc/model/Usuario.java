@@ -26,7 +26,6 @@ public class Usuario {
     private String email;
 
     @Column(nullable = false)
-    @JsonIgnore
     private String contrasena;
 
     @Column(nullable = false, unique = true)
