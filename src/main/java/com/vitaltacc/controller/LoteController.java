@@ -83,9 +83,9 @@ public class LoteController {
 
             String alerta;
 
-            if (diasRestantes <= 7) {
+            if (diasRestantes <= 15) {
                 alerta = "URGENTE";
-            } else if (diasRestantes <= 30) {
+            } else if (diasRestantes <= 20) {
                 alerta = "ATENCION";
             } else {
                 alerta = "OK";

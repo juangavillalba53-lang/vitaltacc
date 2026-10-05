@@ -4,7 +4,6 @@ import com.vitaltacc.model.Lote;
 import com.vitaltacc.repository.DetalleVentaRepository;
 import com.vitaltacc.repository.LoteRepository;
 import com.vitaltacc.repository.ProductoRepository;
-import com.vitaltacc.repository.DetalleVentaRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -47,6 +46,10 @@ public class LoteService {
         lote.setFechaProduccion(hoy);
 
         lote.setCantidadInicial(lote.getCantidad());
+
+        if (lote.getProducto() == null) {
+            throw new RuntimeException("Debe seleccionar un producto");
+        }
 
         // 🔥 asegurar producto correcto
         Long productoId = lote.getProducto().getId();

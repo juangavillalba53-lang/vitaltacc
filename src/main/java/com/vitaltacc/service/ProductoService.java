@@ -1,6 +1,7 @@
 package com.vitaltacc.service;
 
 import com.vitaltacc.model.Categoria;
+import com.vitaltacc.model.Lote;
 import com.vitaltacc.model.Producto;
 import com.vitaltacc.model.ProductoImagen;
 import com.vitaltacc.model.Promocion;
@@ -65,8 +66,6 @@ public class ProductoService {
         if (imagenes != null) {
 
             for (MultipartFile imagen : imagenes) {
-
-                System.out.println("Imagen recibida: " + imagen.getOriginalFilename());
 
                 try {
 
@@ -242,9 +241,12 @@ public class ProductoService {
     // 🔥 Calcular stock
     public Integer calcularStock(Producto producto) {
 
+        LocalDate hoy = LocalDate.now();
+
         return loteRepository.findByProductoId(producto.getId())
                 .stream()
-                .mapToInt(lote -> lote.getCantidad())
+                .filter(lote -> !lote.getFechaVencimiento().isBefore(hoy))
+                .mapToInt(Lote::getCantidad)
                 .sum();
     }
 

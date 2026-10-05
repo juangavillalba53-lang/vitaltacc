@@ -244,3 +244,128 @@ function buscarClientePorDni() {
         });
 
 }
+
+function confirmarVenta() {
+
+    if (carrito.length === 0) {
+
+        alert("Agregar al menos un producto.");
+
+        return;
+    }
+
+    const metodoPago =
+        document.getElementById("metodoPagoVenta").value;
+
+    const tipoCliente =
+        document.getElementById("tipoClienteVenta").value;
+
+    const venta = {
+
+        empleadoId: usuario.id,
+
+        metodoPago: metodoPago,
+
+        tipoVenta: "LOCAL",
+
+        detalles: carrito.map(item => ({
+            productoId: item.id,
+            cantidad: item.cantidad
+        }))
+    };
+
+    if (tipoCliente === "REGISTRADO") {
+
+        const dni =
+            document.getElementById("dniClienteVenta").value.trim();
+
+        if (!dni) {
+
+            alert("Ingresar DNI.");
+
+            return;
+        }
+
+        venta.dniCliente = dni;
+
+        if (clienteVenta) {
+
+            venta.clienteId = clienteVenta.id;
+
+        } else {
+
+            venta.nombreCliente =
+                document.getElementById("nombreClienteVenta").value.trim();
+
+            venta.apellidoCliente =
+                document.getElementById("apellidoClienteVenta").value.trim();
+
+            if (
+                !venta.nombreCliente ||
+                !venta.apellidoCliente
+            ) {
+
+                alert("Completar nombre y apellido.");
+
+                return;
+            }
+        }
+    }
+
+    fetch("http://localhost:8080/ventas", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify(venta)
+
+    })
+
+        .then(async res => {
+
+            const texto = await res.text();
+
+            if (!res.ok) {
+                throw new Error(texto);
+            }
+
+            return texto ? JSON.parse(texto) : {};
+        })
+
+        .then(() => {
+
+            alert("Venta registrada correctamente.");
+
+            carrito = [];
+
+            renderCarrito();
+
+            document.getElementById("buscarProductoVenta").value = "";
+
+            document.getElementById("dniClienteVenta").value = "";
+
+            document.getElementById("estadoClienteVenta").innerText = "";
+
+            document.getElementById("nuevoClienteVenta")
+                .classList.add("oculto");
+
+            clienteVenta = null;
+
+            cargarProductos();
+            cargarStock();
+            cargarDashboard();
+
+        })
+
+        .catch(error => {
+
+            console.error(error);
+
+            alert(error.message);
+
+        });
+
+}

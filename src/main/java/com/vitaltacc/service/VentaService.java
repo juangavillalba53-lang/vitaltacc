@@ -51,6 +51,13 @@ public class VentaService {
         Usuario empleado = usuarioRepository.findById(ventaRequest.getEmpleadoId())
                 .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
 
+        if (empleado.getRol() != Rol.ADMIN &&
+                empleado.getRol() != Rol.EMPLEADO) {
+
+            throw new RuntimeException(
+                    "Usuario sin permisos para registrar ventas");
+        }
+
         venta.setEmpleado(empleado);
 
         if (ventaRequest.getClienteId() != null) {
@@ -108,9 +115,11 @@ public class VentaService {
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
             List<Lote> lotes = loteRepository
-                    .findByProductoIdOrderByFechaVencimientoAsc(producto.getId());
-
-            lotes.removeIf(l -> l.getCantidad() <= 0);
+                    .findByProductoIdOrderByFechaVencimientoAsc(producto.getId())
+                    .stream()
+                    .filter(l -> l.getCantidad() > 0)
+                    .filter(l -> !l.getFechaVencimiento().isBefore(LocalDate.now()))
+                    .toList();
 
             int stockDisponible = lotes.stream()
                     .mapToInt(Lote::getCantidad)
@@ -144,6 +153,8 @@ public class VentaService {
                 venta.getDetalles().add(detalle);
 
                 lote.setCantidad(lote.getCantidad() - cantidadTomada);
+
+                loteRepository.save(lote);
 
                 totalVenta += cantidadTomada * producto.getPrecio();
 

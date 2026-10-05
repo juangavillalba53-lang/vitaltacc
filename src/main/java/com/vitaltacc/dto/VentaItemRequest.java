@@ -4,7 +4,6 @@ public class VentaItemRequest {
 
     private Long productoId;
     private Integer cantidad;
-    private Double precioUnitario;
 
     public Long getProductoId() {
         return productoId;
@@ -20,13 +19,5 @@ public class VentaItemRequest {
 
     public void setCantidad(Integer cantidad) {
         this.cantidad = cantidad;
-    }
-
-    public Double getPrecioUnitario() {
-        return precioUnitario;
-    }
-
-    public void setPrecioUnitario(Double precioUnitario) {
-        this.precioUnitario = precioUnitario;
     }
 }

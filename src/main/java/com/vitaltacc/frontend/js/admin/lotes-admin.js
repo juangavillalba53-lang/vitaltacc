@@ -78,6 +78,21 @@ function cargarLotesPorVencer() {
 
             const lista = document.getElementById("lotesVencer");
 
+            const urgentes =
+                data.filter(l => l.alerta === "URGENTE").length;
+
+            const atencion =
+                data.filter(l => l.alerta === "ATENCION").length;
+
+            document.getElementById("cantidadUrgentes").innerText =
+                urgentes;
+
+            document.getElementById("cantidadAtencion").innerText =
+                atencion;
+
+            document.getElementById("cantidadMonitoreados").innerText =
+                data.length;
+
             if (data.length === 0) {
                 lista.innerHTML = "<li>No hay lotes próximos a vencer</li>";
                 return;
@@ -105,20 +120,24 @@ function cargarLotesPorVencer() {
                 );
             }
 
-            // 🔥 estado
-            let mostrandoTodos = false;
+            let paginaActual = 1;
+            const lotesPorPagina = 5;
 
             function renderLista() {
 
                 lista.innerHTML = "";
 
-                const datos = mostrandoTodos ? filtrados : filtrados.slice(0, 5);
+                const inicio = (paginaActual - 1) * lotesPorPagina;
+                const fin = inicio + lotesPorPagina;
+
+                const datos = filtrados.slice(inicio, fin);
 
                 datos.forEach(lote => {
 
                     const li = document.createElement("li");
 
-                    li.innerText = `${lote.producto} - Lote ${lote.numeroLote} - Vence en ${lote.diasRestantes} días`;
+                    li.innerText =
+                        `${lote.producto} - Lote ${lote.numeroLote} - Vence en ${lote.diasRestantes} días`;
 
                     if (lote.alerta === "URGENTE") {
                         li.className = "lote-urgente";
@@ -131,27 +150,41 @@ function cargarLotesPorVencer() {
                     lista.appendChild(li);
                 });
 
-                // 🔥 botón ver más / menos
-                if (filtrados.length > 5) {
+                const totalPaginas =
+                    Math.ceil(filtrados.length / lotesPorPagina);
 
-                    const btn = document.createElement("button");
-                    btn.className = "btn-ver";
+                if (totalPaginas > 1) {
 
-                    if (!mostrandoTodos) {
-                        btn.innerText = "Ver todos los lotes";
-                        btn.onclick = () => {
-                            mostrandoTodos = true;
-                            renderLista();
-                        };
-                    } else {
-                        btn.innerText = "Ver menos";
-                        btn.onclick = () => {
-                            mostrandoTodos = false;
-                            renderLista();
-                        };
-                    }
+                    const paginacion = document.createElement("div");
+                    paginacion.className = "paginacion-lotes";
 
-                    lista.appendChild(btn);
+                    paginacion.innerHTML = `
+                        <button ${paginaActual === 1 ? "disabled" : ""}>
+                            Anterior
+                        </button>
+
+                        <span>
+                            Página ${paginaActual} de ${totalPaginas}
+                        </span>
+
+                        <button ${paginaActual === totalPaginas ? "disabled" : ""}>
+                            Siguiente
+                        </button>
+                    `;
+
+                    const botones = paginacion.querySelectorAll("button");
+
+                    botones[0].onclick = () => {
+                        paginaActual--;
+                        renderLista();
+                    };
+
+                    botones[1].onclick = () => {
+                        paginaActual++;
+                        renderLista();
+                    };
+
+                    lista.appendChild(paginacion);
                 }
             }
 
@@ -190,18 +223,17 @@ function buscarLotes() {
 function abrirModalLotes(productoId) {
 
     const modal = document.getElementById("modalLotes");
-
     const lista = document.getElementById("listaModalLotes");
 
     modal.style.display = "flex";
-
     lista.innerHTML = "Cargando...";
 
     fetch(`http://localhost:8080/lotes/producto/${productoId}`)
         .then(res => res.json())
         .then(data => {
+
             console.log(data);
-            // 🔥 ocultar vencidos y stock 0
+
             const lotesValidos = data.filter(l =>
                 l.cantidad > 0 &&
                 l.diasRestantes >= 0
@@ -216,11 +248,29 @@ function abrirModalLotes(productoId) {
                 return;
             }
 
-            let html = "";
+            let html = `
+                <table class="tabla-lotes-modal">
+
+                    <thead>
+                        <tr>
+                            <th>Lote</th>
+                            <th>Cantidad</th>
+                            <th>Vence</th>
+                            <th>Días</th>
+
+                            ${usuario.rol === "ADMIN"
+                    ? "<th>Acciones</th>"
+                    : ""
+                }
+                        </tr>
+                    </thead>
+
+                    <tbody>
+            `;
 
             lotesValidos.forEach(lote => {
 
-                let clase = "lote-ok";
+                let clase = "";
 
                 if (lote.alerta === "URGENTE") {
                     clase = "lote-urgente";
@@ -230,41 +280,43 @@ function abrirModalLotes(productoId) {
                 }
 
                 html += `
-                    <div class="${clase} modal-lote-item">
+                    <tr class="${clase}">
+                        <td>${lote.numeroLote}</td>
+                        <td>${lote.cantidad}</td>
+                        <td>${lote.fechaVencimiento}</td>
+                        <td>${lote.diasRestantes}</td>
 
-                        <strong>Lote:</strong>
-                        ${lote.numeroLote}
-
-                        <br><br>
-
-                       <strong>Cantidad:</strong>
-                        ${lote.cantidad}
-
-                        <br><br>
-
-                        <strong>Vence:</strong>
-                        ${lote.fechaVencimiento}
-
-                        <br>
-
-                        <strong>Días restantes:</strong>
-                        ${lote.diasRestantes}
-
-                        ${usuario.rol === "ADMIN" ? `
-                            <br><br>
-
-                            <button class="btn-eliminar-lote"
-                                onclick="eliminarLote(${lote.id}, ${productoId})">
-
-                                Eliminar lote
-                            </button>
-                        ` : ""}
-
-                    </div>
+                        ${usuario.rol === "ADMIN"
+                        ? `
+                            <td>
+                                <button
+                                    class="btn-eliminar-lote"
+                                    onclick="eliminarLote(${lote.id}, ${productoId})">
+                                    Eliminar
+                                </button>
+                            </td>
+                        `
+                        : ""
+                    }
+                    </tr>
                 `;
             });
 
+            html += `
+                    </tbody>
+
+                </table>
+            `;
+
             lista.innerHTML = html;
+        })
+        .catch(error => {
+
+            console.error(error);
+
+            lista.innerHTML = `
+                <p>Error cargando lotes</p>
+            `;
         });
 }
 

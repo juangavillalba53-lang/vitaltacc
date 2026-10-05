@@ -21,10 +21,17 @@ public class DevolucionController {
     private DevolucionRepository devolucionRepository;
 
     @PostMapping
-    public Devolucion registrarDevolucion(
+    public Object registrarDevolucion(
             @RequestBody DevolucionRequest request) {
 
-        return devolucionService.registrarDevolucion(request);
+        try {
+
+            return devolucionService.registrarDevolucion(request);
+
+        } catch (RuntimeException e) {
+
+            return e.getMessage();
+        }
     }
 
     @GetMapping

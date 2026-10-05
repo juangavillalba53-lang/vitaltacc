@@ -13,19 +13,22 @@ public class Devolucion {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "venta_id")
+    @JoinColumn(name = "venta_id", nullable = false)
     private Venta venta;
 
     @ManyToOne
-    @JoinColumn(name = "empleado_id")
+    @JoinColumn(name = "empleado_id", nullable = false)
     private Usuario empleado;
 
+    @Column(nullable = false)
     private LocalDate fecha;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private MotivoDevolucion motivo;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private EstadoDevolucion estado;
 
     private String observacion;

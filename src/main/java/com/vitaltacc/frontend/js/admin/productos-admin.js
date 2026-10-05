@@ -1,3 +1,4 @@
+
 // 🔥 CREAR PRODUCTO
 function crearProducto() {
 
@@ -197,12 +198,14 @@ function cargarProductos() {
                                     Ver lotes
                                 </button>
 
-                                <button
-                                    class="btn-tabla btn-editar"
-                                    onclick="abrirModalEditarProducto(${prod.id})"
-                                >
-                                    Editar
-                                </button>
+                                ${usuario.rol === "ADMIN" ? `
+                                    <button
+                                        class="btn-tabla btn-editar"
+                                        onclick="abrirModalEditarProducto(${prod.id})"
+                                    >
+                                        Editar
+                                    </button>
+                                ` : ""}
 
                                 ${usuario.rol === "ADMIN" ? `
                                     <button
@@ -364,12 +367,14 @@ function renderStock(productos) {
                         Ver lotes
                     </button>
 
-                    <button
-                        class="btn-tabla btn-editar"
-                        onclick="abrirModalEditarProducto(${prod.id})"
-                    >
-                        Editar
-                    </button>
+                    ${usuario.rol === "ADMIN" ? `
+                        <button
+                            class="btn-tabla btn-editar"
+                            onclick="abrirModalEditarProducto(${prod.id})"
+                        >
+                            Editar
+                        </button>
+                    ` : ""}
 
                     ${usuario.rol === "ADMIN" ? `
                         <button
@@ -406,6 +411,13 @@ function filtrarStock() {
 // 🔥 ELIMINAR PRODUCTO
 function eliminarProductoAdmin(id) {
 
+    if (usuario.rol !== "ADMIN") {
+
+        alert("No tiene permisos.");
+
+        return;
+    }
+
     if (!confirm("Eliminar producto?")) {
         return;
     }
@@ -438,6 +450,13 @@ let productoEditando = null;
 // 🔥 ABRIR MODAL EDITAR
 
 function abrirModalEditarProducto(id) {
+
+    if (usuario.rol !== "ADMIN") {
+
+        alert("No tiene permisos.");
+
+        return;
+    }
 
     fetch(`http://localhost:8080/productos/${id}`)
         .then(res => {
@@ -513,6 +532,13 @@ function cerrarModalEditarProducto() {
 // 🔥 GUARDAR EDICIÓN PRODUCTO
 
 function guardarEdicionProducto() {
+
+    if (usuario.rol !== "ADMIN") {
+
+        alert("No tiene permisos.");
+
+        return;
+    }
 
     const nombre =
         document.getElementById("editarNombre").value;

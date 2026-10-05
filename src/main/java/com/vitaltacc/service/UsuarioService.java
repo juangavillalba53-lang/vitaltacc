@@ -31,6 +31,24 @@ public class UsuarioService {
             }
         }
 
+        if (usuario.getDni() == null ||
+                usuario.getDni().isBlank()) {
+
+            throw new RuntimeException("El DNI es obligatorio");
+        }
+
+        if (usuario.getNombre() == null ||
+                usuario.getNombre().isBlank()) {
+
+            throw new RuntimeException("El nombre es obligatorio");
+        }
+
+        if (usuario.getApellido() == null ||
+                usuario.getApellido().isBlank()) {
+
+            throw new RuntimeException("El apellido es obligatorio");
+        }
+
         // 🔥 buscar por DNI
         Usuario existente = usuarioRepository.findByDni(usuario.getDni())
                 .orElse(null);
@@ -57,6 +75,23 @@ public class UsuarioService {
                     !usuario.getNombre().isBlank()) {
 
                 existente.setNombre(usuario.getNombre());
+            }
+
+            if (usuario.getApellido() != null &&
+                    !usuario.getApellido().isBlank()) {
+
+                existente.setApellido(usuario.getApellido());
+            }
+
+            if (usuario.getTelefono() != null &&
+                    !usuario.getTelefono().isBlank()) {
+
+                existente.setTelefono(usuario.getTelefono());
+            }
+
+            if (usuario.getRol() != null) {
+
+                existente.setRol(usuario.getRol());
             }
 
             return usuarioRepository.save(existente);

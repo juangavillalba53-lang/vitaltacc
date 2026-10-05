@@ -50,7 +50,7 @@
                     🛒 Ventas
                 </button>
 
-                <button class="menu-principal" data-seccion="adminPromociones"
+                <button id="btnPromociones" class="menu-principal" data-seccion="adminPromociones"
                     onclick="mostrarSeccion('adminPromociones')">
                     💰 Promociones
                 </button>
@@ -59,11 +59,13 @@
                     👥 Clientes
                 </button>
 
-                <button class="menu-principal" data-seccion="adminUsuarios" onclick="mostrarSeccion('adminUsuarios')">
+                <button id="btnUsuarios" class="menu-principal" data-seccion="adminUsuarios"
+                    onclick="mostrarSeccion('adminUsuarios')">
                     👤 Usuarios
                 </button>
 
-                <button class="menu-principal" data-seccion="adminReportes" onclick="mostrarSeccion('adminReportes')">
+                <button id="btnReportes" class="menu-principal" data-seccion="adminReportes"
+                    onclick="mostrarSeccion('adminReportes')">
                     📊 Reportes
                 </button>
 
@@ -219,7 +221,26 @@
 
                     </div>
 
-                    <div class="card-admin full">
+                    <div class="resumen-alertas">
+
+                        <div class="alerta-card urgente">
+                            <h3 id="cantidadUrgentes">0</h3>
+                            <p>Lotes urgentes</p>
+                        </div>
+
+                        <div class="alerta-card atencion">
+                            <h3 id="cantidadAtencion">0</h3>
+                            <p>Lotes en atención</p>
+                        </div>
+
+                        <div class="alerta-card total">
+                            <h3 id="cantidadMonitoreados">0</h3>
+                            <p>Lotes monitoreados</p>
+                        </div>
+
+                    </div>
+
+                    <div class="card-admin full card-lotes">
 
                         <div class="header-lotes">
 
@@ -378,7 +399,7 @@
                                     Cancelar
                                 </button>
 
-                                <button class="btn-confirmar">
+                                <button class="btn-confirmar" onclick="confirmarVenta()">
                                     Confirmar venta
                                 </button>
 
@@ -503,7 +524,6 @@
 
                     </div>
 
-
                     <!-- 🔥 PROMOCIONES -->
                     <div id="seccion-promociones" class="card-admin full">
 
@@ -622,6 +642,7 @@
             </div>
         </main>
     </div>
+
     <!-- 🔥 MODAL LOTES -->
 
     <div id="modalLotes" class="modal-lotes">

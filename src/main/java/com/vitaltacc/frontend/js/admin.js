@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 🔥 CARGAS INICIALES
     cargarDashboard();
+    setInterval(cargarDashboard, 10000);
     cargarProductos();
     cargarLotesPorVencer();
     cargarUsuarios();
@@ -129,7 +130,12 @@ function cargarDashboard() {
         .then(res => res.json())
         .then(data => {
 
-            document.getElementById("dashboardUsuarios").innerText = data.length;
+            const usuariosInternos = data.filter(
+                u => u.rol === "ADMIN" || u.rol === "EMPLEADO"
+            );
+
+            document.getElementById("dashboardUsuarios").innerText =
+                usuariosInternos.length;
 
         });
 
@@ -142,14 +148,57 @@ function cargarDashboard() {
 
         });
 
-    // Lotes
+    // Lotes + Alertas
     fetch("http://localhost:8080/lotes")
         .then(res => res.json())
         .then(data => {
 
-            document.getElementById("dashboardLotes").innerText = data.length;
+            const hoy = new Date();
+
+            const lotesActivos = data.filter(lote =>
+                lote.cantidad > 0 &&
+                new Date(lote.fechaVencimiento) >= hoy
+            );
+
+            document.getElementById("dashboardLotes").innerText =
+                lotesActivos.length;
+
+            let urgentes = 0;
+            let atencion = 0;
+
+            lotesActivos.forEach(lote => {
+
+                const vencimiento = new Date(lote.fechaVencimiento);
+
+                const dias =
+                    Math.ceil(
+                        (vencimiento - hoy) /
+                        (1000 * 60 * 60 * 24)
+                    );
+
+                if (dias <= 15) {
+                    urgentes++;
+                }
+                else if (dias > 15 && dias <= 20) {
+                    atencion++;
+                }
+
+            });
+
+            const urgentesEl =
+                document.getElementById("totalUrgentes");
+
+            const atencionEl =
+                document.getElementById("totalAtencion");
+
+            const monitoreadosEl =
+                document.getElementById("totalMonitoreados");
+
+            if (urgentesEl) urgentesEl.innerText = urgentes;
+            if (atencionEl) atencionEl.innerText = atencion;
+            if (monitoreadosEl)
+                monitoreadosEl.innerText = lotesActivos.length;
 
         });
 
 }
-

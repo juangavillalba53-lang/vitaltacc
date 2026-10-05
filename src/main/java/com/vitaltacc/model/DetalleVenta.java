@@ -22,12 +22,12 @@ public class DetalleVenta {
     @Column(name = "precio_unitario", nullable = false)
     private Double precioUnitario;
 
-    // Producto vendido
+    // Producto vendido (para reportes y consultas)
     @ManyToOne
     @JoinColumn(name = "producto_id", nullable = false)
     private Producto producto;
 
-    // Lote utilizado (asignado automáticamente por FEFO)
+    // Lote específico utilizado en la venta
     @ManyToOne
     @JoinColumn(name = "lote_id", nullable = false)
     private Lote lote;

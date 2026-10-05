@@ -3,13 +3,13 @@ function aplicarPermisos() {
     if (usuario.rol === "EMPLEADO") {
 
         const reportes =
-            document.getElementById("adminReportes");
+            document.getElementById("btnReportes");
 
         const promociones =
-            document.getElementById("adminPromociones");
+            document.getElementById("btnPromociones");
 
         const usuarios =
-            document.getElementById("adminUsuarios");
+            document.getElementById("btnUsuarios");
 
         if (reportes) {
             reportes.style.display = "none";

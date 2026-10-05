@@ -180,17 +180,24 @@ canvas {
 /* 🔥 LOTES */
 
 .lote-urgente {
-    color: red;
-    font-weight: bold;
+    background: #fff5f5 !important;
+    border-left: 5px solid #ef4444;
+    color: #dc2626;
+    font-weight: 700;
 }
 
 .lote-atencion {
-    color: orange;
-    font-weight: bold;
+    background: #fffaf0 !important;
+    border-left: 5px solid #f59e0b;
+    color: #d97706;
+    font-weight: 700;
 }
 
 .lote-ok {
-    color: green;
+    background: #f0fdf4 !important;
+    border-left: 5px solid #14b8a6;
+    color: #0f766e;
+    font-weight: 700;
 }
 
 /* 🔥 BOTÓN VER MÁS / MENOS */
@@ -317,6 +324,10 @@ canvas {
     padding: 0;
 
     margin-top: 20px;
+}
+
+.card-lotes {
+    min-height: auto;
 }
 
 #lotesVencer li {
@@ -899,4 +910,118 @@ canvas {
 #nuevoClienteVenta .campo-venta {
     flex: 1;
     min-width: 180px;
+}
+
+/* 🔥 RESUMEN ALERTAS */
+
+.resumen-alertas {
+
+    display: grid;
+
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+
+    gap: 20px;
+
+    margin-bottom: 25px;
+}
+
+.alerta-card {
+
+    background: white;
+
+    border-radius: 20px;
+
+    padding: 25px;
+
+    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
+
+    border: 1px solid #f1f1f1;
+
+    transition: 0.3s;
+}
+
+.alerta-card:hover {
+
+    transform: translateY(-3px);
+}
+
+.alerta-card h3 {
+
+    font-size: 42px;
+
+    margin: 0 0 10px 0;
+}
+
+.alerta-card p {
+
+    margin: 0;
+
+    font-weight: 600;
+
+    color: #666;
+}
+
+.alerta-card.urgente {
+
+    border-left: 6px solid #ef4444;
+}
+
+.alerta-card.urgente h3 {
+
+    color: #ef4444;
+}
+
+.alerta-card.atencion {
+
+    border-left: 6px solid #f59e0b;
+}
+
+.alerta-card.atencion h3 {
+
+    color: #f59e0b;
+}
+
+.alerta-card.total {
+
+    border-left: 6px solid #14b8a6;
+}
+
+.alerta-card.total h3 {
+
+    color: #14b8a6;
+}
+
+.paginacion-lotes {
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 15px;
+
+    margin-top: 20px;
+}
+
+.paginacion-lotes button {
+
+    background: #14b8a6;
+
+    color: white;
+
+    border: none;
+
+    padding: 8px 15px;
+
+    border-radius: 10px;
+
+    cursor: pointer;
+}
+
+.paginacion-lotes button:disabled {
+
+    background: #ccc;
+
+    cursor: not-allowed;
 }
