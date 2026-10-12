@@ -6,6 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import com.vitaltacc.dto.VentaRequest;
 import java.time.LocalDate;
+import com.vitaltacc.service.VentaPdfService;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import com.vitaltacc.dto.VentaHistorialDTO;
 
 import java.util.Map;
 import java.util.List;
@@ -18,6 +23,9 @@ public class VentaController {
     @Autowired
     private VentaService ventaService;
 
+    @Autowired
+    private VentaPdfService ventaPdfService;
+
     // 🔥 Crear venta
     @PostMapping
     public Venta crearVenta(@RequestBody VentaRequest ventaRequest) {
@@ -28,6 +36,33 @@ public class VentaController {
     @GetMapping
     public List<Venta> listarVentas() {
         return ventaService.obtenerVentas();
+    }
+
+    // Buscar ventas por número de compra o nombre del cliente
+    @GetMapping("/historial")
+    public List<VentaHistorialDTO> buscarHistorial(
+            @RequestParam(required = false) String busqueda) {
+
+        return ventaService.obtenerHistorialDTO(busqueda);
+    }
+
+    // Obtener una venta específica por número de compra
+    @GetMapping("/{id}")
+    public Venta obtenerVentaPorId(@PathVariable Long id) {
+        return ventaService.obtenerVentaPorId(id);
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> descargarComprobante(
+            @PathVariable Long id) {
+
+        byte[] pdf = ventaPdfService.generarComprobante(id);
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=comprobante-venta-" + id + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     // 🔥 Total facturado (general)

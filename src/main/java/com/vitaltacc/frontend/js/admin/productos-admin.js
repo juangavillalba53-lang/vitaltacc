@@ -312,6 +312,10 @@ function cargarCategoriasPorTipo(tipoId) {
 let productosStock = [];
 let productosVenta = [];
 let carrito = [];
+window.lotesStock = [];
+
+let paginaStockActual = 1;
+const productosPorPagina = 15;
 
 function cargarStock() {
 
@@ -328,73 +332,178 @@ function cargarStock() {
 function renderStock(productos) {
 
     const tabla = document.getElementById("tablaStock");
+    const paginacion = document.getElementById("paginacionStock");
 
     if (!tabla) return;
 
     tabla.innerHTML = "";
 
-    productos.forEach(prod => {
+    const totalPaginas = Math.ceil(
+        productos.length / productosPorPagina
+    );
 
-        let clase = "stock-ok";
+    if (totalPaginas === 0) {
+        paginaStockActual = 1;
+    } else if (paginaStockActual > totalPaginas) {
+        paginaStockActual = totalPaginas;
+    }
 
-        if (prod.stock <= 5) {
-            clase = "stock-bajo";
+    const inicio = (paginaStockActual - 1) * productosPorPagina;
+    const productosPagina = productos.slice(
+        inicio,
+        inicio + productosPorPagina
+    );
+
+    const formatoPrecio = new Intl.NumberFormat("es-AR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+
+    if (productosPagina.length === 0) {
+        tabla.innerHTML = `
+            <tr>
+                <td colspan="5">No se encontraron productos.</td>
+            </tr>
+        `;
+    }
+
+    productosPagina.forEach(prod => {
+
+        const stock = Number(prod.stock) || 0;
+
+        // Buscar el lote disponible que vence primero
+        const loteProximo = (window.lotesStock || [])
+            .filter(l =>
+                Number(l.productoId) === Number(prod.id) &&
+                Number(l.cantidad) > 0 &&
+                Number(l.diasRestantes) >= 0
+            )
+            .sort((a, b) =>
+                new Date(a.fechaVencimiento) -
+                new Date(b.fechaVencimiento)
+            )[0];
+
+        let estado;
+        let claseEstado;
+
+        if (stock <= 0) {
+
+            estado = "⚪ Sin stock";
+            claseEstado = "estado-critico";
+
+        } else if (!loteProximo) {
+
+            estado = "🟢 Sin vencimientos próximos";
+            claseEstado = "estado-ok";
+
+        } else {
+
+            const dias = Number(loteProximo.diasRestantes);
+
+            if (dias <= 10) {
+                claseEstado = "estado-critico";
+                estado = `🔴 Vence en ${dias} ${dias === 1 ? "día" : "días"}`;
+
+            } else if (dias <= 20) {
+                claseEstado = "estado-alerta";
+                estado = `🟡 Vence en ${dias} días`;
+
+            } else {
+                claseEstado = "estado-ok";
+                estado = `🟢 Vence en ${dias} días`;
+            }
+
+            estado += `<br><em>(Lote #${loteProximo.numeroLote})</em>`;
         }
 
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
+            <td>${prod.nombre}</td>
+
+            <td>$${formatoPrecio.format(Number(prod.precio) || 0)}</td>
+
+            <td>${stock}</td>
+
             <td>
-                ${prod.nombre}
+                <span class="${claseEstado}">
+                    ${estado}
+                </span>
             </td>
 
             <td>
-                $${Number(prod.precio).toFixed(2)}
-            </td>
-
-            <td class="${clase}">
-                ${prod.stock}
-            </td>
-
-            <td>
-
                 <div class="acciones-producto">
 
                     <button
                         class="btn-tabla btn-lotes"
-                        onclick="abrirModalLotes(${prod.id})"
-                    >
+                        onclick="abrirModalLotes(${prod.id})">
                         Ver lotes
                     </button>
 
                     ${usuario.rol === "ADMIN" ? `
                         <button
                             class="btn-tabla btn-editar"
-                            onclick="abrirModalEditarProducto(${prod.id})"
-                        >
+                            onclick="abrirModalEditarProducto(${prod.id})">
                             Editar
                         </button>
-                    ` : ""}
 
-                    ${usuario.rol === "ADMIN" ? `
                         <button
                             class="btn-tabla btn-eliminar"
-                            onclick="eliminarProductoAdmin(${prod.id})"
-                        >
+                            onclick="eliminarProductoAdmin(${prod.id})">
                             Eliminar
                         </button>
                     ` : ""}
 
                 </div>
-
             </td>
         `;
 
         tabla.appendChild(tr);
     });
+
+    if (!paginacion) return;
+
+    if (totalPaginas <= 1) {
+        paginacion.innerHTML = "";
+        return;
+    }
+
+    paginacion.innerHTML = `
+        <button
+            id="btnAnteriorStock"
+            ${paginaStockActual <= 1 ? "disabled" : ""}>
+            Anterior
+        </button>
+
+        <span>
+            Página ${paginaStockActual} de ${totalPaginas}
+        </span>
+
+        <button
+            id="btnSiguienteStock"
+            ${paginaStockActual >= totalPaginas ? "disabled" : ""}>
+            Siguiente
+        </button>
+    `;
+
+    document.getElementById("btnAnteriorStock").onclick = () => {
+        if (paginaStockActual > 1) {
+            paginaStockActual--;
+            renderStock(productos);
+        }
+    };
+
+    document.getElementById("btnSiguienteStock").onclick = () => {
+        if (paginaStockActual < totalPaginas) {
+            paginaStockActual++;
+            renderStock(productos);
+        }
+    };
 }
 
 function filtrarStock() {
+
+    paginaStockActual = 1;
 
     const texto = document
         .getElementById("buscarStock")
@@ -601,4 +710,226 @@ function guardarEdicionProducto() {
 
             alert("Error actualizando producto");
         });
+}
+
+// ==========================
+// MODAL CATEGORIAS
+// ==========================
+
+function crearTipoCategoria() {
+
+    const nombre = prompt("Nombre del tipo de categoría");
+
+    if (!nombre || nombre.trim() === "") {
+        return;
+    }
+
+    fetch("http://localhost:8080/tipos-categoria", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+            nombre: nombre.trim()
+        })
+
+    })
+        .then(res => {
+
+            if (!res.ok) {
+                throw new Error();
+            }
+
+            return res.json();
+        })
+        .then(() => {
+
+            cargarTiposCategoriaModal();
+
+            alert("Tipo de categoría creado");
+
+        })
+        .catch(() => {
+
+            alert("Error al crear tipo de categoría");
+
+        });
+}
+
+function cargarTiposCategoriaModal() {
+
+    const select = document.getElementById("tipoCategoriaNueva");
+
+    if (!select) return;
+
+    fetch("http://localhost:8080/tipos-categoria")
+        .then(res => res.json())
+        .then(data => {
+
+            select.innerHTML =
+                '<option value="">Seleccionar tipo</option>';
+
+            data.forEach(tipo => {
+
+                select.innerHTML += `
+                    <option value="${tipo.id}">
+                        ${tipo.nombre}
+                    </option>
+                `;
+            });
+
+        })
+        .catch(error => {
+
+            console.error(error);
+        });
+}
+
+function crearCategoria() {
+
+    const nombre =
+        document.getElementById("nombreNuevaCategoria")
+            .value
+            .trim();
+
+    const tipoId =
+        document.getElementById("tipoCategoriaNueva")
+            .value;
+
+    if (!nombre || !tipoId) {
+
+        alert("Completar todos los datos");
+        return;
+    }
+
+    fetch("http://localhost:8080/categorias", {
+
+        method: "POST",
+
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+        body: JSON.stringify({
+
+            nombre: nombre,
+
+            tipoCategoria: {
+                id: Number(tipoId)
+            }
+
+        })
+
+    })
+        .then(res => {
+
+            if (!res.ok) {
+                throw new Error("Error al crear categoría");
+            }
+
+            return res.json();
+        })
+
+        .then(() => {
+
+            document.getElementById("nombreNuevaCategoria").value = "";
+            document.getElementById("tipoCategoriaNueva").value = "";
+
+            cargarCategoriasModal();
+
+            if (typeof cargarTiposCategoria === "function") {
+                cargarTiposCategoria();
+            }
+
+            alert("Categoría creada");
+        })
+
+        .catch(error => {
+
+            console.error(error);
+            alert("Error al crear categoría");
+        });
+}
+
+function cargarCategoriasModal() {
+
+    fetch("http://localhost:8080/categorias")
+        .then(res => res.json())
+        .then(data => {
+
+            const lista =
+                document.getElementById("listaCategorias");
+
+            if (!lista) return;
+
+            lista.innerHTML = "";
+
+            data.forEach(cat => {
+
+                lista.innerHTML += `
+                    <div class="categoria-item">
+
+                        <span>
+                            ${cat.nombre}
+                            (${cat.tipoCategoria?.nombre || "Sin tipo"})
+                        </span>
+
+                        <button
+                            onclick="eliminarCategoria(${cat.id})">
+                            Eliminar
+                        </button>
+
+                    </div>
+                `;
+            });
+
+        })
+        .catch(error => {
+
+            console.error(error);
+        });
+}
+
+
+function eliminarCategoria(id) {
+
+    if (!confirm("¿Eliminar categoría?")) {
+        return;
+    }
+
+    fetch(`http://localhost:8080/categorias/${id}`, {
+
+        method: "DELETE"
+
+    })
+        .then(res => {
+
+            if (!res.ok) {
+                throw new Error();
+            }
+
+            cargarCategoriasModal();
+        })
+
+        .catch(error => {
+
+            console.error(error);
+            alert("No se pudo eliminar la categoría");
+        });
+}
+
+function abrirModalCategorias() {
+
+    document.getElementById("modalCategorias").style.display = "flex";
+
+    cargarTiposCategoriaModal();
+    cargarCategoriasModal();
+}
+
+function cerrarModalCategorias() {
+
+    document.getElementById("modalCategorias").style.display = "none";
 }

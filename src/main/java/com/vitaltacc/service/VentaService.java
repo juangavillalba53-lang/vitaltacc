@@ -13,8 +13,10 @@ import com.vitaltacc.model.Usuario;
 import com.vitaltacc.model.Rol;
 import com.vitaltacc.repository.ProductoRepository;
 import com.vitaltacc.repository.UsuarioRepository;
+import com.vitaltacc.dto.VentaHistorialDTO;
 import com.vitaltacc.dto.VentaItemRequest;
 import org.springframework.transaction.annotation.Transactional;
+import com.vitaltacc.service.ProductoService;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -33,6 +35,9 @@ public class VentaService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private ProductoService productoService;
 
     @Transactional
     public Venta crearVenta(VentaRequest ventaRequest) {
@@ -131,6 +136,12 @@ public class VentaService {
                         "Stock insuficiente para " + producto.getNombre());
             }
 
+            Double precioConDescuento = productoService.calcularPrecioConDescuento(producto);
+
+            double precioAplicado = precioConDescuento != null
+                    ? precioConDescuento
+                    : producto.getPrecio();
+
             int cantidadPendiente = item.getCantidad();
 
             for (Lote lote : lotes) {
@@ -148,7 +159,7 @@ public class VentaService {
                 detalle.setProducto(producto);
                 detalle.setLote(lote);
                 detalle.setCantidad(cantidadTomada);
-                detalle.setPrecioUnitario(producto.getPrecio());
+                detalle.setPrecioUnitario(precioAplicado);
 
                 venta.getDetalles().add(detalle);
 
@@ -156,9 +167,10 @@ public class VentaService {
 
                 loteRepository.save(lote);
 
-                totalVenta += cantidadTomada * producto.getPrecio();
+                totalVenta += cantidadTomada * precioAplicado;
 
                 cantidadPendiente -= cantidadTomada;
+
             }
         }
 
@@ -169,6 +181,66 @@ public class VentaService {
 
     public List<Venta> obtenerVentas() {
         return ventaRepository.findAll();
+    }
+
+    public List<Venta> buscarHistorial(String busqueda) {
+        String texto = busqueda == null ? "" : busqueda.trim();
+
+        if (texto.isEmpty()) {
+            return ventaRepository.findAll()
+                    .stream()
+                    .sorted((a, b) -> b.getId().compareTo(a.getId()))
+                    .toList();
+        }
+
+        String numeroCompra = texto.matches("\\d+") ? texto : "-1";
+
+        return ventaRepository.buscarHistorial(texto, numeroCompra);
+    }
+
+    public Venta obtenerVentaPorId(Long id) {
+        return ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException(
+                        "No se encontró la venta número " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public List<VentaHistorialDTO> obtenerHistorialDTO(String busqueda) {
+
+        List<Venta> ventas = buscarHistorial(busqueda);
+
+        return ventas.stream()
+                .map(venta -> {
+                    Usuario cliente = venta.getCliente();
+                    Usuario empleado = venta.getEmpleado();
+
+                    String nombreCliente = cliente == null
+                            ? "Consumidor final"
+                            : (cliente.getNombre() + " " + cliente.getApellido()).trim();
+
+                    String nombreEmpleado = empleado == null
+                            ? "No informado"
+                            : (empleado.getNombre() + " " + empleado.getApellido()).trim();
+
+                    String rolEmpleado = empleado == null
+                            ? "No informado"
+                            : empleado.getRol().name();
+
+                    return new VentaHistorialDTO(
+                            venta.getId(),
+                            venta.getFecha(),
+                            nombreCliente,
+                            venta.getTipoVenta() != null
+                                    ? venta.getTipoVenta().name()
+                                    : "",
+                            nombreEmpleado,
+                            rolEmpleado,
+                            venta.getMetodoPago() != null
+                                    ? venta.getMetodoPago().name()
+                                    : "",
+                            venta.getTotal());
+                })
+                .toList();
     }
 
     public Double obtenerTotalFacturado() {

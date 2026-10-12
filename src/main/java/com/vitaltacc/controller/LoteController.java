@@ -47,7 +47,7 @@ public class LoteController {
 
                     String alerta;
 
-                    if (diasRestantes <= 7) {
+                    if (diasRestantes <= 10) {
                         alerta = "URGENTE";
                     } else if (diasRestantes <= 30) {
                         alerta = "ATENCION";
@@ -58,6 +58,7 @@ public class LoteController {
                     // 🔥 ESTO FALTABA
                     data.put("id", lote.getId());
 
+                    data.put("productoId", lote.getProducto().getId());
                     data.put("numeroLote", lote.getNumeroLote());
                     data.put("cantidad", lote.getCantidad());
                     data.put("fechaVencimiento", lote.getFechaVencimiento());
@@ -69,7 +70,6 @@ public class LoteController {
                 }).toList();
     }
 
-    // 🔥 NUEVO: Lotes por vencer
     @GetMapping("/por-vencer")
     public List<Map<String, Object>> obtenerLotesPorVencer() {
 
@@ -83,16 +83,19 @@ public class LoteController {
 
             String alerta;
 
-            if (diasRestantes <= 15) {
+            if (diasRestantes <= 10) {
                 alerta = "URGENTE";
-            } else if (diasRestantes <= 20) {
+            } else if (diasRestantes <= 30) {
                 alerta = "ATENCION";
             } else {
                 alerta = "OK";
             }
 
+            data.put("id", lote.getId());
+            data.put("productoId", lote.getProducto().getId());
             data.put("producto", lote.getProducto().getNombre());
             data.put("numeroLote", lote.getNumeroLote());
+            data.put("cantidad", lote.getCantidad());
             data.put("fechaVencimiento", lote.getFechaVencimiento());
             data.put("diasRestantes", diasRestantes);
             data.put("alerta", alerta);

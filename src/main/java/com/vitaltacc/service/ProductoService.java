@@ -211,31 +211,47 @@ public class ProductoService {
         return productoRepository.save(producto);
     }
 
-    // 🔥 Calcular precio con descuento
+    // Calcular precio con descuento
     public Double calcularPrecioConDescuento(Producto producto) {
 
         Double precioOriginal = producto.getPrecio();
-        Double precio = precioOriginal;
+
+        if (precioOriginal == null || precioOriginal <= 0) {
+            return null;
+        }
 
         LocalDate hoy = LocalDate.now();
 
         List<Promocion> promociones = promocionRepository
-                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(hoy, hoy);
+                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(
+                        hoy, hoy);
 
-        for (Promocion promo : promociones) {
+        // Buscar primero una promoción específica para el producto.
+        Promocion promocionProducto = promociones.stream()
+                .filter(promo -> promo.getProducto() != null
+                        && promo.getProducto().getId().equals(producto.getId()))
+                .findFirst()
+                .orElse(null);
 
-            if (promo.getProducto() == null) {
-                precio = precio - (precio * promo.getDescuento() / 100);
-            } else if (promo.getProducto().getId().equals(producto.getId())) {
-                precio = precio - (precio * promo.getDescuento() / 100);
-            }
+        // Si no existe una específica, buscar una promoción global.
+        Promocion promocionAplicable = promocionProducto;
+
+        if (promocionAplicable == null) {
+            promocionAplicable = promociones.stream()
+                    .filter(promo -> promo.getProducto() == null)
+                    .findFirst()
+                    .orElse(null);
         }
 
-        if (precio.equals(precioOriginal)) {
+        // Si no hay promoción aplicable, no hay precio promocional.
+        if (promocionAplicable == null
+                || promocionAplicable.getDescuento() == null) {
             return null;
         }
 
-        return precio;
+        double descuento = promocionAplicable.getDescuento();
+
+        return precioOriginal - (precioOriginal * descuento / 100);
     }
 
     // 🔥 Calcular stock

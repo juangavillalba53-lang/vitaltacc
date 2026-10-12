@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
@@ -23,6 +24,6 @@ public class TipoCategoria {
     private String nombre;
 
     @OneToMany(mappedBy = "tipoCategoria")
-    @JsonManagedReference
+    @JsonIgnore
     private List<Categoria> categorias;
 }

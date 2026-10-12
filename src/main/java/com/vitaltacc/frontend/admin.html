@@ -50,13 +50,16 @@
                     🛒 Ventas
                 </button>
 
+
+                <button class="menu-principal" data-seccion="adminHistorialVentas"
+                    onclick="mostrarSeccion('adminHistorialVentas')">
+                    📜 Historial de ventas
+                </button>
+
+
                 <button id="btnPromociones" class="menu-principal" data-seccion="adminPromociones"
                     onclick="mostrarSeccion('adminPromociones')">
                     💰 Promociones
-                </button>
-
-                <button class="menu-principal">
-                    👥 Clientes
                 </button>
 
                 <button id="btnUsuarios" class="menu-principal" data-seccion="adminUsuarios"
@@ -134,6 +137,10 @@
 
                         <button type="button" onclick="mostrarPanel('lote')">
                             Agregar lote
+                        </button>
+
+                        <button type="button" onclick="abrirModalCategorias()">
+                            Categorías
                         </button>
 
                     </div>
@@ -240,41 +247,6 @@
 
                     </div>
 
-                    <div class="card-admin full card-lotes">
-
-                        <div class="header-lotes">
-
-                            <h2>Lotes por vencer</h2>
-
-                            <button onclick="toggleBusqueda()">
-                                Buscar
-                            </button>
-
-                        </div>
-
-                        <input type="text" id="busquedaLote" placeholder="Buscar producto o lote"
-                            oninput="buscarLotes()" style="display: none;">
-
-                        <div class="filtros-lotes">
-
-                            <button onclick="setFiltro('URGENTE')">
-                                Urgentes
-                            </button>
-
-                            <button onclick="setFiltro('ATENCION')">
-                                Atención
-                            </button>
-
-                            <button onclick="setFiltro('TODOS')">
-                                Todos
-                            </button>
-
-                        </div>
-
-                        <ul id="lotesVencer"></ul>
-
-                    </div>
-
                     <!-- 🔥 GESTIÓN STOCK -->
                     <div class="card-admin full">
 
@@ -289,6 +261,7 @@
                                     <th>Producto</th>
                                     <th>Precio</th>
                                     <th>Stock</th>
+                                    <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
@@ -296,6 +269,8 @@
                             <tbody id="tablaStock"></tbody>
 
                         </table>
+
+                        <div id="paginacionStock" class="paginacion-stock"></div>
 
                     </div>
 
@@ -410,6 +385,68 @@
                     </div>
 
                 </section>
+
+
+                <section class="admin-section vista-admin" id="adminHistorialVentas">
+
+                    <div class="section-header">
+                        <span>COMERCIAL</span>
+                        <h2>Historial de ventas</h2>
+                    </div>
+
+                    <div class="card-admin full">
+
+                        <h3>Buscar compras</h3>
+
+                        <input type="text" id="buscarHistorialVentas"
+                            placeholder="Buscar por número de compra o cliente..." oninput="buscarHistorialVentas()">
+
+                        <div style="display:flex; gap:12px; flex-wrap:wrap; margin:15px 0;">
+
+                            <div>
+                                <label for="fechaDesdeHistorial">Desde</label>
+                                <input type="date" id="fechaDesdeHistorial" onchange="buscarHistorialVentas()">
+                            </div>
+
+                            <div>
+                                <label for="fechaHastaHistorial">Hasta</label>
+                                <input type="date" id="fechaHastaHistorial" onchange="buscarHistorialVentas()">
+                            </div>
+
+                            <div>
+                                <label for="tipoHistorialVentas">Tipo de venta</label>
+                                <select id="tipoHistorialVentas" onchange="buscarHistorialVentas()">
+                                    <option value="">Todas</option>
+                                    <option value="LOCAL">Local</option>
+                                    <option value="ONLINE">Online</option>
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <p id="estadoHistorialVentas"></p>
+
+                        <table class="tabla-stock">
+                            <thead>
+                                <tr>
+                                    <th>N.º compra</th>
+                                    <th>Fecha</th>
+                                    <th>Cliente</th>
+                                    <th>Tipo</th>
+                                    <th>Realizada por</th>
+                                    <th>Pago</th>
+                                    <th>Total</th>
+                                    <th>Comprobante</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="tablaHistorialVentas"></tbody>
+                        </table>
+
+                    </div>
+
+                </section>
+
 
                 <section class="admin-section vista-admin" id="adminReportes">
 
@@ -704,6 +741,40 @@
             <button onclick="guardarEdicionProducto()">
                 Guardar cambios
             </button>
+
+        </div>
+
+    </div>
+
+    <div id="modalCategorias" class="modal-lotes">
+
+        <div class="contenido-modal-lotes">
+
+            <span class="cerrar-modal" onclick="cerrarModalCategorias()">
+                ✖
+            </span>
+
+            <h2>Categorías</h2>
+
+            <button onclick="crearTipoCategoria()">
+                + Crear tipo
+            </button>
+
+            <input type="text" id="nombreNuevaCategoria" placeholder="Nombre de la categoría">
+
+            <select id="tipoCategoriaNueva">
+                <option value="">
+                    Seleccionar tipo
+                </option>
+            </select>
+
+            <button onclick="crearCategoria()">
+                Crear categoría
+            </button>
+
+            <hr>
+
+            <div id="listaCategorias"></div>
 
         </div>
 

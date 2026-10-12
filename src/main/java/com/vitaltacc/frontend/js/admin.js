@@ -108,6 +108,9 @@ function mostrarSeccion(id) {
         botonActivo.classList.add("activo");
     }
 
+    if (id === "adminHistorialVentas") {
+        cargarHistorialVentas();
+    }
 }
 
 // ===============================

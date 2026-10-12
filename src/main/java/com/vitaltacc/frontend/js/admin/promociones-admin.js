@@ -67,12 +67,16 @@ function crearPromocion() {
         });
 }
 
+
 function cargarPromociones() {
-
-    fetch("http://localhost:8080/promociones")
-        .then(res => res.json())
+    fetch("http://localhost:8080/promociones/activas")
+        .then(res => {
+            if (!res.ok) {
+                throw new Error("No se pudieron cargar las promociones");
+            }
+            return res.json();
+        })
         .then(data => {
-
             const tabla = document.getElementById("tablaPromociones");
 
             if (!tabla) return;
@@ -80,7 +84,6 @@ function cargarPromociones() {
             tabla.innerHTML = "";
 
             data.forEach(promo => {
-
                 const tr = document.createElement("tr");
 
                 tr.innerHTML = `
@@ -89,21 +92,9 @@ function cargarPromociones() {
                         ? promo.producto.nombre
                         : "GLOBAL"}
                     </td>
-
-                    <td>
-                        ${promo.descripcion}
-                    </td>
-
-                    <td>
-                        ${promo.descuento}%
-                    </td>
-
-                    <td>
-                        ${promo.fechaInicio}
-                        →
-                        ${promo.fechaFin}
-                    </td>
-
+                    <td>${promo.descripcion}</td>
+                    <td>${promo.descuento}%</td>
+                    <td>${promo.fechaInicio} → ${promo.fechaFin}</td>
                     <td>
                         <button onclick="eliminarPromocion(${promo.id})">
                             Eliminar
@@ -113,8 +104,12 @@ function cargarPromociones() {
 
                 tabla.appendChild(tr);
             });
+        })
+        .catch(error => {
+            console.error("Error cargando promociones:", error);
         });
 }
+
 
 function eliminarPromocion(id) {
 

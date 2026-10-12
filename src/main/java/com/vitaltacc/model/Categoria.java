@@ -25,7 +25,6 @@ public class Categoria {
 
     @ManyToOne
     @JoinColumn(name = "tipo_categoria_id")
-    @JsonBackReference
     private TipoCategoria tipoCategoria;
 
     @OneToMany(mappedBy = "categoria")
