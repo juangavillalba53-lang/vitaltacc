@@ -1,7 +1,9 @@
 package com.vitaltacc.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -10,7 +12,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Promocion {
 
     @Id
@@ -29,8 +30,23 @@ public class Promocion {
     @Column(name = "fecha_fin", nullable = false)
     private LocalDate fechaFin;
 
-    // opcional: promoción sobre producto
+    // Opcional: promoción sobre producto
     @ManyToOne
     @JoinColumn(name = "producto_id")
     private Producto producto;
+
+    public Promocion(
+            Long id,
+            String descripcion,
+            Double descuento,
+            LocalDate fechaInicio,
+            LocalDate fechaFin,
+            Producto producto) {
+        this.id = id;
+        this.descripcion = descripcion;
+        this.descuento = descuento;
+        this.fechaInicio = fechaInicio;
+        this.fechaFin = fechaFin;
+        this.producto = producto;
+    }
 }

@@ -1,19 +1,19 @@
 package com.vitaltacc.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Table(name = "tipo_categoria")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class TipoCategoria {
 
     @Id
@@ -26,4 +26,10 @@ public class TipoCategoria {
     @OneToMany(mappedBy = "tipoCategoria")
     @JsonIgnore
     private List<Categoria> categorias;
+
+    public TipoCategoria(Long id, String nombre, List<Categoria> categorias) {
+        this.id = id;
+        this.nombre = nombre;
+        this.categorias = categorias;
+    }
 }

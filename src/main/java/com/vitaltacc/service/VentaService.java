@@ -331,36 +331,23 @@ public class VentaService {
 
     public List<Map<String, Object>> obtenerTopClientesPorMes(int mes, int anio) {
 
-        Map<String, Double> gastoPorCliente = new HashMap<>();
+        Map<Long, Map<String, Object>> clientes = new HashMap<>();
 
-        List<Venta> ventas = ventaRepository.findAll();
+        for (Venta venta : ventaRepository.findAll()) {
 
-        for (Venta venta : ventas) {
-
-            if (venta.getFecha() == null || venta.getCliente() == null)
+            if (venta.getFecha() == null || venta.getCliente() == null) {
                 continue;
-
-            if (venta.getFecha().getMonthValue() == mes &&
-                    venta.getFecha().getYear() == anio) {
-
-                String nombre = venta.getCliente().getNombre();
-                double total = venta.getTotal() != null ? venta.getTotal() : 0;
-
-                gastoPorCliente.put(nombre,
-                        gastoPorCliente.getOrDefault(nombre, 0.0) + total);
             }
+
+            if (venta.getFecha().getMonthValue() != mes
+                    || venta.getFecha().getYear() != anio) {
+                continue;
+            }
+
+            acumularCliente(clientes, venta);
         }
 
-        return gastoPorCliente.entrySet().stream()
-                .map(entry -> {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("cliente", entry.getKey());
-                    data.put("totalGastado", entry.getValue());
-                    return data;
-                })
-                .sorted((a, b) -> ((Double) b.get("totalGastado"))
-                        .compareTo((Double) a.get("totalGastado")))
-                .toList();
+        return ordenarClientes(clientes);
     }
 
     public List<Map<String, Object>> obtenerProductosMasVendidos() {
@@ -412,22 +399,54 @@ public class VentaService {
 
     public Map<String, Object> obtenerReportePorDia(LocalDate fecha) {
 
-        List<Venta> ventas = ventaRepository.findAll();
+        Map<String, Object> data = new HashMap<>();
 
-        double efectivo = 0;
-        double transferencia = 0;
-        double tarjeta = 0;
+        if (fecha == null) {
+            throw new IllegalArgumentException("La fecha del reporte es obligatoria.");
+        }
+
+        double efectivo = 0.0;
+        double transferencia = 0.0;
+        double tarjeta = 0.0;
+
+        double totalLocal = 0.0;
+        double totalOnline = 0.0;
+        double totalGeneral = 0.0;
 
         int cantidadVentas = 0;
+        int ventasLocales = 0;
+        int ventasOnline = 0;
 
-        for (Venta venta : ventas) {
+        for (Venta venta : ventaRepository.findAll()) {
 
-            if (!venta.getFecha().equals(fecha))
+            if (venta.getFecha() == null || !venta.getFecha().equals(fecha)) {
                 continue;
+            }
+
+            double total = venta.getTotal() != null
+                    ? venta.getTotal()
+                    : 0.0;
 
             cantidadVentas++;
+            totalGeneral += total;
 
-            double total = venta.getTotal();
+            if (venta.getTipoVenta() != null) {
+                switch (venta.getTipoVenta()) {
+                    case LOCAL:
+                        totalLocal += total;
+                        ventasLocales++;
+                        break;
+
+                    case ONLINE:
+                        totalOnline += total;
+                        ventasOnline++;
+                        break;
+                }
+            }
+
+            if (venta.getMetodoPago() == null) {
+                continue;
+            }
 
             switch (venta.getMetodoPago()) {
 
@@ -448,13 +467,20 @@ public class VentaService {
             }
         }
 
-        Map<String, Object> data = new HashMap<>();
-
+        data.put("fecha", fecha.toString());
         data.put("ventas", cantidadVentas);
+
+        data.put("ventasLocales", ventasLocales);
+        data.put("ventasOnline", ventasOnline);
+
+        data.put("totalLocal", totalLocal);
+        data.put("totalOnline", totalOnline);
+
         data.put("efectivo", efectivo);
         data.put("transferencia", transferencia);
         data.put("tarjeta", tarjeta);
-        data.put("total", efectivo + transferencia + tarjeta);
+
+        data.put("total", totalGeneral);
 
         return data;
     }
@@ -480,19 +506,35 @@ public class VentaService {
 
         Map<String, Integer> conteo = new HashMap<>();
 
+        if (fecha == null) {
+            return new ArrayList<>();
+        }
+
         for (Venta venta : ventaRepository.findAll()) {
 
-            if (!venta.getFecha().equals(fecha))
+            if (venta.getFecha() == null || !venta.getFecha().equals(fecha)) {
                 continue;
+            }
+
+            if (venta.getDetalles() == null) {
+                continue;
+            }
 
             for (DetalleVenta detalle : venta.getDetalles()) {
 
+                if (detalle == null || detalle.getProducto() == null) {
+                    continue;
+                }
+
                 String nombre = detalle.getProducto().getNombre();
 
-                conteo.put(
-                        nombre,
-                        conteo.getOrDefault(nombre, 0)
-                                + detalle.getCantidad());
+                if (nombre == null || nombre.isBlank()) {
+                    continue;
+                }
+
+                int cantidad = detalle.getCantidad();
+
+                conteo.put(nombre, conteo.getOrDefault(nombre, 0) + cantidad);
             }
         }
 
@@ -505,17 +547,29 @@ public class VentaService {
 
         for (Venta venta : ventaRepository.findAll()) {
 
-            if (venta.getFecha().getYear() != anio)
+            if (venta.getFecha() == null || venta.getFecha().getYear() != anio) {
                 continue;
+            }
+
+            if (venta.getDetalles() == null) {
+                continue;
+            }
 
             for (DetalleVenta detalle : venta.getDetalles()) {
 
+                if (detalle == null || detalle.getProducto() == null) {
+                    continue;
+                }
+
                 String nombre = detalle.getProducto().getNombre();
 
-                conteo.put(
-                        nombre,
-                        conteo.getOrDefault(nombre, 0)
-                                + detalle.getCantidad());
+                if (nombre == null || nombre.isBlank()) {
+                    continue;
+                }
+
+                int cantidad = detalle.getCantidad();
+
+                conteo.put(nombre, conteo.getOrDefault(nombre, 0) + cantidad);
             }
         }
 
@@ -524,75 +578,105 @@ public class VentaService {
 
     public List<Map<String, Object>> obtenerTopClientesPorDia(LocalDate fecha) {
 
-        Map<String, Double> clientes = new HashMap<>();
+        Map<Long, Map<String, Object>> clientes = new HashMap<>();
+
+        if (fecha == null) {
+            return new ArrayList<>();
+        }
 
         for (Venta venta : ventaRepository.findAll()) {
 
-            if (!venta.getFecha().equals(fecha))
+            if (venta.getFecha() == null || !venta.getFecha().equals(fecha)) {
                 continue;
+            }
 
-            if (venta.getCliente() == null)
+            if (venta.getCliente() == null) {
                 continue;
+            }
 
-            String nombre = venta.getCliente().getNombre();
-
-            clientes.put(
-                    nombre,
-                    clientes.getOrDefault(nombre, 0.0)
-                            + venta.getTotal());
+            acumularCliente(clientes, venta);
         }
 
-        return clientes.entrySet()
-                .stream()
-                .map(entry -> {
-
-                    Map<String, Object> data = new HashMap<>();
-
-                    data.put("cliente", entry.getKey());
-                    data.put("totalGastado", entry.getValue());
-
-                    return data;
-
-                })
-                .sorted((a, b) -> ((Double) b.get("totalGastado"))
-                        .compareTo((Double) a.get("totalGastado")))
-                .toList();
+        return ordenarClientes(clientes);
     }
 
     public List<Map<String, Object>> obtenerTopClientesPorAnio(int anio) {
 
-        Map<String, Double> clientes = new HashMap<>();
+        Map<Long, Map<String, Object>> clientes = new HashMap<>();
 
         for (Venta venta : ventaRepository.findAll()) {
 
-            if (venta.getFecha().getYear() != anio)
+            if (venta.getFecha() == null
+                    || venta.getFecha().getYear() != anio) {
                 continue;
+            }
 
-            if (venta.getCliente() == null)
+            if (venta.getCliente() == null) {
                 continue;
+            }
 
-            String nombre = venta.getCliente().getNombre();
-
-            clientes.put(
-                    nombre,
-                    clientes.getOrDefault(nombre, 0.0)
-                            + venta.getTotal());
+            acumularCliente(clientes, venta);
         }
 
-        return clientes.entrySet()
+        return ordenarClientes(clientes);
+    }
+
+    private void acumularCliente(
+            Map<Long, Map<String, Object>> clientes,
+            Venta venta) {
+
+        Usuario cliente = venta.getCliente();
+        Long clienteId = cliente.getId();
+
+        if (clienteId == null) {
+            return;
+        }
+
+        Map<String, Object> datos = clientes.computeIfAbsent(
+                clienteId,
+                id -> {
+                    Map<String, Object> nuevo = new HashMap<>();
+                    nuevo.put("clienteId", id);
+
+                    String nombre = cliente.getNombre() == null
+                            ? ""
+                            : cliente.getNombre().trim();
+
+                    String apellido = cliente.getApellido() == null
+                            ? ""
+                            : cliente.getApellido().trim();
+
+                    String nombreCompleto = (nombre + " " + apellido).trim();
+
+                    nuevo.put(
+                            "cliente",
+                            nombreCompleto.isEmpty()
+                                    ? "Cliente #" + id
+                                    : nombreCompleto);
+
+                    nuevo.put("totalGastado", 0.0);
+
+                    return nuevo;
+                });
+
+        double totalVenta = venta.getTotal() != null
+                ? venta.getTotal()
+                : 0.0;
+
+        double totalActual = ((Number) datos.get("totalGastado")).doubleValue();
+
+        datos.put("totalGastado", totalActual + totalVenta);
+    }
+
+    private List<Map<String, Object>> ordenarClientes(
+            Map<Long, Map<String, Object>> clientes) {
+
+        return clientes.values()
                 .stream()
-                .map(entry -> {
-
-                    Map<String, Object> data = new HashMap<>();
-
-                    data.put("cliente", entry.getKey());
-                    data.put("totalGastado", entry.getValue());
-
-                    return data;
-
-                })
-                .sorted((a, b) -> ((Double) b.get("totalGastado"))
-                        .compareTo((Double) a.get("totalGastado")))
+                .sorted((a, b) -> Double.compare(
+                        ((Number) b.get("totalGastado")).doubleValue(),
+                        ((Number) a.get("totalGastado")).doubleValue()))
                 .toList();
     }
+
 }

@@ -72,8 +72,19 @@
                     📊 Reportes
                 </button>
 
-                <button class="menu-principal">
+                <button id="btnConfiguracion" class="menu-principal" data-seccion="adminConfiguracion"
+                    onclick="mostrarSeccion('adminConfiguracion')">
                     ⚙ Configuración
+                </button>
+
+                <hr class="sidebar-divider">
+
+                <button type="button" class="menu-principal" onclick="irTienda()">
+                    🏪 Ver tienda
+                </button>
+
+                <button type="button" class="menu-principal" onclick="logout()">
+                    🚪 Cerrar sesión
                 </button>
 
             </div>
@@ -458,6 +469,54 @@
 
                     </div>
 
+
+                    <!-- CIERRE DE CAJA DIARIO -->
+                    <div id="seccionCierreCaja" class="card-admin full">
+
+                        <div class="section-header">
+                            <span>CIERRE DIARIO</span>
+                            <h2>Cierre de caja</h2>
+                            <p id="fechaCierreCaja">Cargando fecha...</p>
+                        </div>
+
+                        <div class="grid-admin">
+
+                            <div class="card-admin">
+                                <h3>Ingresos totales del día</h3>
+                                <p id="totalCierreCaja" class="numero-grande">$0</p>
+                                <p id="cantidadVentasCierre">0 ventas</p>
+                            </div>
+
+                            <div class="card-admin">
+                                <h3>Ventas locales</h3>
+                                <p id="totalLocalCierre" class="numero-grande">$0</p>
+                                <p id="cantidadLocalCierre">0 ventas</p>
+                            </div>
+
+                            <div class="card-admin">
+                                <h3>Ventas online</h3>
+                                <p id="totalOnlineCierre" class="numero-grande">$0</p>
+                                <p id="cantidadOnlineCierre">0 ventas</p>
+                            </div>
+
+                            <div class="card-admin">
+                                <h3>Ingresos por medio de pago</h3>
+                                <p>Efectivo: <strong id="efectivoCierre">$0</strong></p>
+                                <p>Transferencias: <strong id="transferenciaCierre">$0</strong></p>
+                                <p>Tarjetas: <strong id="tarjetaCierre">$0</strong></p>
+                            </div>
+
+                        </div>
+
+                        <button type="button" onclick="cargarCierreCaja()">
+                            Actualizar cierre
+                        </button>
+
+                        <p id="estadoCierreCaja" role="status"></p>
+
+                    </div>
+
+
                     <div id="seccion-filtro" class="filtro">
 
                         <div class="tabs-reportes">
@@ -542,10 +601,12 @@
                             <ul id="topClientes"></ul>
                         </div>
 
-                        <div class="card-admin full">
-                            <h2>Ventas por año</h2>
+
+                        <div class="card-admin full" id="contenedorGraficoVentas" style="display: none;">
+                            <h2>Ventas por mes del año</h2>
                             <canvas id="graficoVentas"></canvas>
                         </div>
+
 
                     </div>
 
@@ -676,6 +737,88 @@
 
                 </section>
 
+
+                <section class="admin-section vista-admin" id="adminConfiguracion">
+
+                    <div class="section-header">
+                        <span>ADMINISTRACIÓN</span>
+                        <h2>Configuración del negocio</h2>
+                        <p>Administrá la información que se muestra en la tienda pública.</p>
+                    </div>
+
+                    <form id="formConfiguracionNegocio">
+
+                        <div class="card-admin full">
+                            <h3>Datos del negocio</h3>
+
+                            <label for="configNombre">Nombre del negocio</label>
+                            <input type="text" id="configNombre" maxlength="120" required>
+
+                            <label for="configDireccion">Dirección</label>
+                            <input type="text" id="configDireccion" maxlength="255">
+
+                            <label for="configTelefono">Teléfono</label>
+                            <input type="text" id="configTelefono" maxlength="30">
+
+                            <label for="configEmail">Correo electrónico</label>
+                            <input type="email" id="configEmail" maxlength="120">
+                        </div>
+
+                        <div class="card-admin full">
+                            <h3>Horarios de atención</h3>
+
+                            <label for="configHorarioLunes">Lunes</label>
+                            <input type="text" id="configHorarioLunes" maxlength="1000"
+                                placeholder="Ej.: 09:00 - 20:00 o Cerrado">
+
+                            <label for="configHorarioMartes">Martes</label>
+                            <input type="text" id="configHorarioMartes" maxlength="1000"
+                                placeholder="Ej.: 09:00 - 20:00 o Cerrado">
+
+                            <label for="configHorarioMiercoles">Miércoles</label>
+                            <input type="text" id="configHorarioMiercoles" maxlength="1000"
+                                placeholder="Ej.: 09:00 - 20:00 o Cerrado">
+
+                            <label for="configHorarioJueves">Jueves</label>
+                            <input type="text" id="configHorarioJueves" maxlength="1000"
+                                placeholder="Ej.: 09:00 - 20:00 o Cerrado">
+
+                            <label for="configHorarioViernes">Viernes</label>
+                            <input type="text" id="configHorarioViernes" maxlength="1000"
+                                placeholder="Ej.: 09:00 - 20:00 o Cerrado">
+
+                            <label for="configHorarioSabado">Sábado</label>
+                            <input type="text" id="configHorarioSabado" maxlength="1000"
+                                placeholder="Ej.: 09:00 - 20:00 o Cerrado">
+
+                            <label for="configHorarioDomingo">Domingo</label>
+                            <input type="text" id="configHorarioDomingo" maxlength="1000" placeholder="Ej.: Cerrado">
+                        </div>
+
+                        <div class="card-admin full">
+                            <h3>Ubicación y redes sociales</h3>
+
+                            <label for="configInstagram">Instagram (URL)</label>
+                            <input type="url" id="configInstagram" maxlength="500"
+                                placeholder="https://instagram.com/...">
+
+                            <label for="configWhatsapp">WhatsApp (URL)</label>
+                            <input type="url" id="configWhatsapp" maxlength="500" placeholder="https://wa.me/...">
+
+                            <label for="configMaps">Google Maps (URL)</label>
+                            <input type="url" id="configMaps" maxlength="1000"
+                                placeholder="https://maps.google.com/...">
+                        </div>
+
+                        <button type="submit">Guardar configuración</button>
+
+                        <p id="estadoConfiguracion" role="status"></p>
+
+                    </form>
+
+                </section>
+
+
             </div>
         </main>
     </div>
@@ -791,6 +934,7 @@
     <script src="js/admin/promociones-admin.js"></script>
     <script src="js/admin/ventas-admin.js"></script>
     <script src="js/admin/estadisticas.js"></script>
+    <script src="js/admin/configuracion-admin.js"></script>
 
     <script src="js/admin.js"></script>
 

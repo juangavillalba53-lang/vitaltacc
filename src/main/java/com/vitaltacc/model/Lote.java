@@ -1,7 +1,10 @@
+
 package com.vitaltacc.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -10,7 +13,6 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Lote {
 
     @Id
@@ -36,4 +38,21 @@ public class Lote {
 
     @Column(name = "cantidad_inicial", nullable = false)
     private Integer cantidadInicial;
+
+    public Lote(
+            Long id,
+            Integer cantidad,
+            LocalDate fechaProduccion,
+            LocalDate fechaVencimiento,
+            String numeroLote,
+            Producto producto,
+            Integer cantidadInicial) {
+        this.id = id;
+        this.cantidad = cantidad;
+        this.fechaProduccion = fechaProduccion;
+        this.fechaVencimiento = fechaVencimiento;
+        this.numeroLote = numeroLote;
+        this.producto = producto;
+        this.cantidadInicial = cantidadInicial;
+    }
 }

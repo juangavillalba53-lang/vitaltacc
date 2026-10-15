@@ -1,28 +1,21 @@
 function aplicarPermisos() {
+    const usuarioActual = JSON.parse(localStorage.getItem("usuario"));
+    const esAdmin = usuarioActual?.rol === "ADMIN";
 
-    if (usuario.rol === "EMPLEADO") {
+    const opcionesSoloAdmin = [
+        "btnReportes",
+        "btnPromociones",
+        "btnUsuarios",
+        "btnConfiguracion"
+    ];
 
-        const reportes =
-            document.getElementById("btnReportes");
+    opcionesSoloAdmin.forEach(id => {
+        const elemento = document.getElementById(id);
 
-        const promociones =
-            document.getElementById("btnPromociones");
-
-        const usuarios =
-            document.getElementById("btnUsuarios");
-
-        if (reportes) {
-            reportes.style.display = "none";
+        if (elemento) {
+            elemento.style.display = esAdmin ? "" : "none";
         }
-
-        if (promociones) {
-            promociones.style.display = "none";
-        }
-
-        if (usuarios) {
-            usuarios.style.display = "none";
-        }
-    }
+    });
 }
 
 function cargarUsuarios() {

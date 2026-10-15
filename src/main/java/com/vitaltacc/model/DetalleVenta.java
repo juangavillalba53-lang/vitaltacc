@@ -1,7 +1,10 @@
+
 package com.vitaltacc.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
@@ -9,7 +12,6 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class DetalleVenta {
 
     @Id
@@ -36,4 +38,19 @@ public class DetalleVenta {
     @JoinColumn(name = "venta_id", nullable = false)
     @JsonBackReference
     private Venta venta;
+
+    public DetalleVenta(
+            Long id,
+            Integer cantidad,
+            Double precioUnitario,
+            Producto producto,
+            Lote lote,
+            Venta venta) {
+        this.id = id;
+        this.cantidad = cantidad;
+        this.precioUnitario = precioUnitario;
+        this.producto = producto;
+        this.lote = lote;
+        this.venta = venta;
+    }
 }

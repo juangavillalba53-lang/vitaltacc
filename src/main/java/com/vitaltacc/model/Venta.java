@@ -1,11 +1,14 @@
 package com.vitaltacc.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
@@ -13,7 +16,6 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Venta {
 
     @Id
@@ -34,7 +36,7 @@ public class Venta {
     @Enumerated(EnumType.STRING)
     private TipoVenta tipoVenta;
 
-    // 🔥 NUEVO: cliente
+    // Cliente asociado a la venta
     @ManyToOne
     @JoinColumn(name = "cliente_id")
     private Usuario cliente;
@@ -46,4 +48,23 @@ public class Venta {
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<DetalleVenta> detalles = new ArrayList<>();
+
+    public Venta(
+            Long id,
+            LocalDate fecha,
+            Double total,
+            MetodoPago metodoPago,
+            TipoVenta tipoVenta,
+            Usuario cliente,
+            Usuario empleado,
+            List<DetalleVenta> detalles) {
+        this.id = id;
+        this.fecha = fecha;
+        this.total = total;
+        this.metodoPago = metodoPago;
+        this.tipoVenta = tipoVenta;
+        this.cliente = cliente;
+        this.empleado = empleado;
+        this.detalles = detalles;
+    }
 }

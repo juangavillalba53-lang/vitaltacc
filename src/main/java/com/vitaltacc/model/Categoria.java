@@ -1,19 +1,11 @@
 package com.vitaltacc.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
 
 @Entity
 @Table(name = "categoria")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class Categoria {
 
     @Id
@@ -30,4 +22,47 @@ public class Categoria {
     @OneToMany(mappedBy = "categoria")
     @JsonIgnore
     private List<Producto> productos;
+
+    public Categoria() {
+    }
+
+    public Categoria(Long id, String nombre, TipoCategoria tipoCategoria,
+            List<Producto> productos) {
+        this.id = id;
+        this.nombre = nombre;
+        this.tipoCategoria = tipoCategoria;
+        this.productos = productos;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public TipoCategoria getTipoCategoria() {
+        return tipoCategoria;
+    }
+
+    public void setTipoCategoria(TipoCategoria tipoCategoria) {
+        this.tipoCategoria = tipoCategoria;
+    }
+
+    public List<Producto> getProductos() {
+        return productos;
+    }
+
+    public void setProductos(List<Producto> productos) {
+        this.productos = productos;
+    }
 }

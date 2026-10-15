@@ -2,14 +2,15 @@ package com.vitaltacc.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "producto_imagen")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class ProductoImagen {
 
     @Id
@@ -23,4 +24,10 @@ public class ProductoImagen {
     @JoinColumn(name = "producto_id")
     @JsonIgnore
     private Producto producto;
+
+    public ProductoImagen(Long id, String url, Producto producto) {
+        this.id = id;
+        this.url = url;
+        this.producto = producto;
+    }
 }

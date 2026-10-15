@@ -1,15 +1,15 @@
 package com.vitaltacc.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "usuario")
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class Usuario {
 
     @Id
@@ -36,4 +36,23 @@ public class Usuario {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private Rol rol;
+
+    public Usuario(
+            Long id,
+            String nombre,
+            String apellido,
+            String email,
+            String contrasena,
+            String dni,
+            String telefono,
+            Rol rol) {
+        this.id = id;
+        this.nombre = nombre;
+        this.apellido = apellido;
+        this.email = email;
+        this.contrasena = contrasena;
+        this.dni = dni;
+        this.telefono = telefono;
+        this.rol = rol;
+    }
 }

@@ -84,22 +84,48 @@ function mostrarPanel(panel) {
 // NAVEGACIÓN DEL PANEL
 // ===============================
 
-function mostrarSeccion(id) {
 
-    // Ocultar todas las vistas
+function mostrarSeccion(id) {
+    const usuarioActual = JSON.parse(localStorage.getItem("usuario"));
+
+    if (!usuarioActual) {
+        window.location.href = "login.html";
+        return;
+    }
+
+    const seccionesSoloAdmin = [
+        "adminReportes",
+        "adminPromociones",
+        "adminUsuarios",
+        "adminConfiguracion"
+    ];
+
+    if (
+        usuarioActual.rol !== "ADMIN" &&
+        seccionesSoloAdmin.includes(id)
+    ) {
+        alert("No tenés permisos para acceder a esta sección.");
+        mostrarSeccion("adminDashboard");
+        return;
+    }
+
     document.querySelectorAll(".vista-admin").forEach(seccion => {
         seccion.style.display = "none";
     });
 
-    // Mostrar la vista elegida
-    document.getElementById(id).style.display = "block";
+    const seccionActiva = document.getElementById(id);
 
-    // Quitar el activo de todos
+    if (!seccionActiva) {
+        console.error("No se encontró la sección:", id);
+        return;
+    }
+
+    seccionActiva.style.display = "block";
+
     document.querySelectorAll(".menu-principal").forEach(boton => {
         boton.classList.remove("activo");
     });
 
-    // Marcar el botón seleccionado
     const botonActivo = document.querySelector(
         `.menu-principal[data-seccion="${id}"]`
     );
@@ -110,6 +136,16 @@ function mostrarSeccion(id) {
 
     if (id === "adminHistorialVentas") {
         cargarHistorialVentas();
+    }
+
+    if (id === "adminReportes") {
+        if (typeof cargarGeneral === "function") {
+            cargarGeneral();
+        }
+
+        if (typeof cargarCierreCaja === "function") {
+            cargarCierreCaja();
+        }
     }
 }
 

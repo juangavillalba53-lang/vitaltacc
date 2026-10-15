@@ -1,6 +1,5 @@
 // 🔥 CARGA GENERAL
 function cargarGeneral() {
-    cargarGrafico();
     filtrar();
 }
 
@@ -20,6 +19,12 @@ function mostrarFiltro(tipo) {
 
     if (tipo === "anio") {
         document.getElementById("filtroAnio").style.display = "block";
+    }
+
+    const contenedorGrafico = document.getElementById("contenedorGraficoVentas");
+
+    if (contenedorGrafico) {
+        contenedorGrafico.style.display = "none";
     }
 }
 
@@ -99,7 +104,6 @@ function filtrar() {
             document.getElementById("topClientes").innerHTML = "<li>Error</li>";
         });
 
-    cargarGrafico();
 }
 
 function filtrarDia() {
@@ -172,39 +176,65 @@ function filtrarDia() {
         });
 }
 
+
 function filtrarAnio() {
 
-    const anio = parseInt(
-        document.getElementById("anioReporte").value
-    );
+    const anio = parseInt(document.getElementById("anioReporte").value, 10);
+
+    if (!Number.isInteger(anio) || anio < 1900 || anio > 9999) {
+        alert("Ingrese un año válido.");
+        return;
+    }
+
+    const contenedorGrafico = document.getElementById("contenedorGraficoVentas");
+
+    if (contenedorGrafico) {
+        contenedorGrafico.style.display = "block";
+    }
 
     document.getElementById("filtroActual").innerText =
         `Mostrando datos del año ${anio}`;
 
     fetch(`http://localhost:8080/ventas/cantidad-ventas/anio?anio=${anio}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Error al consultar cantidad de ventas");
+            return res.json();
+        })
         .then(data => {
             document.getElementById("cantidadVentas").innerText = data;
+        })
+        .catch(() => {
+            document.getElementById("cantidadVentas").innerText = "Error";
         });
 
     fetch(`http://localhost:8080/ventas/total-por-anio?anio=${anio}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Error al consultar totales");
+            return res.json();
+        })
         .then(data => {
-
-            let total = 0;
-
-            data.forEach(item => {
-                total += item.total;
-            });
+            const total = data.reduce(
+                (suma, item) => suma + (Number(item.total) || 0),
+                0
+            );
 
             document.getElementById("total").innerText =
-                "$" + total;
+                new Intl.NumberFormat("es-AR", {
+                    style: "currency",
+                    currency: "ARS",
+                    maximumFractionDigits: 2
+                }).format(total);
+        })
+        .catch(() => {
+            document.getElementById("total").innerText = "Error";
         });
 
     fetch(`http://localhost:8080/ventas/mas-vendidos/por-anio?anio=${anio}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Error al consultar productos");
+            return res.json();
+        })
         .then(data => {
-
             const lista = document.getElementById("masVendidos");
             lista.innerHTML = "";
 
@@ -214,20 +244,22 @@ function filtrarAnio() {
             }
 
             data.forEach(item => {
-
                 const li = document.createElement("li");
-
                 li.innerText =
                     `${item.producto} - ${item.cantidadVendida} vendidos`;
-
                 lista.appendChild(li);
             });
+        })
+        .catch(() => {
+            document.getElementById("masVendidos").innerHTML = "<li>Error</li>";
         });
 
     fetch(`http://localhost:8080/ventas/top-clientes/por-anio?anio=${anio}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Error al consultar clientes");
+            return res.json();
+        })
         .then(data => {
-
             const lista = document.getElementById("topClientes");
             lista.innerHTML = "";
 
@@ -237,39 +269,59 @@ function filtrarAnio() {
             }
 
             data.forEach((item, index) => {
-
                 const li = document.createElement("li");
-
                 li.innerText =
                     `${index + 1}. ${item.cliente} - $${item.totalGastado}`;
-
                 lista.appendChild(li);
             });
+        })
+        .catch(() => {
+            document.getElementById("topClientes").innerHTML = "<li>Error</li>";
         });
 
-    cargarGrafico();
+    cargarGrafico(anio);
 }
+
 
 // 🔥 GRÁFICO
 let grafico = null;
 
-function cargarGrafico() {
 
-    const anio = parseInt(document.getElementById("anio").value);
+function cargarGrafico(anioSeleccionado) {
+
+    const anio = Number(anioSeleccionado);
+
+    if (!Number.isInteger(anio)) {
+        return;
+    }
 
     fetch(`http://localhost:8080/ventas/total-por-anio?anio=${anio}`)
-        .then(res => res.json())
+        .then(res => {
+            if (!res.ok) throw new Error("Error al cargar el gráfico");
+            return res.json();
+        })
         .then(data => {
 
-            const meses = [];
-            const totales = [];
+            const meses = [
+                "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+                "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+            ];
+
+            const totalesPorMes = Array(12).fill(0);
 
             data.forEach(item => {
-                meses.push(item.mes);
-                totales.push(item.total);
+                const indice = Number(item.mes) - 1;
+
+                if (indice >= 0 && indice < 12) {
+                    totalesPorMes[indice] = Number(item.total) || 0;
+                }
             });
 
-            const ctx = document.getElementById("graficoVentas").getContext("2d");
+            const canvas = document.getElementById("graficoVentas");
+
+            if (!canvas) return;
+
+            const ctx = canvas.getContext("2d");
 
             if (grafico) {
                 grafico.destroy();
@@ -280,13 +332,90 @@ function cargarGrafico() {
                 data: {
                     labels: meses,
                     datasets: [{
-                        label: "Ventas por mes",
-                        data: totales
+                        label: `Ventas por mes (${anio})`,
+                        data: totalesPorMes
                     }]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        },
+                        x: {
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 0,
+                                minRotation: 0
+                            }
+                        }
+                    }
                 }
+
             });
         })
-        .catch(() => {
-            console.error("Error gráfico");
+        .catch(error => {
+            console.error("Error gráfico:", error);
         });
+}
+
+
+
+async function cargarCierreCaja() {
+
+    const estado = document.getElementById("estadoCierreCaja");
+
+    if (estado) {
+        estado.textContent = "Actualizando cierre de caja...";
+    }
+
+    try {
+        const respuesta = await fetch("http://localhost:8080/ventas/cierre-caja");
+
+        if (!respuesta.ok) {
+            throw new Error("No se pudo obtener el cierre de caja.");
+        }
+
+        const data = await respuesta.json();
+
+        const moneda = valor =>
+            new Intl.NumberFormat("es-AR", {
+                style: "currency",
+                currency: "ARS",
+                maximumFractionDigits: 2
+            }).format(Number(valor) || 0);
+
+        const mostrar = (id, valor) => {
+            const elemento = document.getElementById(id);
+            if (elemento) elemento.textContent = valor;
+        };
+
+        mostrar("fechaCierreCaja", `Fecha: ${data.fecha || "No disponible"}`);
+        mostrar("totalCierreCaja", moneda(data.total));
+        mostrar("cantidadVentasCierre", `${data.ventas ?? 0} ventas`);
+
+        mostrar("totalLocalCierre", moneda(data.totalLocal));
+        mostrar("cantidadLocalCierre", `${data.ventasLocales ?? 0} ventas`);
+
+        mostrar("totalOnlineCierre", moneda(data.totalOnline));
+        mostrar("cantidadOnlineCierre", `${data.ventasOnline ?? 0} ventas`);
+
+        mostrar("efectivoCierre", moneda(data.efectivo));
+        mostrar("transferenciaCierre", moneda(data.transferencia));
+        mostrar("tarjetaCierre", moneda(data.tarjeta));
+
+        if (estado) {
+            estado.textContent = "Cierre de caja actualizado.";
+        }
+
+    } catch (error) {
+        console.error("Error al cargar el cierre de caja:", error);
+
+        if (estado) {
+            estado.textContent = "No se pudo cargar el cierre de caja. Intentá actualizar.";
+        }
+    }
 }
