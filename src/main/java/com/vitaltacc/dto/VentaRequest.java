@@ -12,6 +12,8 @@ public class VentaRequest {
     private String dniCliente;
     private String nombreCliente;
     private String apellidoCliente;
+    private String telefonoCliente;
+    private String emailCliente;
     private MetodoPago metodoPago;
     private TipoVenta tipoVenta;
     private List<VentaItemRequest> detalles;
@@ -56,6 +58,22 @@ public class VentaRequest {
         this.apellidoCliente = apellidoCliente;
     }
 
+    public String getTelefonoCliente() {
+        return telefonoCliente;
+    }
+
+    public void setTelefonoCliente(String telefonoCliente) {
+        this.telefonoCliente = telefonoCliente;
+    }
+
+    public String getEmailCliente() {
+        return emailCliente;
+    }
+
+    public void setEmailCliente(String emailCliente) {
+        this.emailCliente = emailCliente;
+    }
+
     public MetodoPago getMetodoPago() {
         return metodoPago;
     }
@@ -79,4 +97,4 @@ public class VentaRequest {
     public void setDetalles(List<VentaItemRequest> detalles) {
         this.detalles = detalles;
     }
-}
+}

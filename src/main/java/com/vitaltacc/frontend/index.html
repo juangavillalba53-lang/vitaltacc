@@ -4,513 +4,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VitalTacc · Alimentos libres de gluten en Posadas</title>
+    <meta name="description" content="Pan, pastas y dulces sin TACC en Posadas. Comprá online o en el local de Roque Pérez 1660.">
+    <link rel="icon" type="image/png" href="img/logo-vitaltacc.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=swap"
-        rel="stylesheet" rel="stylesheet">
-    <title>VitalTacc</title>
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/tienda.css">
 </head>
 
-<body>
-    <header class="navbar">
-
-        <!-- LOGO -->
-
-        <a href="index.html" class="logo">
-
-            <img src="img/logo.png" alt="VitalTacc">
-
-        </a>
-
-        <!-- LINKS -->
-
-        <nav class="nav-links">
-
-            <a href="index.html">
-                Inicio
-            </a>
-
-            <a href="nosotras.html">
-                Nosotras
-            </a>
-
-            <a href="#productos">
-                Productos
-            </a>
-
-        </nav>
-
-        <!-- DERECHA -->
-
-        <div class="nav-user">
-
-            <div id="navbar-actions"></div>
-
-            <!-- CARRITO -->
-
-            <button class="cart-btn" onclick="abrirCarrito()">
-
-                🛒
-
-                <span id="contador-carrito">
-                    0
-                </span>
-
-            </button>
-
-            <!-- MENU -->
-
-            <button class="menu-toggle" id="menuToggle">
-
-                <i class="fa-solid fa-bars"></i>
-
-            </button>
-
-        </div>
-
-        <!-- PANEL MENU -->
-
-        <div class="menu-panel" id="menuPanel">
-
-            <div class="menu-panel-content">
-
-                <div id="nav-user"></div>
-
-            </div>
-
-        </div>
-
-    </header>
-
-    <section class="hero">
-
-        <div class="hero-bg-grid"></div>
-
-        <div class="hero-bg-glow"></div>
-
-        <div class="overlay"></div>
-
-        <div class="hero-content">
-
-            <span class="subtitulo-hero">
-                Alimentos sin TACC
-            </span>
-
-            <h1>
-                Calidad, sabor y
-                <em>confianza</em>
-                en cada producto
-            </h1>
-
-            <p>
-                Descubrí productos sin TACC elaborados
-                con dedicación, cercanía y compromiso.
-            </p>
-
-            <div class="hero-buttons">
-
-                <a href="#productos" class="btn-hero">
-                    Ver productos
-                </a>
-
-                <a href="nosotras.html" class="btn-secundario">
-                    Conocé más
-                </a>
-
-            </div>
-
-        </div>
-
-    </section>
-
-    <section class="beneficios">
-
-        <div class="beneficio">
-
-            <div class="beneficio-icono">
-                🛡️
-            </div>
-
-            <h3>Certificado sin TACC</h3>
-
-            <p>Todos nuestros productos</p>
-
-        </div>
-
-        <div class="beneficio">
-
-            <div class="beneficio-icono">
-                🚚
-            </div>
-
-            <h3>Envíos a todo el país</h3>
-
-            <p>Rápido y seguro</p>
-
-        </div>
-
-        <div class="beneficio">
-
-            <div class="beneficio-icono">
-                ♡
-            </div>
-
-            <h3>Hecho con amor</h3>
-
-            <p>Producción artesanal</p>
-
-        </div>
-
-    </section>
-
-    <div class="container">
-
-        <section class="editorial-section" id="productos">
-
-            <div class="editorial-content">
-
-                <span>
-                    VITALTACC
-                </span>
-
-                <h2>
-                    Productos elaborados
-                    con dedicación y confianza
-                </h2>
-
-                <p>
-                    Creamos alimentos sin TACC pensando en la calidad,
-                    el sabor y la tranquilidad de cada familia.
-                </p>
-
-                <a href="productos.html" class="btn-hero">
-                    Explorar catálogo
-                </a>
-
-            </div>
-
-            <div class="carousel-wrapper">
-
-                <div class="carousel-track">
-
-                    <img src="img/local.JPG" alt="">
-                    <img src="img/producto2.jpg" alt="">
-                    <img src="img/producto3.jpg" alt="">
-                    <img src="img/producto4.jpg" alt="">
-                    <img src="img/producto5.jpg" alt="">
-
-                    <!-- DUPLICADAS PARA LOOP -->
-
-                    <img src="img/local.JPG" alt="">
-                    <img src="img/producto2.jpg" alt="">
-                    <img src="img/producto3.jpg" alt="">
-                    <img src="img/producto4.jpg" alt="">
-                    <img src="img/producto5.jpg" alt="">
-
+<body data-pagina="inicio">
+
+    <header id="encabezado"></header>
+
+    <main id="contenido" tabindex="-1">
+
+        <section class="hero">
+            <div class="contenedor">
+                <div class="hero-interior">
+                    <div class="hero-texto">
+                        <span class="cinta">Alimentos libres de gluten</span>
+                        <h1>Pan, pastas y dulces sin TACC para comer tranquilo</h1>
+                        <p>Productos libres de gluten hechos con pasión, calidad y compromiso. Pedilos online o pasá por el local.</p>
+                        <div class="hero-botones">
+                            <a class="boton boton-primario" href="productos.html">Ver productos</a>
+                            <a class="boton boton-claro" href="#visitanos">Visitá el local</a>
+                        </div>
+                    </div>
+                    <div class="hero-foto">
+                        <img src="img/local-interior.webp" alt="Mostrador del local de VitalTacc con panificados sin TACC" width="1800" height="1199" fetchpriority="high">
+                        <p class="hero-dato"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span data-config="direccion">Roque Pérez 1660, Posadas, Misiones</span></p>
+                    </div>
                 </div>
-
             </div>
-
         </section>
 
-        <!-- 🔥 MODAL CARRITO -->
-        <div id="modalCarrito" class="modal-carrito">
 
-            <div class="contenido-carrito">
-
-                <button class="cerrar-carrito" onclick="cerrarCarrito()">
-                    ✖
-                </button>
-
-                <div class="carrito-header">
-
-                    <div class="carrito-icono">
-                        🛒
-                    </div>
-
-                    <h2>Tu carrito</h2>
-
-                    <p>
-                        Revisá tus productos antes de finalizar la compra
-                    </p>
-
-                </div>
-
-                <ul id="lista-carrito"></ul>
-
-                <div class="resumen-carrito">
-
-                    <p class="total">
-
-                        Total:
-                        <span>
-                            $<span id="total">0</span>
-                        </span>
-
-                    </p>
-
-                    <button class="btn-finalizar" onclick="finalizarCompra()">
-                        Finalizar compra
-                    </button>
-
-                </div>
-
+        <div class="franja" aria-hidden="true">
+            <div class="franja-pista">
+                <div class="franja-grupo"><span>Pan</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Pastas</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Dulces</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Harinas</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Congelados</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Panificados</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Snacks</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Sin TACC</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg></div>
+                <div class="franja-grupo"><span>Pan</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Pastas</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Dulces</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Harinas</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Congelados</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Panificados</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Snacks</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg><span>Sin TACC</span><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg></div>
             </div>
-
         </div>
 
-    </div>
-
-    <footer class="footer">
-
-        <!-- BOTON -->
-
-        <div class="footer-toggle-wrapper">
-
-            <button class="footer-toggle" id="footerToggle">
-
-                Más información
-
-                <i class="fa-solid fa-chevron-down"></i>
-
-            </button>
-
-        </div>
-
-        <!-- PANEL DESPLEGABLE -->
-
-        <div class="footer-extra" id="footerExtra">
-
-            <div class="footer-grid">
-
-                <!-- UBICACION -->
-
-                <div class="footer-card">
-
-                    <div class="footer-icon">📍</div>
-
-                    <h3>Ubicación</h3>
-
-                    <p id="footerDireccion">
-                        Roque Pérez 1660, Posadas, Misiones
-                    </p>
-
-                    <p id="footerTelefono"></p>
-
-                    <a id="footerMaps" href="https://maps.app.goo.gl/hDy4N3ZFMr4rXz6CA?g_st=iwb" target="_blank"
-                        rel="noopener noreferrer" class="footer-map-btn">
-                        Abrir ubicación
-                    </a>
-
+        <section class="seccion seccion-suave" aria-labelledby="tituloDestacados">
+            <div class="contenedor">
+                <div class="seccion-titulo-fila revelar">
+                    <div class="seccion-titulo">
+                        <h2 id="tituloDestacados">Para empezar</h2>
+                        <p>Algunos productos que tenemos disponibles hoy.</p>
+                    </div>
+                    <a class="boton boton-secundario" href="productos.html">Ver todo el catálogo</a>
                 </div>
+                <div class="grilla-productos" id="destacados" aria-live="polite"></div>
+            </div>
+        </section>
 
-                <!-- HORARIOS -->
-
-                <div class="footer-card">
-
-                    <div class="footer-icon">
-                        🕒
+        <section class="seccion" id="visitanos" aria-labelledby="tituloVisita">
+            <div class="contenedor">
+                <div class="visita revelar">
+                    <img src="img/local-frente.webp" alt="Frente del local de VitalTacc en Roque Pérez 1660" width="1000" height="1172" loading="lazy">
+                    <div class="visita-texto">
+                        <span class="cinta cinta-trigo">El local</span>
+                        <h2 id="tituloVisita">Pasá a vernos</h2>
+                        <p>Productos frescos, atención cálida y momentos reales compartidos con nuestros clientes.</p>
+                        <ul class="visita-datos">
+                            <li><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span data-config="direccion">Roque Pérez 1660, Posadas, Misiones</span></li>
+                            <li><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><div class="visita-horarios" data-config="horarios"></div></li>
+                        </ul>
+                        <div>
+                            <a class="boton boton-secundario" data-config="mapa" href="https://maps.app.goo.gl/hDy4N3ZFMr4rXz6CA?g_st=iwb" target="_blank" rel="noopener noreferrer">Cómo llegar</a>
+                        </div>
                     </div>
-
-                    <h3>Horarios</h3>
-
-                    <div class="footer-hours">
-
-                        <div>
-                            <span>Lunes</span>
-                            <strong id="footerHorarioLunes">09:00 - 20:00</strong>
-                        </div>
-
-                        <div>
-                            <span>Martes</span>
-                            <strong id="footerHorarioMartes">09:00 - 20:00</strong>
-                        </div>
-
-                        <div>
-                            <span>Miércoles</span>
-                            <strong id="footerHorarioMiercoles">09:00 - 20:00</strong>
-                        </div>
-
-                        <div>
-                            <span>Jueves</span>
-                            <strong id="footerHorarioJueves">09:00 - 20:00</strong>
-                        </div>
-
-                        <div>
-                            <span>Viernes</span>
-                            <strong id="footerHorarioViernes">09:00 - 20:00</strong>
-                        </div>
-
-                        <div>
-                            <span>Sábados</span>
-                            <strong id="footerHorarioSabado">09:00 - 20:00</strong>
-                        </div>
-
-                        <div>
-                            <span>Domingos</span>
-                            <strong id="footerHorarioDomingo">Cerrado</strong>
-                        </div>
-
-                    </div>
-
                 </div>
-
-                <!-- REDES -->
-
-                <div class="footer-card">
-
-                    <div class="footer-icon">
-                        ♡
-                    </div>
-
-                    <h3>Redes sociales</h3>
-
-                    <div class="footer-socials">
-
-                        <a id="footerInstagram" href="https://instagram.com/" target="_blank" rel="noopener noreferrer">
-                            <i class="fa-brands fa-instagram"></i>
-                            Instagram
-                        </a>
-
-                        <a id="footerWhatsapp" href="https://wa.me/" target="_blank" rel="noopener noreferrer">
-                            <i class="fa-brands fa-whatsapp"></i>
-                            WhatsApp
-                        </a>
-
-                    </div>
-
-                </div>
-
             </div>
+        </section>
+    </main>
 
-        </div>
+    <footer id="pie"></footer>
 
-        <!-- FOOTER NORMAL -->
-
-        <div class="footer-main">
-
-            <!-- LOGO -->
-
-            <div class="footer-brand">
-
-                <img id="footerLogo" src="img/logo.png" alt="VitalTacc">
-
-            </div>
-
-            <!-- COPYRIGHT -->
-
-            <p class="footer-copy">
-                © 2026 <span id="footerNombreNegocio">VitalTacc</span> — Todos los derechos reservados
-            </p>
-
-            <!-- REDES -->
-
-            <div class="footer-socials-inline">
-
-                <a href="https://instagram.com/" target="_blank">
-
-                    <i class="fa-brands fa-instagram"></i>
-
-                </a>
-
-                <a href="https://wa.me/" target="_blank">
-
-                    <i class="fa-brands fa-whatsapp"></i>
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </footer>
-
-    <!-- 🔥 TOAST -->
-
-    <div id="toast" class="toast">
-
-        Producto agregado al carrito
-
-    </div>
-
-    <!-- BIENVENIDA INVITADO -->
-
-    <div id="bienvenidaInvitado" class="bienvenida-invitado">
-
-        <button class="cerrar-bienvenida" onclick="cerrarBienvenida()">
-            ✕
-        </button>
-
-        <h3>
-            👋 Bienvenido a VitalTacc
-        </h3>
-
-        <p>
-            Iniciá sesión / Registrate para guardar tus pedidos,
-            ver tu historial y comprar más rápido.
-        </p>
-
-        <div class="bienvenida-botones">
-
-            <a href="login.html" class="btn-login-mini">
-                Iniciar sesión
-            </a>
-
-            <button class="btn-registro-mini" onclick="abrirRegistro()">
-                Registrarme
-            </button>
-
-        </div>
-
-    </div>
-
-    <!-- MODAL REGISTRO -->
-
-    <div id="modalRegistro" class="modal-registro">
-
-        <div class="contenido-registro">
-
-            <button class="cerrar-registro" onclick="cerrarRegistro()">
-                ✕
-            </button>
-
-            <h2>Crear cuenta</h2>
-
-            <p>
-                Registrate para guardar tus compras y acceder a promociones.
-            </p>
-
-            <input type="text" id="registroNombre" placeholder="Nombre completo">
-
-            <input type="text" id="registroDni" placeholder="DNI">
-
-            <input type="text" id="registroTelefono" placeholder="Teléfono">
-
-            <input type="email" id="registroEmail" placeholder="Email">
-
-            <input type="password" id="registroContrasena" placeholder="Contraseña">
-
-            <input type="password" id="registroContrasena2" placeholder="Repetir contraseña">
-
-            <button class="btn-hero" onclick="registrarse()">
-                Crear cuenta
-            </button>
-
-        </div>
-
-    </div>
-
-    <script src="js/global.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/app.js"></script>
-    <script src="js/configuracion-tienda.js"></script>
-
+    <script src="js/tienda/tienda.js"></script>
+    <script src="js/tienda/inicio.js"></script>
 </body>
 
 </html>

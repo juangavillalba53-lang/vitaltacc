@@ -42,7 +42,7 @@ public class Venta {
     private Usuario cliente;
 
     @ManyToOne
-    @JoinColumn(name = "empleado_id", nullable = false)
+    @JoinColumn(name = "empleado_id", nullable = true)
     private Usuario empleado;
 
     @OneToMany(mappedBy = "venta", cascade = CascadeType.ALL, orphanRemoval = true)

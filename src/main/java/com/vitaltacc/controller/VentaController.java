@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.vitaltacc.dto.VentaRequest;
 import java.time.LocalDate;
 import com.vitaltacc.service.VentaPdfService;
+import com.vitaltacc.service.CompraEmailService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +27,20 @@ public class VentaController {
     @Autowired
     private VentaPdfService ventaPdfService;
 
+    @Autowired
+    private CompraEmailService compraEmailService;
+
     // 🔥 Crear venta
     @PostMapping
     public Venta crearVenta(@RequestBody VentaRequest ventaRequest) {
-        return ventaService.crearVenta(ventaRequest);
+        Venta venta = ventaService.crearVenta(ventaRequest);
+
+        // El comprobante llega por mail: en las compras web siempre y en las
+        // del local cuando el cliente dio (o ya tenía) un email.
+        // Se envía en segundo plano: la respuesta no espera al correo.
+        compraEmailService.enviarComprobante(venta.getId(), ventaRequest.getEmailCliente());
+
+        return venta;
     }
 
     // 🔥 Listar ventas
@@ -44,6 +55,13 @@ public class VentaController {
             @RequestParam(required = false) String busqueda) {
 
         return ventaService.obtenerHistorialDTO(busqueda);
+    }
+
+    // Compras de un cliente (en el local y online)
+    @GetMapping("/cliente/{clienteId}")
+    public List<Map<String, Object>> obtenerComprasDeCliente(
+            @PathVariable Long clienteId) {
+        return ventaService.obtenerComprasDeCliente(clienteId);
     }
 
     // Obtener una venta específica por número de compra
@@ -169,4 +187,4 @@ public class VentaController {
 
         return ventaService.obtenerTopClientesPorAnio(anio);
     }
-}
+}

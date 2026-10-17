@@ -2,90 +2,120 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>Ingresar · VitalTacc</title>
+    <meta name="description" content="Ingresá o creá tu cuenta en VitalTacc.">
+    <link rel="icon" type="image/png" href="img/logo-vitaltacc.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
         rel="stylesheet">
-
-    <title>Login - VitalTacc</title>
-
-    <link rel="stylesheet" href="css/global.css">
-
-    <link rel="stylesheet" href="css/login.css">
-
+    <link rel="stylesheet" href="css/tienda.css">
 </head>
 
-<body>
+<body data-pagina="cuenta">
 
-    <!-- NAVBAR -->
+    <header id="encabezado"></header>
 
-    <header class="navbar">
+    <main id="contenido" tabindex="-1">
 
-        <a href="index.html" class="logo">
+        <div class="pagina-cuenta">
+            <div class="cuenta-lado">
+                <img src="img/local-interior.webp" alt="" width="1800" height="1199">
+                <span class="cinta">Alimentos libres de gluten</span>
+                <h2>Tu cuenta en VitalTacc</h2>
+                <p>Guardá tus datos, mirá tus compras y hacé tus pedidos más rápido.</p>
+            </div>
 
-            <img src="img/logo.png" alt="VitalTacc">
+            <div class="cuenta-formularios">
+                <div class="pestanas" role="tablist" aria-label="Ingresar o crear cuenta">
+                    <button type="button" role="tab" id="tabIngresar" aria-controls="formIngresar" aria-selected="true">Ingresar</button>
+                    <button type="button" role="tab" id="tabRegistro" aria-controls="formRegistro" aria-selected="false">Crear cuenta</button>
+                </div>
 
-        </a>
+                <form class="formulario" id="formIngresar" role="tabpanel" aria-labelledby="tabIngresar" novalidate>
+                    <h1>Hola de nuevo</h1>
+                    <p>Ingresá con tu email y tu contraseña.</p>
 
-        <nav class="nav-links">
+                    <div class="campo">
+                        <label for="loginEmail">Email</label>
+                        <input type="email" id="loginEmail" autocomplete="email" required>
+                    </div>
 
-            <a href="index.html">Inicio</a>
+                    <div class="campo">
+                        <label for="loginContrasena">Contraseña</label>
+                        <input type="password" id="loginContrasena" autocomplete="current-password" required>
+                    </div>
 
-            <a href="nosotras.html">Nosotras</a>
+                    <p class="mensaje-formulario" id="mensajeIngresar" role="alert"></p>
 
-            <a href="index.html#productos">Productos</a>
+                    <button type="submit" class="boton boton-primario boton-ancho">Ingresar</button>
+                </form>
 
-        </nav>
+                <form class="formulario" id="formRegistro" role="tabpanel" aria-labelledby="tabRegistro" hidden novalidate>
+                    <h1>Creá tu cuenta</h1>
+                    <p>Tarda un minuto y te sirve para comprar online y en el local.</p>
 
-        <div class="nav-user">
+                    <div class="aviso-dni">
+                        <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.8 16a3.4 3.4 0 0 1 6.4 0M14 10h4M14 13h3"/></svg>
+                        <span>¿Ya compraste en el local? Usá el mismo DNI que diste en la caja y vas a ver esas compras en tu cuenta.</span>
+                    </div>
 
-            <a href="index.html" class="btn-nav">
-                Volver
-            </a>
+                    <div class="fila-campos">
+                        <div class="campo">
+                            <label for="regNombre">Nombre</label>
+                            <input type="text" id="regNombre" autocomplete="given-name" required>
+                        </div>
+                        <div class="campo">
+                            <label for="regApellido">Apellido</label>
+                            <input type="text" id="regApellido" autocomplete="family-name" required>
+                        </div>
+                    </div>
 
-        </div>
+                    <div class="fila-campos">
+                        <div class="campo">
+                            <label for="regDni">DNI</label>
+                            <input type="text" id="regDni" inputmode="numeric" autocomplete="off" required>
+                            <small>Solo números, sin puntos.</small>
+                        </div>
+                        <div class="campo">
+                            <label for="regTelefono">Teléfono</label>
+                            <input type="tel" id="regTelefono" autocomplete="tel">
+                            <small>Opcional.</small>
+                        </div>
+                    </div>
 
-    </header>
+                    <div class="campo">
+                        <label for="regEmail">Email</label>
+                        <input type="email" id="regEmail" autocomplete="email" required>
+                    </div>
 
-    <!-- LOGIN -->
+                    <div class="fila-campos">
+                        <div class="campo">
+                            <label for="regContrasena">Contraseña</label>
+                            <input type="password" id="regContrasena" autocomplete="new-password" minlength="8" required>
+                            <small>Mínimo 8 caracteres.</small>
+                        </div>
+                        <div class="campo">
+                            <label for="regContrasena2">Repetir contraseña</label>
+                            <input type="password" id="regContrasena2" autocomplete="new-password" required>
+                        </div>
+                    </div>
 
-    <main class="login-page">
+                    <p class="mensaje-formulario" id="mensajeRegistro" role="alert"></p>
 
-        <div class="login-card">
-
-            <h1>Bienvenido</h1>
-
-            <p>
-                Iniciá sesión para continuar.
-            </p>
-
-            <form onsubmit="event.preventDefault(); login();">
-
-                <input type="email" id="email" placeholder="Email" required>
-
-                <input type="password" id="contrasena" placeholder="Contraseña" required>
-
-                <button type="submit">
-                    Ingresar
-                </button>
-
-            </form>
-
-            <p id="error" class="mensaje-error"></p>
-
+                    <button type="submit" class="boton boton-primario boton-ancho">Crear cuenta</button>
+                </form>
+            </div>
         </div>
 
     </main>
 
-    <script src="js/login.js"></script>
+    <footer id="pie"></footer>
 
+    <script src="js/tienda/tienda.js"></script>
+    <script src="js/tienda/cuenta.js"></script>
 </body>
 
 </html>

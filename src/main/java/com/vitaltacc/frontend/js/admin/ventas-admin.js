@@ -36,7 +36,7 @@ function buscarProductosVenta() {
         contenedor.innerHTML += `
             <div class="resultado-producto"
                  onclick="agregarProductoVenta(${prod.id})">
-                ${prod.nombre} - $${precio.toFixed(2)}
+                ${prod.nombre} - ${pesosVenta(precio)}
             </div>
         `;
     });
@@ -97,51 +97,57 @@ function renderCarrito() {
 
         const precioHTML = tieneDescuento
             ? `
-                <span style="text-decoration: line-through; color: #888; font-size: 0.9em;">
-                    $${precioOriginal.toFixed(2)}
+                <span class="precio-tachado">
+                    ${pesosVenta(precioOriginal)}
                 </span>
                 <br>
-                <strong style="color: #009688;">
-                    $${precio.toFixed(2)}
+                <strong class="precio-oferta">
+                    ${pesosVenta(precio)}
                 </strong>
                 <br>
-                <small style="color: #009688;">
+                <small class="etiqueta-off">
                     ${Math.round((1 - precio / precioOriginal) * 100)}% OFF
                 </small>
             `
-            : `$${precio.toFixed(2)}`;
+            : `${pesosVenta(precio)}`;
 
         const subtotalHTML = tieneDescuento
             ? `
-                <span style="text-decoration: line-through; color: #888; font-size: 0.9em;">
-                    $${(precioOriginal * item.cantidad).toFixed(2)}
+                <span class="precio-tachado">
+                    ${pesosVenta((precioOriginal * item.cantidad))}
                 </span>
                 <br>
-                <strong style="color: #009688;">
-                    $${subtotal.toFixed(2)}
+                <strong class="precio-oferta">
+                    ${pesosVenta(subtotal)}
                 </strong>
             `
-            : `$${subtotal.toFixed(2)}`;
+            : `${pesosVenta(subtotal)}`;
 
         tr.innerHTML = `
             <td>${item.nombre}</td>
 
             <td>
-                <button
-                    onclick="cambiarCantidad(${item.id}, -1)"
-                    ${item.cantidad <= 1 ? "disabled" : ""}>
-                    ➖
-                </button>
+                <div class="control-cantidad">
+                    <button
+                        class="btn-cantidad"
+                        aria-label="Restar uno"
+                        onclick="cambiarCantidad(${item.id}, -1)"
+                        ${item.cantidad <= 1 ? "disabled" : ""}>
+                        −
+                    </button>
 
-                <span>${item.cantidad}</span>
+                    <span>${item.cantidad}</span>
 
-                <button
-                    onclick="cambiarCantidad(${item.id}, 1)"
-                    ${item.cantidad >= item.stock ? "disabled" : ""}>
-                    ➕
-                </button>
+                    <button
+                        class="btn-cantidad"
+                        aria-label="Sumar uno"
+                        onclick="cambiarCantidad(${item.id}, 1)"
+                        ${item.cantidad >= item.stock ? "disabled" : ""}>
+                        +
+                    </button>
+                </div>
 
-                <small>Stock: ${item.stock}</small>
+                <small class="stock-disponible">Stock: ${item.stock}</small>
             </td>
 
             <td>${precioHTML}</td>
@@ -149,8 +155,10 @@ function renderCarrito() {
             <td>${subtotalHTML}</td>
 
             <td>
-                <button onclick="eliminarProductoCarrito(${item.id})">
-                    ❌
+                <button
+                    class="btn-tabla btn-eliminar"
+                    onclick="eliminarProductoCarrito(${item.id})">
+                    Quitar
                 </button>
             </td>
         `;
@@ -159,7 +167,7 @@ function renderCarrito() {
     });
 
     document.getElementById("totalVenta").innerText =
-        "Total: $" + total.toFixed(2);
+        "Total: " + pesosVenta(total);
 }
 
 
@@ -197,6 +205,60 @@ function cambiarCantidad(id, cambio) {
 }
 
 
+// ---------------------------------------------------------
+// EMAIL PARA EL COMPROBANTE
+// ---------------------------------------------------------
+
+// Sin texto de ayuda fijo: solo aparece un aviso cuando el email se completa solo
+const AYUDA_EMAIL_VENTA = "";
+
+function esEmailValido(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function esEmailInterno(email) {
+    return !email || String(email).toLowerCase().endsWith("@local.com");
+}
+
+function ponerAyudaEmail(texto, tipo) {
+    const ayuda = document.getElementById("ayudaEmailVenta");
+    if (!ayuda) return;
+    ayuda.textContent = texto;
+    if (tipo) ayuda.dataset.tipo = tipo;
+    else delete ayuda.dataset.tipo;
+}
+
+// Saca el email que se completó solo al encontrar un cliente
+function limpiarEmailAutocompletado() {
+    const campo = document.getElementById("emailClienteVenta");
+    if (!campo) return;
+    if (campo.dataset.autocompletado === "1") {
+        campo.value = "";
+    }
+    delete campo.dataset.autocompletado;
+    campo.removeAttribute("aria-invalid");
+    ponerAyudaEmail(AYUDA_EMAIL_VENTA);
+}
+
+function reiniciarEmailVenta() {
+    const campo = document.getElementById("emailClienteVenta");
+    if (!campo) return;
+    campo.value = "";
+    delete campo.dataset.autocompletado;
+    campo.removeAttribute("aria-invalid");
+    ponerAyudaEmail(AYUDA_EMAIL_VENTA);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    const campo = document.getElementById("emailClienteVenta");
+    if (!campo) return;
+
+    campo.addEventListener("input", () => {
+        delete campo.dataset.autocompletado;
+        campo.removeAttribute("aria-invalid");
+    });
+});
+
 function cambiarTipoCliente() {
 
     const tipo = document.getElementById("tipoClienteVenta").value;
@@ -214,6 +276,10 @@ function cambiarTipoCliente() {
         contenedor.classList.add("oculto");
 
         dni.value = "";
+
+        clienteVenta = null;
+
+        limpiarEmailAutocompletado();
 
     }
 
@@ -238,6 +304,8 @@ function buscarClientePorDni() {
     document.getElementById("apellidoClienteVenta").value = "";
     document.getElementById("telefonoClienteVenta").value = "";
 
+    limpiarEmailAutocompletado();
+
     if (!dni) return;
 
     fetch(`http://localhost:8080/usuarios/dni/${dni}`)
@@ -257,17 +325,26 @@ function buscarClientePorDni() {
 
             formularioNuevo.classList.add("oculto");
 
-            estado.innerText = "✅ Cliente encontrado: " + usuario.nombre;
+            estado.innerText = "Cliente encontrado: " + usuario.nombre;
 
-            estado.style.color = "green";
+            estado.dataset.tipo = "ok";
+
+            // Si ya tiene un email real guardado, se completa solo
+            const campoEmail = document.getElementById("emailClienteVenta");
+
+            if (campoEmail && !esEmailInterno(usuario.email) && !campoEmail.value.trim()) {
+                campoEmail.value = usuario.email;
+                campoEmail.dataset.autocompletado = "1";
+                ponerAyudaEmail("Es el email que tiene guardado. Si dio otro, cambialo.", "ok");
+            }
 
         })
 
         .catch(() => {
 
-            estado.innerText = "⚠ Cliente no encontrado. Complete los datos para registrarlo.";
+            estado.innerText = "No encontramos ese DNI. Completá los datos para registrar al cliente.";
 
-            estado.style.color = "#d97706";
+            estado.dataset.tipo = "alerta";
 
             formularioNuevo.classList.remove("oculto");
 
@@ -299,6 +376,21 @@ async function confirmarVenta() {
         }))
     };
 
+    const campoEmail = document.getElementById("emailClienteVenta");
+    const emailCliente = campoEmail ? campoEmail.value.trim().toLowerCase() : "";
+
+    if (emailCliente) {
+
+        if (!esEmailValido(emailCliente)) {
+            campoEmail.setAttribute("aria-invalid", "true");
+            campoEmail.focus();
+            alert("El email del cliente no es válido. Revisalo o dejalo vacío.");
+            return;
+        }
+
+        venta.emailCliente = emailCliente;
+    }
+
     if (tipoCliente === "REGISTRADO") {
 
         const dni =
@@ -320,6 +412,9 @@ async function confirmarVenta() {
 
             venta.apellidoCliente =
                 document.getElementById("apellidoClienteVenta").value.trim();
+
+            venta.telefonoCliente =
+                document.getElementById("telefonoClienteVenta").value.trim();
 
             if (!venta.nombreCliente || !venta.apellidoCliente) {
                 alert("Completar nombre y apellido.");
@@ -404,20 +499,26 @@ async function confirmarVenta() {
 
         clienteVenta = null;
 
+        reiniciarEmailVenta();
+
         cargarProductosVenta();
         cargarProductos();
         cargarStock();
         cargarDashboard();
 
+        const avisoMail = emailCliente
+            ? ` El comprobante también se envía a ${emailCliente}.`
+            : "";
+
         if (pdfDescargado) {
             alert(
                 `Venta N.º ${ventaGuardada.id} registrada correctamente. ` +
-                "Se descargó el comprobante PDF."
+                "Se descargó el comprobante PDF." + avisoMail
             );
         } else {
             alert(
                 `Venta N.º ${ventaGuardada.id} registrada correctamente, ` +
-                "pero no se pudo descargar el PDF. Podrás volver a intentarlo."
+                "pero no se pudo descargar el PDF. Podrás volver a intentarlo." + avisoMail
             );
         }
 
@@ -511,9 +612,16 @@ async function cargarHistorialVentas() {
                 venta.id ?? "-",
                 venta.fecha ?? "-",
                 venta.cliente || "Consumidor final",
-                venta.tipoVenta || "-",
-                venta.empleado || "No informado",
-                venta.metodoPago || "-",
+                ({ LOCAL: "Local", ONLINE: "Online" })[venta.tipoVenta] || venta.tipoVenta || "-",
+                venta.tipoVenta === "ONLINE" ? "Web" : (venta.empleado || "No informado"),
+                ({
+                    EFECTIVO: "Efectivo",
+                    TRANSFERENCIA: "Transferencia",
+                    TARJETA_DEBITO: "Tarjeta de débito",
+                    TARJETA_CREDITO: "Tarjeta de crédito",
+                    MERCADO_PAGO: "Mercado Pago",
+                    MODO: "MODO"
+                })[venta.metodoPago] || venta.metodoPago || "-",
                 formatearImporteHistorial(venta.total)
             ].forEach(texto => {
                 const celda = document.createElement("td");
@@ -525,6 +633,7 @@ async function cargarHistorialVentas() {
             const botonPDF = document.createElement("button");
 
             botonPDF.type = "button";
+            botonPDF.className = "btn-tabla btn-lotes";
             botonPDF.textContent = "Descargar PDF";
             botonPDF.addEventListener("click", () => descargarPDFHistorial(venta.id));
 
@@ -552,14 +661,14 @@ function mostrarControlesPaginacion(total, totalPaginas) {
     if (!controles) {
         controles = document.createElement("div");
         controles.id = "controlesPaginacionHistorial";
-        controles.style.cssText = "display:flex;justify-content:center;align-items:center;gap:12px;margin-top:20px;flex-wrap:wrap;";
+        controles.className = "paginacion-stock";
         tabla.closest("table").insertAdjacentElement("afterend", controles);
     }
 
     controles.innerHTML = "";
 
     const anterior = document.createElement("button");
-    anterior.textContent = "← Anterior";
+    anterior.textContent = "Anterior";
     anterior.disabled = total === 0 || paginaHistorialActual <= 1;
     anterior.onclick = () => {
         paginaHistorialActual--;
@@ -570,7 +679,7 @@ function mostrarControlesPaginacion(total, totalPaginas) {
     texto.textContent = `Página ${paginaHistorialActual} de ${totalPaginas}`;
 
     const siguiente = document.createElement("button");
-    siguiente.textContent = "Siguiente →";
+    siguiente.textContent = "Siguiente";
     siguiente.disabled = total === 0 || paginaHistorialActual >= totalPaginas;
     siguiente.onclick = () => {
         paginaHistorialActual++;
@@ -614,4 +723,13 @@ async function descargarPDFHistorial(id) {
         console.error("Error al descargar el PDF:", error);
         alert("No se pudo descargar el comprobante de la venta N.º " + id);
     }
+}
+
+
+// Precios con formato argentino ($ 3.200,00)
+function pesosVenta(valor) {
+    return new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS"
+    }).format(Number(valor) || 0);
 }

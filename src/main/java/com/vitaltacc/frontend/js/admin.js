@@ -21,9 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     aplicarPermisos();
 
+    if (usuario.rol !== "ADMIN") {
+        document.querySelectorAll(".solo-admin").forEach(el => el.remove());
+    }
+
     // 🔥 CARGAS INICIALES
     cargarDashboard();
-    setInterval(cargarDashboard, 10000);
+    programarActualizacionDashboard();
     cargarProductos();
     cargarLotesPorVencer();
     cargarUsuarios();
@@ -78,6 +82,12 @@ function mostrarPanel(panel) {
     document
         .getElementById(`panel-${panel}`)
         .classList.add("activo");
+
+    document
+        .querySelectorAll(".tabs-admin [data-panel]")
+        .forEach(tab => {
+            tab.classList.toggle("activo", tab.dataset.panel === panel);
+        });
 }
 
 // ===============================
@@ -93,12 +103,13 @@ function mostrarSeccion(id) {
         return;
     }
 
+
     const seccionesSoloAdmin = [
         "adminReportes",
         "adminPromociones",
-        "adminUsuarios",
-        "adminConfiguracion"
+        "adminUsuarios"
     ];
+
 
     if (
         usuarioActual.rol !== "ADMIN" &&
@@ -132,6 +143,16 @@ function mostrarSeccion(id) {
 
     if (botonActivo) {
         botonActivo.classList.add("activo");
+
+        if (typeof moverIndicadorMenu === "function") {
+            moverIndicadorMenu(botonActivo);
+        }
+    }
+
+    window.scrollTo({ top: 0 });
+
+    if (id === "adminDashboard" && typeof cargarDashboard === "function") {
+        cargarDashboard();
     }
 
     if (id === "adminHistorialVentas") {
@@ -160,7 +181,7 @@ function cargarDashboard() {
         .then(res => res.json())
         .then(data => {
 
-            document.getElementById("dashboardProductos").innerText = data.length;
+            ponerTexto(document.getElementById("dashboardProductos"), data.length);
 
         });
 
@@ -173,8 +194,7 @@ function cargarDashboard() {
                 u => u.rol === "ADMIN" || u.rol === "EMPLEADO"
             );
 
-            document.getElementById("dashboardUsuarios").innerText =
-                usuariosInternos.length;
+            ponerTexto(document.getElementById("dashboardUsuarios"), usuariosInternos.length);
 
         });
 
@@ -183,7 +203,7 @@ function cargarDashboard() {
         .then(res => res.json())
         .then(data => {
 
-            document.getElementById("dashboardPromociones").innerText = data.length;
+            ponerTexto(document.getElementById("dashboardPromociones"), data.length);
 
         });
 
@@ -199,8 +219,7 @@ function cargarDashboard() {
                 new Date(lote.fechaVencimiento) >= hoy
             );
 
-            document.getElementById("dashboardLotes").innerText =
-                lotesActivos.length;
+            ponerTexto(document.getElementById("dashboardLotes"), lotesActivos.length);
 
             let urgentes = 0;
             let atencion = 0;
@@ -233,11 +252,106 @@ function cargarDashboard() {
             const monitoreadosEl =
                 document.getElementById("totalMonitoreados");
 
-            if (urgentesEl) urgentesEl.innerText = urgentes;
-            if (atencionEl) atencionEl.innerText = atencion;
-            if (monitoreadosEl)
-                monitoreadosEl.innerText = lotesActivos.length;
+            ponerTexto(urgentesEl, urgentes);
+            ponerTexto(atencionEl, atencion);
+            ponerTexto(monitoreadosEl, lotesActivos.length);
+
+            renderProximosVencimientos(lotesActivos, hoy);
 
         });
 
+}
+
+// ===============================
+// DASHBOARD: PRÓXIMOS VENCIMIENTOS
+// ===============================
+
+function renderProximosVencimientos(lotes, hoy) {
+
+    const lista = document.getElementById("dashboardProximos");
+
+    if (!lista) return;
+
+    // Si no cambió nada desde la última vez, no se vuelve a dibujar
+    const firma = JSON.stringify(
+        [...lotes]
+            .sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento))
+            .slice(0, 5)
+            .map(l => [l.id, l.numeroLote, l.cantidad, l.fechaVencimiento])
+    );
+
+    if (lista.dataset.firma === firma) return;
+    lista.dataset.firma = firma;
+
+    const proximos = [...lotes]
+        .sort((a, b) =>
+            new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento)
+        )
+        .slice(0, 5);
+
+    if (proximos.length === 0) {
+        lista.innerHTML = `<li class="vacio">No hay lotes con stock por vencer.</li>`;
+        return;
+    }
+
+    lista.innerHTML = "";
+
+    proximos.forEach(lote => {
+
+        const dias = Math.ceil(
+            (new Date(lote.fechaVencimiento) - hoy) / (1000 * 60 * 60 * 24)
+        );
+
+        const nombre =
+            lote.producto?.nombre ||
+            lote.nombreProducto ||
+            lote.productoNombre ||
+            `Lote ${lote.numeroLote}`;
+
+        const nivel = dias <= 15 ? "urgente" : dias <= 20 ? "atencion" : "ok";
+
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+            <span class="proximo-nombre">
+                <strong></strong>
+                <small>Lote ${lote.numeroLote ?? "-"} · ${lote.cantidad} u.</small>
+            </span>
+            <span class="proximo-dias ${nivel}">
+                ${dias <= 0 ? "Vence hoy" : dias === 1 ? "1 día" : dias + " días"}
+            </span>
+        `;
+
+        li.querySelector("strong").textContent = nombre;
+
+        lista.appendChild(li);
+    });
+}
+
+
+// ===============================
+// ACTUALIZACIÓN AUTOMÁTICA DEL DASHBOARD
+// ===============================
+
+// Cambia el texto solo si el valor es distinto (así no parpadea)
+function ponerTexto(elemento, valor) {
+    if (!elemento) return;
+    const texto = String(valor);
+    if (elemento.textContent !== texto) elemento.textContent = texto;
+}
+
+// Se actualiza:
+// - al volver a la pestaña o a la ventana del panel,
+// - al entrar al Dashboard desde el menú,
+// - y cada 30 segundos, solo mientras la pestaña está a la vista.
+function programarActualizacionDashboard() {
+
+    const actualizarSiSeVe = () => {
+        if (!document.hidden) cargarDashboard();
+    };
+
+    setInterval(actualizarSiSeVe, 30000);
+
+    document.addEventListener("visibilitychange", actualizarSiSeVe);
+    window.addEventListener("focus", actualizarSiSeVe);
 }

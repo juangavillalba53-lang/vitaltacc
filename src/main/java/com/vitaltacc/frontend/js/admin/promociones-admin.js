@@ -68,6 +68,11 @@ function crearPromocion() {
 }
 
 
+// 10 promociones por página
+const PROMOCIONES_POR_PAGINA = 10;
+let promocionesVigentes = [];
+let paginaPromociones = 1;
+
 function cargarPromociones() {
     fetch("http://localhost:8080/promociones/activas")
         .then(res => {
@@ -77,43 +82,72 @@ function cargarPromociones() {
             return res.json();
         })
         .then(data => {
-            const tabla = document.getElementById("tablaPromociones");
-
-            if (!tabla) return;
-
-            tabla.innerHTML = "";
-
-            data.forEach(promo => {
-                const tr = document.createElement("tr");
-
-                tr.innerHTML = `
-                    <td>
-                        ${promo.producto
-                        ? promo.producto.nombre
-                        : "GLOBAL"}
-                    </td>
-                    <td>${promo.descripcion}</td>
-                    <td>${promo.descuento}%</td>
-                    <td>${promo.fechaInicio} → ${promo.fechaFin}</td>
-                    <td>
-                        <button onclick="eliminarPromocion(${promo.id})">
-                            Eliminar
-                        </button>
-                    </td>
-                `;
-
-                tabla.appendChild(tr);
-            });
+            promocionesVigentes = Array.isArray(data) ? data : [];
+            renderPromociones();
         })
         .catch(error => {
             console.error("Error cargando promociones:", error);
         });
 }
 
+function renderPromociones() {
+    const tabla = document.getElementById("tablaPromociones");
 
-function eliminarPromocion(id) {
+    if (!tabla) return;
 
-    if (!confirm("¿Eliminar promoción?")) return;
+    tabla.innerHTML = "";
+
+    const { items, pagina, totalPaginas } =
+        paginar(promocionesVigentes, paginaPromociones, PROMOCIONES_POR_PAGINA);
+
+    paginaPromociones = pagina;
+
+    items.forEach(promo => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>
+                ${promo.producto
+                ? promo.producto.nombre
+                : "Toda la tienda"}
+            </td>
+            <td>${promo.descripcion}</td>
+            <td>${promo.descuento}%</td>
+            <td>${promo.fechaInicio} → ${promo.fechaFin}</td>
+            <td>
+                <button class="btn-tabla btn-eliminar" onclick="eliminarPromocion(${promo.id})">
+                    Eliminar
+                </button>
+            </td>
+        `;
+
+        tabla.appendChild(tr);
+    });
+
+    dibujarPaginacion(
+        document.getElementById("paginacionPromociones"),
+        pagina,
+        totalPaginas,
+        nueva => {
+            paginaPromociones = nueva;
+            renderPromociones();
+        });
+}
+
+
+async function eliminarPromocion(id) {
+
+    const nombre = textoDeFila("td:nth-child(2)");
+
+    const seguro = await confirmar({
+        titulo: "¿Eliminar esta promoción?",
+        mensaje: nombre
+            ? `«${nombre}» deja de aplicarse en la tienda. No se puede deshacer.`
+            : "Deja de aplicarse en la tienda. No se puede deshacer.",
+        aceptar: "Eliminar promoción"
+    });
+
+    if (!seguro) return;
 
     fetch(`http://localhost:8080/promociones/${id}`, {
         method: "DELETE"

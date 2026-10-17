@@ -39,6 +39,9 @@ public class VentaService {
     @Autowired
     private ProductoService productoService;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     @Transactional
     public Venta crearVenta(VentaRequest ventaRequest) {
 
@@ -53,59 +56,80 @@ public class VentaService {
             throw new RuntimeException("La venta no contiene productos.");
         }
 
-        Usuario empleado = usuarioRepository.findById(ventaRequest.getEmpleadoId())
-                .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
-
-        if (empleado.getRol() != Rol.ADMIN &&
-                empleado.getRol() != Rol.EMPLEADO) {
-
-            throw new RuntimeException(
-                    "Usuario sin permisos para registrar ventas");
+        if (ventaRequest.getTipoVenta() == null) {
+            throw new RuntimeException("El tipo de venta es obligatorio.");
         }
 
-        venta.setEmpleado(empleado);
+        if (ventaRequest.getMetodoPago() == null) {
+            throw new RuntimeException("El método de pago es obligatorio.");
+        }
 
-        if (ventaRequest.getClienteId() != null) {
+        if (ventaRequest.getTipoVenta() == com.vitaltacc.model.TipoVenta.LOCAL) {
+
+            if (ventaRequest.getEmpleadoId() == null) {
+                throw new RuntimeException(
+                        "Debe indicar el empleado que registra la venta.");
+            }
+
+            Usuario empleado = usuarioRepository.findById(ventaRequest.getEmpleadoId())
+                    .orElseThrow(() -> new RuntimeException("Empleado no encontrado"));
+
+            if (empleado.getRol() != Rol.ADMIN &&
+                    empleado.getRol() != Rol.EMPLEADO) {
+                throw new RuntimeException(
+                        "Usuario sin permisos para registrar ventas.");
+            }
+
+            venta.setEmpleado(empleado);
+
+        } else if (ventaRequest.getTipoVenta() == com.vitaltacc.model.TipoVenta.ONLINE) {
+
+            if (ventaRequest.getClienteId() == null) {
+                throw new RuntimeException(
+                        "Debe indicar el cliente que realiza la compra online.");
+            }
 
             Usuario cliente = usuarioRepository.findById(ventaRequest.getClienteId())
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
 
-            venta.setCliente(cliente);
-
-        } else if (ventaRequest.getDniCliente() != null &&
-                !ventaRequest.getDniCliente().isBlank()) {
-
-            Usuario cliente = usuarioRepository
-                    .findByDni(ventaRequest.getDniCliente())
-                    .orElse(null);
-
-            if (cliente == null) {
-
-                cliente = new Usuario();
-
-                cliente.setNombre(
-                        ventaRequest.getNombreCliente() != null
-                                ? ventaRequest.getNombreCliente()
-                                : "Consumidor");
-
-                cliente.setApellido(
-                        ventaRequest.getApellidoCliente() != null
-                                ? ventaRequest.getApellidoCliente()
-                                : "Final");
-
-                cliente.setDni(ventaRequest.getDniCliente());
-
-                cliente.setEmail(
-                        "cliente_" + ventaRequest.getDniCliente() + "@local.com");
-
-                cliente.setContrasena("TEMP");
-
-                cliente.setRol(Rol.CLIENTE);
-
-                cliente = usuarioRepository.save(cliente);
+            if (cliente.getRol() != Rol.CLIENTE) {
+                throw new RuntimeException(
+                        "Solo los clientes pueden realizar compras online.");
             }
 
             venta.setCliente(cliente);
+            venta.setEmpleado(null);
+        }
+
+        if (ventaRequest.getTipoVenta() == com.vitaltacc.model.TipoVenta.LOCAL) {
+
+            if (ventaRequest.getClienteId() != null) {
+
+                Usuario cliente = usuarioRepository.findById(ventaRequest.getClienteId())
+                        .orElseThrow(() -> new RuntimeException("Cliente no encontrado"));
+
+                if (cliente.getRol() != Rol.CLIENTE) {
+                    throw new RuntimeException("El usuario indicado no es un cliente.");
+                }
+
+                venta.setCliente(cliente);
+
+            } else if (ventaRequest.getDniCliente() != null
+                    && !ventaRequest.getDniCliente().isBlank()) {
+
+                // Cliente identificado por DNI: si no existe se crea como cuenta
+                // pendiente, que se activa cuando se registra en la web
+                Usuario cliente = usuarioService.obtenerOCrearClientePorDni(
+                        ventaRequest.getDniCliente(),
+                        ventaRequest.getNombreCliente(),
+                        ventaRequest.getApellidoCliente(),
+                        ventaRequest.getTelefonoCliente());
+
+                venta.setCliente(cliente);
+            }
+
+            // Si en el local dieron un email, queda guardado para los próximos comprobantes
+            usuarioService.guardarEmailDeContacto(venta.getCliente(), ventaRequest.getEmailCliente());
         }
 
         double totalVenta = 0.0;
@@ -177,6 +201,51 @@ public class VentaService {
         venta.setTotal(totalVenta);
 
         return ventaRepository.save(venta);
+    }
+
+    // Compras de un cliente, sin importar si fueron en el local u online
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> obtenerComprasDeCliente(Long clienteId) {
+
+        return ventaRepository.findByClienteIdOrderByIdDesc(clienteId)
+                .stream()
+                .map(venta -> {
+
+                    // Un mismo producto puede salir de varios lotes: se agrupa
+                    Map<String, Map<String, Object>> items = new LinkedHashMap<>();
+
+                    for (DetalleVenta detalle : venta.getDetalles()) {
+
+                        String nombre = detalle.getProducto() != null
+                                ? detalle.getProducto().getNombre()
+                                : "Producto";
+
+                        double precio = detalle.getPrecioUnitario() != null
+                                ? detalle.getPrecioUnitario()
+                                : 0.0;
+
+                        Map<String, Object> item = items.computeIfAbsent(nombre, n -> {
+                            Map<String, Object> nuevo = new HashMap<>();
+                            nuevo.put("producto", n);
+                            nuevo.put("cantidad", 0);
+                            nuevo.put("precioUnitario", precio);
+                            return nuevo;
+                        });
+
+                        item.put("cantidad", (Integer) item.get("cantidad") + detalle.getCantidad());
+                    }
+
+                    Map<String, Object> compra = new HashMap<>();
+                    compra.put("id", venta.getId());
+                    compra.put("fecha", venta.getFecha());
+                    compra.put("tipoVenta", venta.getTipoVenta() != null ? venta.getTipoVenta().name() : "");
+                    compra.put("metodoPago", venta.getMetodoPago() != null ? venta.getMetodoPago().name() : "");
+                    compra.put("total", venta.getTotal());
+                    compra.put("items", new ArrayList<>(items.values()));
+
+                    return compra;
+                })
+                .toList();
     }
 
     public List<Venta> obtenerVentas() {
@@ -679,4 +748,4 @@ public class VentaService {
                 .toList();
     }
 
-}
+}

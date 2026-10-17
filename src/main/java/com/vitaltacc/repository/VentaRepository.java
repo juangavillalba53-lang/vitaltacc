@@ -12,6 +12,9 @@ import java.util.List;
 @Repository
 public interface VentaRepository extends JpaRepository<Venta, Long> {
 
+    // Compras de un cliente (en el local y online), de la más nueva a la más vieja
+    List<Venta> findByClienteIdOrderByIdDesc(Long clienteId);
+
     @Query("""
             SELECT v
             FROM Venta v

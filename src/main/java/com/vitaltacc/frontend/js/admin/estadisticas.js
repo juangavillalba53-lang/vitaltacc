@@ -1,3 +1,6 @@
+// Los reportes de más vendidos y mejores clientes muestran solo el top 10
+const TOP_REPORTES = 10;
+
 // 🔥 CARGA GENERAL
 function cargarGeneral() {
     filtrar();
@@ -10,16 +13,20 @@ function mostrarFiltro(tipo) {
     document.getElementById("filtroAnio").style.display = "none";
 
     if (tipo === "dia") {
-        document.getElementById("filtroDia").style.display = "block";
+        document.getElementById("filtroDia").style.display = "flex";
     }
 
     if (tipo === "mes") {
-        document.getElementById("filtroMes").style.display = "block";
+        document.getElementById("filtroMes").style.display = "flex";
     }
 
     if (tipo === "anio") {
-        document.getElementById("filtroAnio").style.display = "block";
+        document.getElementById("filtroAnio").style.display = "flex";
     }
+
+    document.querySelectorAll(".tabs-reportes button").forEach(boton => {
+        boton.classList.toggle("activo", boton.dataset.filtro === tipo);
+    });
 
     const contenedorGrafico = document.getElementById("contenedorGraficoVentas");
 
@@ -43,7 +50,7 @@ function filtrar() {
     fetch(`http://localhost:8080/ventas/total-por-mes?mes=${mes}&anio=${anio}`)
         .then(res => res.json())
         .then(data => {
-            document.getElementById("total").innerText = "$" + data;
+            document.getElementById("total").innerText = formatoPesos(data);
         })
         .catch(() => {
             document.getElementById("total").innerText = "Error";
@@ -71,7 +78,7 @@ function filtrar() {
                 return;
             }
 
-            data.forEach(item => {
+            data.slice(0, TOP_REPORTES).forEach(item => {
                 const li = document.createElement("li");
                 li.innerText = `${item.producto} - ${item.cantidadVendida} vendidos`;
                 lista.appendChild(li);
@@ -94,7 +101,7 @@ function filtrar() {
                 return;
             }
 
-            data.forEach((item, index) => {
+            data.slice(0, TOP_REPORTES).forEach((item, index) => {
                 const li = document.createElement("li");
                 li.innerText = `${index + 1}. ${item.cliente} - $${item.totalGastado}`;
                 lista.appendChild(li);
@@ -123,7 +130,7 @@ function filtrarDia() {
         .then(data => {
 
             document.getElementById("total").innerText =
-                "$" + data.total;
+                formatoPesos(data.total);
 
             document.getElementById("cantidadVentas").innerText =
                 data.ventas;
@@ -141,7 +148,7 @@ function filtrarDia() {
                 return;
             }
 
-            data.forEach(item => {
+            data.slice(0, TOP_REPORTES).forEach(item => {
 
                 const li = document.createElement("li");
 
@@ -164,7 +171,7 @@ function filtrarDia() {
                 return;
             }
 
-            data.forEach((item, index) => {
+            data.slice(0, TOP_REPORTES).forEach((item, index) => {
 
                 const li = document.createElement("li");
 
@@ -243,7 +250,7 @@ function filtrarAnio() {
                 return;
             }
 
-            data.forEach(item => {
+            data.slice(0, TOP_REPORTES).forEach(item => {
                 const li = document.createElement("li");
                 li.innerText =
                     `${item.producto} - ${item.cantidadVendida} vendidos`;
@@ -268,7 +275,7 @@ function filtrarAnio() {
                 return;
             }
 
-            data.forEach((item, index) => {
+            data.slice(0, TOP_REPORTES).forEach((item, index) => {
                 const li = document.createElement("li");
                 li.innerText =
                     `${index + 1}. ${item.cliente} - $${item.totalGastado}`;
@@ -333,7 +340,11 @@ function cargarGrafico(anioSeleccionado) {
                     labels: meses,
                     datasets: [{
                         label: `Ventas por mes (${anio})`,
-                        data: totalesPorMes
+                        data: totalesPorMes,
+                        backgroundColor: "#02BDB2",
+                        hoverBackgroundColor: "#03807A",
+                        borderRadius: 6,
+                        maxBarThickness: 42
                     }]
                 },
 
@@ -341,12 +352,21 @@ function cargarGrafico(anioSeleccionado) {
                     responsive: true,
                     maintainAspectRatio: true,
                     aspectRatio: 2,
+                    plugins: {
+                        legend: { display: false }
+                    },
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            border: { display: false },
+                            grid: { color: "#E1E9E7" },
+                            ticks: { color: "#4E6362", font: { family: "DM Sans" } }
                         },
                         x: {
+                            grid: { display: false },
                             ticks: {
+                                color: "#4E6362",
+                                font: { family: "DM Sans" },
                                 autoSkip: false,
                                 maxRotation: 0,
                                 minRotation: 0
@@ -418,4 +438,13 @@ async function cargarCierreCaja() {
             estado.textContent = "No se pudo cargar el cierre de caja. Intentá actualizar.";
         }
     }
+}
+
+
+// Formato de moneda argentino para los totales del reporte
+function formatoPesos(valor) {
+    return new Intl.NumberFormat("es-AR", {
+        style: "currency",
+        currency: "ARS"
+    }).format(Number(valor) || 0);
 }

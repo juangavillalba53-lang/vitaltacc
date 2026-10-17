@@ -31,3 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Datos del correo (no subir) ###
+src/main/resources/mail.properties

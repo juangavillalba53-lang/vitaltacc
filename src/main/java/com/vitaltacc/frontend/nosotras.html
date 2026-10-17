@@ -4,351 +4,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosotras · VitalTacc</title>
+    <meta name="description" content="Conocé la historia de VitalTacc y a las personas detrás del local de Roque Pérez 1660.">
+    <link rel="icon" type="image/png" href="img/logo-vitaltacc.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
         rel="stylesheet">
-    <title>Nosotras - VitalTacc</title>
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/nosotras.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/tienda.css">
 </head>
 
-<body>
-    <header class="navbar">
-
-        <!-- LOGO -->
-        <a href="index.html" class="logo">
-            <img src="img/logo.png" alt="VitalTacc">
-        </a>
-
-        <!-- MENU -->
-        <nav class="nav-links">
-
-            <a href="index.html">Inicio</a>
-
-            <a href="nosotras.html">Nosotras</a>
-
-            <a href="index.html#productos">Productos</a>
-
-        </nav>
-
-        <!-- USUARIO -->
-        <div class="nav-user" id="nav-user"></div>
-
-    </header>
-
-    <!-- HERO -->
-
-    <section class="hero">
-
-        <div class="overlay"></div>
-
-        <div class="hero-content">
-
-            <h1>Conocé la historia detrás de VitalTacc</h1>
-
-            <p>
-                Productos libres de gluten hechos con pasión,
-                calidad y compromiso.
-            </p>
-
-            <a href="index.html" class="hero-btn">
-                Ir a la tienda
-            </a>
-
-        </div>
-
-    </section>
-
-    <!-- NUESTRA HISTORIA -->
-
-    <section class="historia">
-
-        <div class="texto">
-
-            <span class="subtitulo">
-                NUESTRA HISTORIA
-            </span>
-
-            <h2>
-                Alimentación sin TACC con calidad y cercanía
-            </h2>
-
-            <p>
-                VitalTacc nace con el objetivo de ofrecer
-                productos libres de gluten accesibles,
-                ricos y elaborados con compromiso.
-            </p>
-
-            <p>
-                Buscamos brindar una experiencia cálida,
-                cercana y moderna para todas las personas
-                que eligen una alimentación sin TACC.
-            </p>
-
-        </div>
-
-        <div class="imagen">
-
-            <img src="img/local.jpg" alt="Local VitalTacc">
-
-        </div>
-
-    </section>
-
-    <!-- EQUIPO -->
-
-    <section class="equipo">
-
-        <div class="titulo-seccion">
-
-            <span>NUESTRO EQUIPO</span>
-
-            <h2>Personas apasionadas por lo que hacen</h2>
-
-        </div>
-
-        <div class="cards">
-
-            <div class="card">
-
-                <img src="img/ana.jpg" alt="Ana Laura - VitalTacc">
-
-                <h3>Ana Laura</h3>
-
-                <p>
-                    Comprometida con ofrecer productos
-                    seguros y de calidad.
-                </p>
-
-            </div>
-
-            <div class="card">
-
-                <img src="img/daiana.jpg" alt="Daiana - VitalTacc">
-
-                <h3>Daiana</h3>
-
-                <p>
-                    Enfocada en innovación y atención
-                    personalizada para cada cliente.
-                </p>
-
-            </div>
-
-            <div class="card">
-
-                <img src="img/equipo.jpg" alt="Equipo VitalTacc">
-
-                <h3>VitalTacc</h3>
-
-                <p>
-                    Un equipo que trabaja todos los días
-                    para mejorar la experiencia de compra.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
-
-    <!-- LOCAL -->
-
-    <section class="local">
-
-        <div class="local-texto">
-
-            <span class="subtitulo">
-                VIVÍ VITALTACC
-            </span>
-
-            <h2>
-                Un espacio pensado para vos
-            </h2>
-
-            <p>
-                Productos frescos, atención cálida
-                y momentos reales compartidos
-                con nuestros clientes.
-            </p>
-
-        </div>
-
-        <div class="carousel">
-
-            <div class="carousel-track">
-
-                <img src="img/local2.jpg" alt="Productos VitalTacc">
-                <img src="img/local3.jpg" alt="Clientes VitalTacc">
-                <img src="img/local4.jpg" alt="Local VitalTacc">
-                <img src="img/local5.jpg" alt="Productos sin TACC">
-                <img src="img/local6.jpg" alt="Equipo VitalTacc">
-
-            </div>
-
-        </div>
-
-    </section>
-
-    <footer class="footer">
-
-        <!-- PANEL DESPLEGABLE -->
-
-        <div class="footer-extra" id="footerExtra">
-
-            <div class="footer-grid">
-
-                <!-- UBICACION -->
-
-                <div class="footer-card">
-
-                    <div class="footer-icon">
-                        📍
+<body data-pagina="nosotras">
+
+    <header id="encabezado"></header>
+
+    <main id="contenido" tabindex="-1">
+
+        <section class="seccion">
+            <div class="contenedor historia">
+                <div class="historia-texto">
+                    <span class="cinta">Nuestra historia</span>
+                    <h1 class="historia-titulo">Alimentación sin TACC con calidad y cercanía</h1>
+                    <p>VitalTacc nace con el objetivo de ofrecer productos libres de gluten accesibles, ricos y elaborados con compromiso.</p>
+                    <p>Buscamos brindar una experiencia cálida, cercana y moderna para todas las personas que eligen una alimentación sin TACC.</p>
+                    <div class="hero-botones historia-botones">
+                        <a class="boton boton-primario" href="productos.html">Ir a la tienda</a>
                     </div>
+                </div>
+                <div class="historia-foto revelar">
+                    <img src="img/local-interior.webp" alt="Interior del local de VitalTacc" width="1800" height="1199">
+                    <span class="cinta cinta-trigo">Roque Pérez 1660, Posadas</span>
+                </div>
+            </div>
+        </section>
 
-                    <h3>Ubicación</h3>
-
-                    <p>
-                        Roque Pérez 1660<br>
-                        Posadas, Misiones
-                    </p>
-
-                    <a href="https://maps.app.goo.gl/hDy4N3ZFMr4rXz6CA?g_st=iwb" target="_blank" class="footer-map-btn">
-
-                        Abrir ubicación
-
-                    </a>
-
+        <section class="seccion seccion-suave" aria-labelledby="tituloEquipo">
+            <div class="contenedor">
+                <div class="seccion-titulo revelar">
+                    <h2 id="tituloEquipo">Personas apasionadas por lo que hacen</h2>
+                    <p>Un equipo que trabaja todos los días para mejorar la experiencia de compra.</p>
                 </div>
 
-                <!-- HORARIOS -->
-
-                <div class="footer-card">
-
-                    <div class="footer-icon">
-                        🕒
-                    </div>
-
-                    <h3>Horarios</h3>
-
-                    <div class="footer-hours">
-
+                <div class="equipo">
+                    <article class="persona-sin-foto revelar">
+                        <span class="monograma" aria-hidden="true">A</span>
                         <div>
-                            <span>Lunes a Viernes</span>
-                            <strong>09:00 - 20:00</strong>
+                            <h3>Ana Laura</h3>
+                            <p>Comprometida con ofrecer productos seguros y de calidad.</p>
                         </div>
+                    </article>
 
+                    <article class="persona-sin-foto revelar">
+                        <span class="monograma" aria-hidden="true">D</span>
                         <div>
-                            <span>Sábados</span>
-                            <strong>09:00 - 20:00</strong>
+                            <h3>Daiana</h3>
+                            <p>Enfocada en innovación y atención personalizada para cada cliente.</p>
                         </div>
-
-                        <div>
-                            <span>Domingos</span>
-                            <strong>Cerrado</strong>
-                        </div>
-
-                    </div>
-
+                    </article>
                 </div>
+            </div>
+        </section>
 
-                <!-- REDES -->
-
-                <div class="footer-card">
-
-                    <div class="footer-icon">
-                        ♡
+        <section class="seccion" id="visitanos" aria-labelledby="tituloVisita">
+            <div class="contenedor">
+                <div class="visita revelar">
+                    <img src="img/local-frente.webp" alt="Frente del local de VitalTacc en Roque Pérez 1660" width="1000" height="1172" loading="lazy">
+                    <div class="visita-texto">
+                        <span class="cinta cinta-trigo">El local</span>
+                        <h2 id="tituloVisita">Pasá a vernos</h2>
+                        <p>Productos frescos, atención cálida y momentos reales compartidos con nuestros clientes.</p>
+                        <ul class="visita-datos">
+                            <li><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span data-config="direccion">Roque Pérez 1660, Posadas, Misiones</span></li>
+                            <li><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><div class="visita-horarios" data-config="horarios"></div></li>
+                        </ul>
+                        <div>
+                            <a class="boton boton-secundario" data-config="mapa" href="https://maps.app.goo.gl/hDy4N3ZFMr4rXz6CA?g_st=iwb" target="_blank" rel="noopener noreferrer">Cómo llegar</a>
+                        </div>
                     </div>
-
-                    <h3>Redes sociales</h3>
-
-                    <div class="footer-socials">
-
-                        <a href="https://instagram.com/" target="_blank">
-
-                            <i class="fa-brands fa-instagram"></i>
-                            Instagram
-
-                        </a>
-
-                        <a href="https://wa.me/" target="_blank">
-
-                            <i class="fa-brands fa-whatsapp"></i>
-                            WhatsApp
-
-                        </a>
-
-                    </div>
-
                 </div>
-
             </div>
+        </section>
+    </main>
 
-        </div>
+    <footer id="pie"></footer>
 
-        <!-- BOTON -->
-
-        <div class="footer-toggle-wrapper">
-
-            <button class="footer-toggle" id="footerToggle">
-
-                Más información
-
-                <i class="fa-solid fa-chevron-down"></i>
-
-            </button>
-
-        </div>
-
-        <!-- FOOTER NORMAL -->
-
-        <div class="footer-main">
-
-            <!-- LOGO -->
-
-            <div class="footer-brand">
-
-                <img src="img/logo.png" alt="VitalTacc">
-
-            </div>
-
-            <!-- COPYRIGHT -->
-
-            <p class="footer-copy">
-
-                © 2026 VitalTacc — Todos los derechos reservados
-
-            </p>
-
-            <!-- REDES -->
-
-            <div class="footer-socials-inline">
-
-                <a href="https://instagram.com/" target="_blank">
-
-                    <i class="fa-brands fa-instagram"></i>
-
-                </a>
-
-                <a href="https://wa.me/" target="_blank">
-
-                    <i class="fa-brands fa-whatsapp"></i>
-
-                </a>
-
-            </div>
-
-        </div>
-
-    </footer>
-
-    <script src="js/global.js"></script>
-    <script src="js/auth.js"></script>
-
+    <script src="js/tienda/tienda.js"></script>
 </body>
 
 </html>

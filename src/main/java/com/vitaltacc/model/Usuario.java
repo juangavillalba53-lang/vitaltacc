@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 @Entity
 @Table(name = "usuario")
 @Getter
@@ -25,6 +27,8 @@ public class Usuario {
     @Column(nullable = false, unique = true)
     private String email;
 
+    // Se recibe al registrarse o iniciar sesión, pero nunca se devuelve
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String contrasena;
 
@@ -55,4 +59,4 @@ public class Usuario {
         this.telefono = telefono;
         this.rol = rol;
     }
-}
+}

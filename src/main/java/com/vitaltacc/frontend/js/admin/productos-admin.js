@@ -1,39 +1,27 @@
 
 // 🔥 CREAR PRODUCTO
+
 function crearProducto() {
+    const nombre = document.getElementById("nombreProducto").value.trim();
 
-    const nombre =
-        document.getElementById("nombreProducto").value.trim();
+    const precio = parseFloat(
+        document.getElementById("precioProducto").value
+    );
 
-    const precio =
-        parseFloat(
-            document.getElementById("precioProducto").value
-        );
+    const descripcion = document.getElementById("descripcionProducto").value.trim();
 
-    const descripcion =
-        document.getElementById("descripcionProducto").value.trim();
+    const categoriaId = document.getElementById("categoriaProducto").value;
 
-    const stockMinimo =
-        parseInt(
-            document.getElementById("stockMinimoProducto").value
-        );
-
-    const categoriaId =
-        document.getElementById("categoriaProducto").value;
-
-    const imagenes =
-        document.getElementById("imagenesProducto").files;
+    const imagenes = document.getElementById("imagenesProducto").files;
 
     if (
         !nombre ||
         isNaN(precio) ||
+        precio <= 0 ||
         !descripcion ||
-        isNaN(stockMinimo) ||
         !categoriaId
     ) {
-
-        alert("Completar todos los datos.");
-
+        alert("Completá el nombre, un precio válido, la descripción y la categoría.");
         return;
     }
 
@@ -42,70 +30,46 @@ function crearProducto() {
     formData.append("nombre", nombre);
     formData.append("precio", precio);
     formData.append("descripcion", descripcion);
-    formData.append("stockMinimo", stockMinimo);
     formData.append("categoriaId", categoriaId);
 
     for (let i = 0; i < imagenes.length; i++) {
-
-        formData.append(
-            "imagenes",
-            imagenes[i]
-        );
-
+        formData.append("imagenes", imagenes[i]);
     }
 
     fetch("http://localhost:8080/productos", {
-
         method: "POST",
-
         body: formData
-
     })
         .then(async res => {
-
-            console.log("STATUS:", res.status);
-
             const texto = await res.text();
 
-            console.log("RESPUESTA DEL BACKEND:");
-            console.log(texto);
-
             if (!res.ok) {
-
-                throw new Error(texto);
-
+                throw new Error(texto || "Error al crear el producto.");
             }
 
-            return JSON.parse(texto);
-
+            return texto ? JSON.parse(texto) : null;
         })
-
         .then(() => {
-
             alert("Producto creado correctamente.");
 
             document.getElementById("nombreProducto").value = "";
             document.getElementById("precioProducto").value = "";
             document.getElementById("descripcionProducto").value = "";
-            document.getElementById("stockMinimoProducto").value = "";
             document.getElementById("tipoCategoriaProducto").value = "";
             document.getElementById("categoriaProducto").innerHTML =
                 '<option value="">Seleccionar categoría</option>';
             document.getElementById("imagenesProducto").value = "";
+            document.getElementById("previewImagenesProducto")?.replaceChildren();
 
             cargarProductos();
-
+            cargarStock();
         })
-
         .catch(error => {
-
-            console.error(error);
-
-            alert("Error al crear el producto.");
-
+            console.error("Error al crear producto:", error);
+            alert("Error al crear el producto. Revisá los datos e intentá nuevamente.");
         });
-
 }
+
 
 // 🔥 CARGAR PRODUCTOS (LOTE + EDITAR + TABLA)
 
@@ -121,16 +85,9 @@ function cargarProductos() {
             const selectPromo =
                 document.getElementById("productoPromo");
 
-            const tablaStock =
-                document.getElementById("tablaStock");
-
             // 🔥 LIMPIAR
 
             select.innerHTML = "";
-
-            if (tablaStock) {
-                tablaStock.innerHTML = "";
-            }
 
             if (selectPromo) {
 
@@ -174,54 +131,8 @@ function cargarProductos() {
                     selectPromo.appendChild(optionPromo);
                 }
 
-                // 🔥 TABLA PRODUCTOS
-
-                if (tablaStock) {
-
-                    tablaStock.innerHTML += `
-                    <tr>
-                        <td>${prod.nombre}</td>
-
-                        <td>$${Number(prod.precio).toFixed(2)}</td>
-
-                        <td class="${prod.stock <= 5 ? 'stock-bajo' : 'stock-ok'}">
-                            ${prod.stock}
-                        </td>
-
-                        <td>
-                            <div class="acciones-producto">
-
-                                <button
-                                    class="btn-tabla btn-lotes"
-                                    onclick="abrirModalLotes(${prod.id})"
-                                >
-                                    Ver lotes
-                                </button>
-
-                                ${usuario.rol === "ADMIN" ? `
-                                    <button
-                                        class="btn-tabla btn-editar"
-                                        onclick="abrirModalEditarProducto(${prod.id})"
-                                    >
-                                        Editar
-                                    </button>
-                                ` : ""}
-
-                                ${usuario.rol === "ADMIN" ? `
-                                    <button
-                                        class="btn-tabla btn-eliminar"
-                                        onclick="eliminarProductoAdmin(${prod.id})"
-                                    >
-                                        Eliminar
-                                    </button>
-                                ` : ""}
-
-                            </div>
-                        </td>
-                    </tr>
-                    `;
-                }
-
+                // La tabla de stock la arma renderStock(), que además
+                // muestra el lote más próximo a vencer de cada producto.
             });
 
             // 🔥 SETEAR PRECIO INICIAL
@@ -245,66 +156,50 @@ function cargarProductos() {
         });
 }
 
-// 🔥 CARGAR TIPOS DE CATEGORÍA
-function cargarTiposCategoria() {
+// 🔥 SELECTS DE TIPO Y CATEGORÍA (se usan al crear y al editar)
 
-    fetch("http://localhost:8080/tipos-categoria")
+function opcionesSelect(select, textoVacio, items, seleccionado) {
 
-        .then(res => res.json())
+    select.replaceChildren(new Option(textoVacio, ""));
 
-        .then(tipos => {
-
-            console.log("TIPOS:", tipos);
-
-            const select = document.getElementById("tipoCategoriaProducto");
-
-            select.innerHTML =
-                '<option value="">Seleccionar tipo</option>';
-
-            tipos.forEach(tipo => {
-
-                select.innerHTML += `
-                    <option value="${tipo.id}">
-                        ${tipo.nombre}
-                    </option>
-                `;
-
-            });
-
-        });
-
+    items.forEach(item => {
+        const opcion = new Option(item.nombre, item.id);
+        opcion.selected = String(item.id) === String(seleccionado ?? "");
+        select.add(opcion);
+    });
 }
 
-// 🔥 CARGAR CATEGORÍAS POR TIPO
+function llenarTipos(select, seleccionado) {
+
+    return fetch("http://localhost:8080/tipos-categoria")
+        .then(res => res.json())
+        .then(tipos => opcionesSelect(select, "Seleccionar tipo", tipos, seleccionado));
+}
+
+function llenarCategorias(select, tipoId, seleccionado) {
+
+    opcionesSelect(select, "Seleccionar categoría", [], null);
+
+    if (!tipoId) {
+        return Promise.resolve();
+    }
+
+    return fetch(`http://localhost:8080/categorias/tipo/${tipoId}`)
+        .then(res => res.json())
+        .then(categorias =>
+            opcionesSelect(select, "Seleccionar categoría", categorias, seleccionado));
+}
+
+// 🔥 CARGAR TIPOS DE CATEGORÍA (formulario de alta)
+function cargarTiposCategoria() {
+
+    return llenarTipos(document.getElementById("tipoCategoriaProducto"));
+}
+
+// 🔥 CARGAR CATEGORÍAS POR TIPO (formulario de alta)
 function cargarCategoriasPorTipo(tipoId) {
 
-    const selectCategoria =
-        document.getElementById("categoriaProducto");
-
-    selectCategoria.innerHTML =
-        '<option value="">Seleccionar categoría</option>';
-
-    if (!tipoId)
-        return;
-
-    fetch(`http://localhost:8080/categorias/tipo/${tipoId}`)
-
-        .then(res => res.json())
-
-        .then(categorias => {
-
-            categorias.forEach(categoria => {
-
-                selectCategoria.innerHTML += `
-                    <option value="${categoria.id}">
-                        ${categoria.nombre}
-                    </option>
-                `;
-
-            });
-
-        });
-
+    return llenarCategorias(document.getElementById("categoriaProducto"), tipoId);
 }
 
 // 🔥 STOCK
@@ -319,13 +214,34 @@ const productosPorPagina = 15;
 
 function cargarStock() {
 
-    fetch("http://localhost:8080/productos")
-        .then(res => res.json())
-        .then(data => {
+    // Productos y todos sus lotes, para mostrar el que vence primero
+    Promise.all([
+        fetch("http://localhost:8080/productos").then(res => res.json()),
+        fetch("http://localhost:8080/lotes")
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
+    ])
+        .then(([productos, lotes]) => {
 
-            productosStock = data;
+            const hoy = new Date();
+            hoy.setHours(0, 0, 0, 0);
 
-            renderStock(data);
+            window.lotesTodos = lotes.map(lote => {
+                const [anio, mes, dia] = String(lote.fechaVencimiento).split("-").map(Number);
+                const vence = new Date(anio, mes - 1, dia);
+
+                return {
+                    productoId: lote.producto?.id ?? lote.productoId,
+                    numeroLote: lote.numeroLote,
+                    cantidad: lote.cantidad,
+                    fechaVencimiento: lote.fechaVencimiento,
+                    diasRestantes: Math.round((vence - hoy) / (1000 * 60 * 60 * 24))
+                };
+            });
+
+            productosStock = productos;
+
+            renderStock(productos);
         });
 }
 
@@ -372,7 +288,7 @@ function renderStock(productos) {
         const stock = Number(prod.stock) || 0;
 
         // Buscar el lote disponible que vence primero
-        const loteProximo = (window.lotesStock || [])
+        const loteProximo = (window.lotesTodos || window.lotesStock || [])
             .filter(l =>
                 Number(l.productoId) === Number(prod.id) &&
                 Number(l.cantidad) > 0 &&
@@ -385,15 +301,16 @@ function renderStock(productos) {
 
         let estado;
         let claseEstado;
+        let detalleLote = "";
 
         if (stock <= 0) {
 
-            estado = "⚪ Sin stock";
+            estado = "Sin stock";
             claseEstado = "estado-critico";
 
         } else if (!loteProximo) {
 
-            estado = "🟢 Sin vencimientos próximos";
+            estado = "Sin vencimientos próximos";
             claseEstado = "estado-ok";
 
         } else {
@@ -402,18 +319,18 @@ function renderStock(productos) {
 
             if (dias <= 10) {
                 claseEstado = "estado-critico";
-                estado = `🔴 Vence en ${dias} ${dias === 1 ? "día" : "días"}`;
+                estado = `Vence en ${dias} ${dias === 1 ? "día" : "días"}`;
 
             } else if (dias <= 20) {
                 claseEstado = "estado-alerta";
-                estado = `🟡 Vence en ${dias} días`;
+                estado = `Vence en ${dias} días`;
 
             } else {
                 claseEstado = "estado-ok";
-                estado = `🟢 Vence en ${dias} días`;
+                estado = `Vence en ${dias} días`;
             }
 
-            estado += `<br><em>(Lote #${loteProximo.numeroLote})</em>`;
+            detalleLote = `<small class="estado-lote">Lote #${loteProximo.numeroLote}</small>`;
         }
 
         const tr = document.createElement("tr");
@@ -429,6 +346,7 @@ function renderStock(productos) {
                 <span class="${claseEstado}">
                     ${estado}
                 </span>
+                ${detalleLote}
             </td>
 
             <td>
@@ -518,7 +436,7 @@ function filtrarStock() {
 }
 
 // 🔥 ELIMINAR PRODUCTO
-function eliminarProductoAdmin(id) {
+async function eliminarProductoAdmin(id) {
 
     if (usuario.rol !== "ADMIN") {
 
@@ -527,7 +445,17 @@ function eliminarProductoAdmin(id) {
         return;
     }
 
-    if (!confirm("Eliminar producto?")) {
+    const nombre = productosStock.find(p => p.id === id)?.nombre;
+
+    const seguro = await confirmar({
+        titulo: "¿Eliminar este producto?",
+        mensaje: nombre
+            ? `Vas a eliminar «${nombre}» del catálogo. No se puede deshacer.`
+            : "Se elimina del catálogo. No se puede deshacer.",
+        aceptar: "Eliminar producto"
+    });
+
+    if (!seguro) {
         return;
     }
 
@@ -541,6 +469,7 @@ function eliminarProductoAdmin(id) {
             alert("Producto eliminado");
 
             cargarProductos();
+            cargarStock();
 
         })
         .catch(() => {
@@ -559,6 +488,10 @@ let productoEditando = null;
 // 🔥 ABRIR MODAL EDITAR
 
 function abrirModalEditarProducto(id) {
+
+    // Arranca sin imágenes nuevas elegidas
+    document.getElementById("editarImagenes").value = "";
+    document.getElementById("previewEditarImagenes")?.replaceChildren();
 
     if (usuario.rol !== "ADMIN") {
 
@@ -589,11 +522,15 @@ function abrirModalEditarProducto(id) {
             document.getElementById("editarDescripcion").value =
                 prod.descripcion || "";
 
-            document.getElementById("editarTipoCategoria").value =
-                prod.tipoCategoria.nombre;
+            const tipoId = prod.tipoCategoria?.id || prod.categoria?.tipoCategoria?.id;
+            const selectTipo = document.getElementById("editarTipoCategoria");
+            const selectCategoria = document.getElementById("editarCategoria");
 
-            document.getElementById("editarCategoria").value =
-                prod.categoria.nombre;
+            llenarTipos(selectTipo, tipoId)
+                .then(() => llenarCategorias(selectCategoria, tipoId, prod.categoria?.id))
+                .catch(() => alert("No se pudieron cargar las categorías."));
+
+            selectTipo.onchange = () => llenarCategorias(selectCategoria, selectTipo.value);
 
             const contenedor =
                 document.getElementById("imagenesActuales");
@@ -661,15 +598,22 @@ function guardarEdicionProducto() {
     const imagenes =
         document.getElementById("editarImagenes").files;
 
+    const categoriaId =
+        document.getElementById("editarCategoria").value;
+
+    if (!nombre.trim() || !(parseFloat(precio) > 0) || !categoriaId) {
+
+        alert("Completá el nombre, un precio válido y la categoría.");
+
+        return;
+    }
+
     const formData = new FormData();
 
     formData.append("nombre", nombre);
     formData.append("precio", precio);
     formData.append("descripcion", descripcion);
-    formData.append(
-        "categoriaId",
-        productoEditando.categoria.id
-    );
+    formData.append("categoriaId", categoriaId);
 
     for (let i = 0; i < imagenes.length; i++) {
 
@@ -700,6 +644,7 @@ function guardarEdicionProducto() {
             cerrarModalEditarProducto();
 
             cargarProductos();
+            cargarStock();
 
             alert("Producto actualizado");
         })
@@ -716,9 +661,15 @@ function guardarEdicionProducto() {
 // MODAL CATEGORIAS
 // ==========================
 
-function crearTipoCategoria() {
+async function crearTipoCategoria() {
 
-    const nombre = prompt("Nombre del tipo de categoría");
+    const nombre = await pedirTexto({
+        titulo: "Nuevo tipo de categoría",
+        mensaje: "Agrupa categorías parecidas, por ejemplo «Panificados» o «Bebidas».",
+        etiqueta: "Nombre",
+        placeholder: "Ej: Panificados",
+        aceptar: "Crear tipo"
+    });
 
     if (!nombre || nombre.trim() === "") {
         return;
@@ -878,6 +829,7 @@ function cargarCategoriasModal() {
                         </span>
 
                         <button
+                            class="btn-tabla btn-eliminar"
                             onclick="eliminarCategoria(${cat.id})">
                             Eliminar
                         </button>
@@ -894,9 +846,19 @@ function cargarCategoriasModal() {
 }
 
 
-function eliminarCategoria(id) {
+async function eliminarCategoria(id) {
 
-    if (!confirm("¿Eliminar categoría?")) {
+    const nombre = textoDeFila("span");
+
+    const seguro = await confirmar({
+        titulo: "¿Eliminar esta categoría?",
+        mensaje: nombre
+            ? `Vas a eliminar «${nombre}». No se puede deshacer.`
+            : "No se puede deshacer.",
+        aceptar: "Eliminar categoría"
+    });
+
+    if (!seguro) {
         return;
     }
 

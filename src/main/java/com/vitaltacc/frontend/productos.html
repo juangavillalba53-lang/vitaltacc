@@ -2,152 +2,54 @@
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Productos | VitalTacc</title>
-
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/productos.css">
-
+    <title>Productos · VitalTacc</title>
+    <meta name="description" content="Catálogo de productos sin TACC de VitalTacc: buscá por nombre o filtrá por categoría.">
+    <link rel="icon" type="image/png" href="img/logo-vitaltacc.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
         rel="stylesheet">
-
+    <link rel="stylesheet" href="css/tienda.css">
 </head>
 
-<body>
+<body data-pagina="productos">
 
-    <!-- NAVBAR -->
+    <header id="encabezado"></header>
 
-    <header class="navbar">
+    <main id="contenido" tabindex="-1">
 
-        <a href="index.html" class="logo">
+        <section class="contenedor cabecera-pagina">
+            <h1>Productos</h1>
+            <p>Todo lo que ves acá es libre de gluten y está disponible ahora.</p>
+        </section>
 
-            <img src="img/logo.png" alt="VitalTacc">
+        <section class="contenedor" aria-label="Catálogo">
+            <div class="filtros">
+                <div class="buscador">
+                    <svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <label for="buscador" class="solo-lectores">Buscar productos</label>
+                    <input class="entrada" type="search" id="buscador" placeholder="Buscar por nombre" autocomplete="off">
+                </div>
+                <div class="chips" id="categorias" role="group" aria-label="Filtrar por categoría"></div>
+                <p class="resultado-busqueda" id="resultado" aria-live="polite"></p>
+            </div>
 
-        </a>
+            <div class="grilla-productos grilla-catalogo" id="catalogo"></div>
 
-        <nav class="nav-links">
+            <div class="ver-mas" id="verMas" hidden>
+                <p id="verMasTexto" aria-live="polite"></p>
+                <button type="button" class="boton boton-secundario" id="botonVerMas">Ver más productos</button>
+            </div>
+        </section>
 
-            <a href="index.html">Inicio</a>
+    </main>
 
-            <a href="productos.html" class="active">
-                Productos
-            </a>
+    <footer id="pie"></footer>
 
-            <a href="nosotras.html">
-                Nosotras
-            </a>
-
-        </nav>
-
-        <div class="nav-user" id="nav-user"></div>
-
-    </header>
-
-    <!-- HERO -->
-
-    <section class="productos-hero">
-
-        <div class="productos-hero-content">
-
-            <span>
-                CATÁLOGO VITALTACC
-            </span>
-
-            <h1>
-                Todos nuestros productos
-            </h1>
-
-            <p>
-                Descubrí opciones sin TACC seleccionadas
-                especialmente para vos.
-            </p>
-
-        </div>
-
-    </section>
-
-    <!-- FILTROS -->
-
-    <section class="productos-top">
-
-        <div class="buscador">
-
-            <input type="text" id="buscador" placeholder="Buscar productos...">
-
-        </div>
-
-        <div class="categorias">
-
-            <button class="categoria active" data-categoria="todos">
-                Todos
-            </button>
-
-            <button class="categoria" data-categoria="dulce">
-                Dulce
-            </button>
-
-            <button class="categoria" data-categoria="salado">
-                Salado
-            </button>
-
-            <button class="categoria" data-categoria="snacks">
-                Snacks
-            </button>
-
-        </div>
-
-    </section>
-
-    <!-- PRODUCTOS -->
-
-    <section class="productos-page">
-
-        <div class="productos-grid" id="lista-productos"></div>
-
-    </section>
-
-    <!-- CARRITO -->
-
-    <div class="modal-carrito" id="modalCarrito" style="display: none;">
-
-        <div class="contenido-carrito">
-
-            <button class="cerrar-carrito" onclick="cerrarCarrito()">
-                ✕
-            </button>
-
-            <h2>
-                Tu carrito
-            </h2>
-
-            <ul id="lista-carrito"></ul>
-
-            <p class="total">
-                Total: $<span id="total">0</span>
-            </p>
-
-            <button class="btn-finalizar">
-                Finalizar compra
-            </button>
-
-        </div>
-
-    </div>
-
-    <div id="toast" class="toast"></div>
-
-    <script src="js/global.js"></script>
-    <script src="js/productos.js"></script>
-
+    <script src="js/tienda/tienda.js"></script>
+    <script src="js/tienda/catalogo.js"></script>
 </body>
 
 </html>

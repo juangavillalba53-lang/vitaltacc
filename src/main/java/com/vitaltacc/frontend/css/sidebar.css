@@ -1,180 +1,415 @@
-/* ===========================
-   SIDEBAR ADMIN
-===========================*/
+/* =========================================================
+   VITALTACC · BARRA LATERAL DEL PANEL
+   Fondo petróleo (la sombra de la cinta del logo) para que
+   el logo turquesa resalte y el contenido quede en blanco.
+========================================================= */
 
-body {
-
-    background: #f5f7fb;
-
+:root {
+    --vt-sidebar-width: 256px;
 }
+
+/* =========================================================
+   ESTRUCTURA
+========================================================= */
 
 .admin-layout {
-
     display: flex;
     min-height: 100vh;
-
-}
-
-.sidebar {
-
-    width: 260px;
-
-    background: #ffffff;
-
-    border-right: 1px solid #e5e7eb;
-
-    position: fixed;
-
-    left: 0;
-
-    top: 0;
-
-    bottom: 0;
-
-    padding: 25px;
-
-    overflow-y: auto;
-
-}
-
-.sidebar-logo {
-
-    font-size: 28px;
-
-    font-weight: 700;
-
-    color: #14b8a6;
-
-    margin-bottom: 40px;
-
-}
-
-.sidebar-title {
-
-    color: #9ca3af;
-
-    font-size: 12px;
-
-    margin: 25px 0 10px;
-
-    text-transform: uppercase;
-
-    letter-spacing: 2px;
-
-}
-
-.sidebar-menu {
-
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 8px;
-
-}
-
-.sidebar-menu button {
-
-    width: 100%;
-
-    text-align: left;
-
-    background: none;
-
-    border: none;
-
-    padding: 14px 18px;
-
-    border-radius: 12px;
-
-    cursor: pointer;
-
-    font-size: 15px;
-
-    font-weight: 600;
-
-    transition: .25s;
-
-}
-
-.sidebar-menu button:hover {
-
-    background: #ecfeff;
-
-    color: #14b8a6;
-
-}
-
-.menu-principal.activo {
-    background: #eefaf8;
-    color: #19b5a5;
-    font-weight: 700;
-    border-left: 4px solid #19b5a5;
 }
 
 .admin-content {
-
-    margin-left: 260px;
-
-    width: calc(100% - 260px);
-
-    padding: 40px;
-
+    flex: 1;
+    width: calc(100% - var(--vt-sidebar-width));
+    min-width: 0;
+    min-height: 100dvh;
+    margin-left: var(--vt-sidebar-width);
 }
 
-.menu-principal {
+/* =========================================================
+   BARRA
+========================================================= */
 
-    font-size: 15px;
-
-    font-weight: 700;
-
-}
-
-.submenu {
-
-    margin-left: 18px;
-
+.sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 1000;
     display: flex;
-
     flex-direction: column;
+    width: var(--vt-sidebar-width);
+    height: 100vh;
+    height: 100dvh;
+    padding: 22px 14px 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    color: var(--vt-on-dark);
+    background:
+        radial-gradient(120% 60% at 0% 0%, rgba(2, 189, 178, 0.16), transparent 60%),
+        var(--vt-petroleo);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
 
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 20px;
+}
+
+/* =========================================================
+   LOGO
+========================================================= */
+
+.sidebar-logo {
+    display: flex;
+    justify-content: center;
+    padding: 2px 6px 20px;
+    margin-bottom: 14px;
+    border-bottom: 1px solid var(--vt-on-dark-line);
+}
+
+.sidebar-logo img {
+    display: block;
+    width: 100%;
+    max-width: 190px;
+    height: auto;
+}
+
+/* =========================================================
+   TÍTULO DE GRUPO
+========================================================= */
+
+.sidebar-title {
+    margin: 6px 12px 10px;
+    color: var(--vt-trigo-claro);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* =========================================================
+   NAVEGACIÓN
+========================================================= */
+
+.sidebar-menu {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sidebar-menu .menu-principal {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    color: var(--vt-on-dark-muted);
+    background: transparent;
+    border: 0;
+    border-radius: 12px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.3;
+    font-family: inherit;
+    cursor: pointer;
+    transition: color 0.18s ease, background 0.18s ease;
+}
+
+.menu-icono {
+    display: inline-flex;
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.menu-icono svg {
+    width: 100%;
+    height: 100%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.sidebar-menu .menu-principal:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.07);
+}
+
+/* Sección activa: la cinta turquesa del logo */
+.sidebar-menu .menu-principal.activo {
+    color: var(--vt-petroleo);
+    background: var(--vt-turquesa);
+    font-weight: 700;
+    box-shadow: 0 8px 20px -8px rgba(2, 189, 178, 0.7);
+}
+
+.sidebar-menu .menu-principal.activo::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -14px;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 8px 0 8px 8px;
+    border-color: transparent transparent transparent var(--vt-turquesa);
+    transform: translateY(-50%);
+}
+
+.sidebar-menu .menu-principal:focus-visible {
+    outline: 2px solid var(--vt-trigo-claro);
+    outline-offset: 2px;
+}
+
+/* Acciones secundarias al pie */
+.sidebar-divider {
+    width: 100%;
+    margin: 14px 0;
+    border: 0;
+    border-top: 1px solid var(--vt-on-dark-line);
+}
+
+.sidebar-menu .menu-secundario {
+    min-height: 40px;
+    font-size: 13px;
+}
+
+.sidebar-menu .menu-salir:hover {
+    color: #FFD2D7;
+    background: rgba(200, 65, 79, 0.18);
+}
+
+/* Submenús (si se usan) */
+.submenu {
+    display: flex;
+    flex-direction: column;
     gap: 4px;
-
-    margin-bottom: 15px;
-
+    margin: 2px 0 8px 22px;
+    padding-left: 10px;
+    border-left: 1px solid var(--vt-on-dark-line);
 }
 
 .submenu button {
-
+    min-height: 34px;
+    padding: 7px 10px;
+    color: var(--vt-on-dark-muted);
     background: transparent;
-
-    border: none;
-
-    text-align: left;
-
-    cursor: pointer;
-
-    color: #666;
-
-    padding: 8px 12px;
-
+    border: 0;
     border-radius: 8px;
-
-    transition: .2s;
-
+    text-align: left;
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
 }
 
-.submenu button:hover {
-
-    background: #ecfeff;
-
-    color: #14b8a6;
-
+.submenu button:hover,
+.submenu button.activo {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.08);
 }
 
-.menu-principal.activo {
-    background: #eefaf8;
-    color: #19b5a5;
-    font-weight: 700;
-    border-left: 4px solid #19b5a5;
+/* =========================================================
+   TABLETS
+========================================================= */
+
+@media (max-width: 900px) {
+    :root {
+        --vt-sidebar-width: 220px;
+    }
+
+    .sidebar-menu .menu-principal {
+        font-size: 13px;
+        gap: 10px;
+    }
+}
+
+/* =========================================================
+   CELULARES: la barra pasa arriba como menú horizontal
+========================================================= */
+
+@media (max-width: 650px) {
+    .admin-layout {
+        flex-direction: column;
+    }
+
+    .sidebar {
+        position: sticky;
+        top: 0;
+        inset: auto;
+        width: 100%;
+        height: auto;
+        padding: 12px 12px 10px;
+        overflow: visible;
+    }
+
+    .sidebar-logo {
+        justify-content: flex-start;
+        padding: 0 4px 10px;
+        margin-bottom: 8px;
+    }
+
+    .sidebar-logo img {
+        max-width: 120px;
+    }
+
+    .sidebar-title {
+        display: none;
+    }
+
+    .sidebar-menu {
+        flex-direction: row;
+        gap: 6px;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sidebar-menu::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sidebar-menu .menu-principal {
+        flex: 0 0 auto;
+        width: auto;
+        min-height: 38px;
+        padding: 8px 12px;
+        gap: 8px;
+        font-size: 13px;
+        white-space: nowrap;
+    }
+
+    .sidebar-menu .menu-principal.activo::after {
+        display: none;
+    }
+
+    .sidebar-divider {
+        display: none;
+    }
+
+    .admin-content {
+        width: 100%;
+        min-height: auto;
+        margin-left: 0;
+    }
+}
+
+/* =========================================================
+   TEXTURA E INDICADOR ANIMADO
+========================================================= */
+
+/* Grano sutil para que el petróleo no se vea plano */
+.sidebar::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.07;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.sidebar > * {
+    position: relative;
+    z-index: 1;
+}
+
+.sidebar-menu {
+    position: relative;
+}
+
+.sidebar-menu .menu-principal {
+    z-index: 1;
+}
+
+/* La cinta turquesa se desliza hasta la sección elegida */
+.menu-indicador {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    width: 0;
+    height: 0;
+    border-radius: 12px;
+    background: var(--vt-turquesa);
+    box-shadow: 0 8px 20px -8px rgba(2, 189, 178, 0.7);
+    opacity: 0;
+    pointer-events: none;
+    transition:
+        transform 260ms var(--vt-ease-out),
+        width 260ms var(--vt-ease-out),
+        height 260ms var(--vt-ease-out);
+}
+
+.menu-indicador.visible {
+    opacity: 1;
+}
+
+.menu-indicador.sin-transicion {
+    transition: none;
+}
+
+.menu-indicador::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: -14px;
+    border-style: solid;
+    border-width: 8px 0 8px 8px;
+    border-color: transparent transparent transparent var(--vt-turquesa);
+    transform: translateY(-50%);
+}
+
+/* Con indicador, el botón activo no pinta su propio fondo */
+.sidebar-menu:has(.menu-indicador.visible) .menu-principal.activo {
+    background: transparent;
+    box-shadow: none;
+}
+
+.sidebar-menu:has(.menu-indicador.visible) .menu-principal.activo::after {
+    display: none;
+}
+
+.sidebar-menu .menu-principal:active {
+    transform: scale(0.97);
+}
+
+.sidebar-menu .menu-principal {
+    transition:
+        color 200ms ease,
+        background-color 200ms ease,
+        transform 160ms var(--vt-ease-out);
+}
+
+@media (max-width: 650px) {
+    .menu-indicador::after {
+        display: none;
+    }
+
+    .sidebar {
+        height: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar * {
+        transition: none !important;
+    }
+}
+
+/* Íconos del menú: un empujoncito al pasar el mouse */
+.menu-icono {
+    transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .sidebar-menu .menu-principal:hover .menu-icono {
+        transform: translateX(3px) scale(1.08);
+    }
 }

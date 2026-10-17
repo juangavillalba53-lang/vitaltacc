@@ -3,108 +3,36 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finalizar compra · VitalTacc</title>
+    <meta name="description" content="Revisá tu pedido de VitalTacc y confirmá la compra.">
+    <link rel="icon" type="image/png" href="img/logo-vitaltacc.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
         rel="stylesheet">
-    <title>Checkout</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <link rel="stylesheet" href="css/checkout.css">
-    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/tienda.css">
 </head>
 
-<body>
+<body data-pagina="checkout">
 
-    <header class="navbar">
+    <header id="encabezado"></header>
 
-        <a href="index.html" class="logo">
-            <img src="img/logo.png" alt="VitalTacc">
-        </a>
+    <main id="contenido" tabindex="-1">
 
-        <nav class="nav-links">
+        <section class="contenedor cabecera-pagina">
+            <h1>Finalizar compra</h1>
+            <p>Revisá tu pedido, elegí cómo pagar y confirmá.</p>
+        </section>
 
-            <a href="index.html">Inicio</a>
+        <div class="contenedor" id="checkout"></div>
 
-            <a href="nosotras.html">Nosotras</a>
+    </main>
 
-            <a href="index.html#productos">Productos</a>
+    <footer id="pie"></footer>
 
-        </nav>
-
-        <div class="nav-user" id="nav-user"></div>
-
-    </header>
-
-    <section class="checkout-hero">
-
-        <h1>Finalizar compra</h1>
-
-        <p>
-            Revisá tu pedido y completá la compra.
-        </p>
-
-    </section>
-
-    <div class="checkout-container">
-
-        <!-- LISTA -->
-        <div id="resumen" class="checkout-lista"></div>
-
-        <!-- RESUMEN -->
-        <div class="checkout-resumen">
-            <h2>Total</h2>
-            <p class="precio">$<span id="total"></span></p>
-
-            <div id="seccion-cliente">
-
-                <h3>Cliente</h3>
-
-                <input type="text" id="dniCliente" placeholder="DNI del cliente">
-
-                <button onclick="buscarCliente()">
-                    Buscar cliente
-                </button>
-
-                <p id="clienteEncontrado"></p>
-
-                <div id="crearClienteBox" style="display:none; margin-top:10px;">
-
-                    <h4>Crear cliente</h4>
-
-                    <input type="text" id="nuevoNombre" placeholder="Nombre">
-
-                    <input type="text" id="nuevoTelefono" placeholder="Teléfono">
-
-                    <button onclick="crearClienteRapido()">
-                        Crear cliente
-                    </button>
-
-                </div>
-
-            </div>
-
-            <h3>Método de pago</h3>
-
-            <select id="metodoPago">
-                <option value="">Seleccionar método</option>
-                <option value="EFECTIVO">Efectivo</option>
-                <option value="TRANSFERENCIA">Transferencia</option>
-                <option value="TARJETA">Tarjeta</option>
-            </select>
-
-            <button class="btn-finalizar" onclick="confirmarCompra()">
-                Confirmar compra
-            </button>
-        </div>
-
-    </div>
-
-    <script src="js/global.js"></script>
-    <script src="js/auth.js"></script>
-    <script src="js/checkout.js"></script>
-
+    <script src="js/tienda/tienda.js"></script>
+    <script src="js/tienda/pago.js"></script>
 </body>
 
 </html>

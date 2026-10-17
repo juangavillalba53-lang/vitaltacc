@@ -1,1027 +1,2786 @@
-/* 🔥 NAVBAR ADMIN */
+/* =========================================================
+   VITALTACC · PANEL DE ADMINISTRACIÓN
+   Paleta tomada del logo:
+   turquesa de la cinta, petróleo de su sombra y
+   trigo de "Alimentos libres de gluten".
+========================================================= */
 
-.navbar {
+:root {
+    /* Marca */
+    --vt-turquesa: #02BDB2;
+    --vt-turquesa-700: #03807A;   /* texto y bordes turquesa sobre blanco */
+    --vt-turquesa-100: #DDF5F2;
+    --vt-turquesa-50: #F0FAF9;
+    --vt-petroleo: #0F3B3C;
+    --vt-petroleo-900: #0A2B2C;
+    --vt-trigo: #B39A78;
+    --vt-trigo-700: #8A7151;
+    --vt-trigo-claro: #D9C6A5;
+    --vt-trigo-50: #F8F3EC;
 
-    background: rgba(0, 0, 0, 0.75);
+    /* Superficies y texto */
+    --vt-fondo: #F3F6F5;
+    --vt-superficie: #FFFFFF;
+    --vt-tinta: #142B2B;
+    --vt-tinta-2: #4E6362;
+    --vt-tinta-3: #7A8C8B;
+    --vt-linea: #E1E9E7;
+    --vt-linea-fuerte: #C8D6D3;
 
-    backdrop-filter: blur(10px);
+    /* Sobre fondo oscuro (sidebar) */
+    --vt-on-dark: #FFFFFF;
+    --vt-on-dark-muted: rgba(255, 255, 255, 0.72);
+    --vt-on-dark-line: rgba(255, 255, 255, 0.10);
+
+    /* Estados */
+    --vt-peligro: #C8414F;
+    --vt-peligro-50: #FDF0F1;
+    --vt-alerta: #A86A12;
+    --vt-alerta-50: #FDF5E7;
+    --vt-ok: #03807A;
+    --vt-ok-50: #E6F7F4;
+
+    /* Forma */
+    --vt-r-sm: 8px;
+    --vt-r-md: 12px;
+    --vt-r-lg: 18px;
+    --vt-sombra: 0 1px 2px rgba(15, 59, 60, 0.06), 0 10px 28px -14px rgba(15, 59, 60, 0.28);
+    --vt-sombra-alta: 0 24px 60px -20px rgba(10, 43, 44, 0.45);
+    --vt-foco: 0 0 0 3px rgba(2, 189, 178, 0.28);
+
+    /* Tipografía */
+    --vt-display: "Outfit", "DM Sans", system-ui, sans-serif;
+
+    /* Movimiento (curvas firmes, duraciones cortas) */
+    --vt-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --vt-ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --vt-dur-press: 160ms;
+    --vt-dur-ui: 200ms;
+
+    /* Compatibilidad con nombres anteriores */
+    --vt-primary: var(--vt-turquesa);
+    --vt-primary-dark: var(--vt-turquesa-700);
+    --vt-text: var(--vt-tinta);
+    --vt-border: var(--vt-linea);
 }
 
-/* 🔥 CONTENEDOR ADMIN */
+/* =========================================================
+   BASE
+========================================================= */
+
+html {
+    background: var(--vt-fondo);
+}
+
+body {
+    min-height: 100vh;
+    background: var(--vt-fondo);
+    color: var(--vt-tinta);
+    font-family: "DM Sans", system-ui, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
 .container-admin {
-
-    padding: 120px 25px 40px;
-
-    max-width: 1500px;
-
-    margin: auto;
+    width: 100%;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 36px 40px 56px;
 }
-
-/* 🔥 SECCIONES */
 
 .admin-section {
-
-    margin-bottom: 60px;
+    animation: vt-seccion 260ms var(--vt-ease-out, ease-out) both;
 }
 
-/* 🔥 HEADER SECCIÓN */
-
-.section-header {
-
-    margin-bottom: 30px;
-}
-
-.section-header span {
-
-    color: #14b8a6;
-
-    font-size: 13px;
-
-    font-weight: bold;
-
-    letter-spacing: 3px;
-}
-
-.section-header h2 {
-
-    font-size: 42px;
-
-    margin-top: 10px;
-
-    color: #111;
-}
-
-/* 🔥 FILTRO */
-.filtro {
-
-    background: white;
-
-    padding: 25px;
-
-    border-radius: 24px;
-
-    margin-bottom: 25px;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-
-    flex-wrap: wrap;
-
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
-
-    border: 1px solid #f1f1f1;
-}
-
-.filtro select,
-.filtro input {
-    padding: 8px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-.filtro button {
-    background-color: #3498db;
-    color: white;
-    border: none;
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.filtro button:hover {
-    background-color: #2980b9;
-}
-
-#filtroActual {
-    font-size: 14px;
-    color: gray;
-}
-
-/* 🔥 GRID ADMIN */
-.grid-admin {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-}
-
-/* 🔥 CARDS */
-.card-admin {
-
-    background: white;
-
-    padding: 30px;
-
-    border-radius: 24px;
-
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
-
-    border: 1px solid #f1f1f1;
-}
-
-/* CARD GRANDE (GRÁFICO) */
-.card-admin.full {
-    grid-column: span 2;
-}
-
-/* TITULOS */
-.card-admin h2 {
-
-    margin-top: 0;
-
-    margin-bottom: 20px;
-
-    font-size: 28px;
-
-    color: #111;
-}
-
-/* LISTAS */
-.card-admin ul {
-    list-style: none;
-    padding: 0;
-}
-
-.card-admin li {
-    padding: 5px 0;
-    border-bottom: 1px solid #eee;
-}
-
-/* TOTAL DESTACADO */
-#total {
-    font-size: 26px;
-    font-weight: bold;
-    color: #27ae60;
-}
-
-/* CANVAS */
-canvas {
-    max-width: 100%;
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .card-admin.full {
-        grid-column: span 1;
+@keyframes vt-seccion {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
     }
 }
 
-.mensaje-exito {
-    background: #d4edda;
-    color: #155724;
-    padding: 8px;
-    margin-top: 10px;
-    border-radius: 5px;
-    font-weight: bold;
+@keyframes vt-entrar {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: none; }
 }
 
-/* 🔥 LOTES */
-
-.lote-urgente {
-    background: #fff5f5 !important;
-    border-left: 5px solid #ef4444;
-    color: #dc2626;
-    font-weight: 700;
+/* Números siempre alineados */
+.admin-content :is(td, .numero-grande, .card-admin p, .alerta-card h3, #totalVenta) {
+    font-variant-numeric: tabular-nums;
 }
 
-.lote-atencion {
-    background: #fffaf0 !important;
-    border-left: 5px solid #f59e0b;
-    color: #d97706;
-    font-weight: 700;
+/* =========================================================
+   ENCABEZADO DE SECCIÓN
+========================================================= */
+
+.section-header {
+    margin-bottom: 26px;
 }
 
-.lote-ok {
-    background: #f0fdf4 !important;
-    border-left: 5px solid #14b8a6;
-    color: #0f766e;
-    font-weight: 700;
-}
-
-/* 🔥 BOTÓN VER MÁS / MENOS */
-
-.btn-ver {
-
-    background: #14b8a6;
-
-    color: white;
-
-    border: none;
-
-    padding: 10px 18px;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    font-weight: bold;
-
-    transition: 0.3s;
-
-    margin-top: 15px;
-}
-
-.btn-ver:hover {
-
-    background: #0f9f90;
-}
-
-.filtros-lotes {
-
-    display: flex;
-
-    gap: 10px;
-
-    margin-bottom: 20px;
-
-    flex-wrap: wrap;
-}
-
-.filtros-lotes button {
-
-    background: white;
-
-    border: 1px solid #ddd;
-
-    padding: 10px 18px;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
+.section-header > span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--vt-trigo-700);
+    font-size: 13px;
     font-weight: 600;
-
-    transition: 0.3s;
 }
 
-.filtros-lotes button:hover {
-
-    background: #14b8a6;
-
-    color: white;
-
-    border-color: #14b8a6;
+.section-header h2 {
+    margin: 0;
+    color: var(--vt-tinta);
+    font-size: clamp(26px, 2.6vw, 32px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.15;
 }
 
-.header-lotes {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 15px;
-
-    margin-bottom: 20px;
-
-    flex-wrap: wrap;
+.section-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 700;
 }
 
-.header-lotes h2 {
-
-    font-size: 36px;
-
-    color: #111;
+.section-header p {
+    margin: 6px 0 0;
+    color: var(--vt-tinta-2);
+    font-size: 14px;
 }
 
-.header-lotes button {
-
-    background: #14b8a6;
-
-    color: white;
-
-    border: none;
-
-    padding: 10px 18px;
-
-    border-radius: 10px;
-
-    cursor: pointer;
-
-    font-weight: bold;
-
-    transition: 0.3s;
+.admin-section > h3 {
+    margin: 0 0 14px;
+    font-size: 17px;
+    font-weight: 700;
 }
 
-.header-lotes button:hover {
+/* =========================================================
+   TARJETAS Y GRILLAS
+========================================================= */
 
-    background: #0f9f90;
+.grid-admin {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 16px;
 }
 
-#busquedaLote {
-    margin-top: 10px;
-    padding: 6px;
-    width: 100%;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+.card-admin {
+    position: relative;
+    min-width: 0;
+    padding: 22px;
+    background: var(--vt-superficie);
+    border: 1px solid rgba(15, 59, 60, 0.05);
+    border-radius: var(--vt-r-lg);
+    box-shadow: var(--vt-sombra);
 }
 
-#lotesVencer {
+.card-admin.full {
+    grid-column: 1 / -1;
+}
 
+.card-admin + .card-admin.full,
+.card-admin.full + .card-admin {
+    margin-top: 16px;
+}
+
+.grid-admin > .card-admin.full {
+    margin-top: 0;
+}
+
+.card-admin h2 {
+    margin: 0 0 16px;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.card-admin h3 {
+    margin: 0 0 14px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.card-admin p {
+    margin: 0;
+    color: var(--vt-tinta-2);
+}
+
+.card-admin > p + p {
+    margin-top: 6px;
+}
+
+.card-admin ul {
+    margin: 0;
+    padding: 0;
     list-style: none;
-
-    padding: 0;
-
-    margin-top: 20px;
 }
 
-.card-lotes {
-    min-height: auto;
-}
-
-#lotesVencer li {
-
-    background: white;
-
-    padding: 18px 22px;
-
-    border-radius: 14px;
-
-    margin-bottom: 12px;
-
-    font-weight: 600;
-
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-}
-
-.tabs-admin {
-
+.card-admin li {
     display: flex;
-
-    gap: 15px;
-
-    padding: 0;
-
-    margin-top: 10px;
-
-    margin-bottom: 30px;
-
-    flex-wrap: wrap;
-
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    color: var(--vt-tinta-2);
+    border-bottom: 1px solid var(--vt-linea);
 }
 
-.tabs-admin button {
+.card-admin li:last-child {
+    border-bottom: 0;
+}
 
-    background: white;
+.card-admin li:empty {
+    display: none;
+}
 
-    border: none;
+/* ---------- Dashboard ---------- */
 
-    padding: 14px 22px;
+.dashboard-saludo {
+    margin: -14px 0 24px;
+    color: var(--vt-tinta-2);
+}
 
-    border-radius: 14px;
+#adminDashboard .grid-admin > .card-admin {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-rows: auto auto;
+    column-gap: 14px;
+    align-items: center;
+    padding: 20px 22px;
+}
 
-    cursor: pointer;
+#adminDashboard .grid-admin > .card-admin .kpi-icono {
+    grid-row: 1 / 3;
+}
 
+#adminDashboard .grid-admin > .card-admin h2 {
+    margin: 0;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
     font-weight: 600;
-
-    transition: 0.3s;
-
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.tabs-admin button:hover {
-
-    background: #14b8a6;
-
-    color: white;
-
-    transform: translateY(-2px);
+#adminDashboard .grid-admin > .card-admin p {
+    margin: 0;
+    color: var(--vt-tinta);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
 }
+
+/* La primera tarjeta lleva la cinta de marca */
+#adminDashboard .grid-admin > .card-admin:first-child {
+    color: #FFFFFF;
+    background:
+        radial-gradient(140% 120% at 100% 0%, rgba(2, 189, 178, 0.45), transparent 55%),
+        var(--vt-petroleo);
+    border-color: var(--vt-petroleo);
+}
+
+#adminDashboard .grid-admin > .card-admin:first-child h2 {
+    color: var(--vt-trigo-claro);
+}
+
+#adminDashboard .grid-admin > .card-admin:first-child p {
+    color: #FFFFFF;
+}
+
+#adminDashboard .grid-admin > .card-admin:first-child .kpi-icono {
+    color: var(--vt-petroleo);
+    background: var(--vt-turquesa);
+}
+
+.kpi-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    color: var(--vt-turquesa-700);
+    background: var(--vt-turquesa-100);
+    border-radius: 14px;
+}
+
+.kpi-icono svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+
+/* ---------- Dashboard: detalle ---------- */
+
+.dashboard-detalle {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+    gap: 16px;
+    margin-top: 16px;
+    align-items: start;
+}
+
+.card-encabezado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.card-encabezado h2 {
+    margin: 0;
+}
+
+.admin-content .btn-link {
+    min-height: 0;
+    padding: 4px 0;
+    color: var(--vt-turquesa-700);
+    background: none;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.admin-content .btn-link:hover {
+    color: var(--vt-petroleo);
+    background: none;
+    box-shadow: none;
+    text-decoration: underline;
+}
+
+.vencimientos-resumen {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.venc-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: var(--vt-r-md);
+}
+
+.venc-chip strong {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.venc-chip span {
+    color: var(--vt-tinta-2);
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.venc-chip.urgente { background: var(--vt-peligro-50); }
+.venc-chip.urgente strong { color: var(--vt-peligro); }
+.venc-chip.atencion { background: var(--vt-alerta-50); }
+.venc-chip.atencion strong { color: var(--vt-alerta); }
+.venc-chip.total { background: var(--vt-turquesa-50); }
+.venc-chip.total strong { color: var(--vt-turquesa-700); }
+
+.card-admin .lista-proximos li {
+    align-items: center;
+    padding: 12px 0;
+}
+
+.proximo-nombre {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.proximo-nombre strong {
+    color: var(--vt-tinta);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.proximo-nombre small {
+    color: var(--vt-tinta-3);
+    font-size: 12px;
+}
+
+.proximo-dias {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.proximo-dias.urgente { color: #9E2E3A; background: var(--vt-peligro-50); }
+.proximo-dias.atencion { color: #87550E; background: var(--vt-alerta-50); }
+.proximo-dias.ok { color: var(--vt-turquesa-700); background: var(--vt-ok-50); }
+
+.lista-proximos .vacio {
+    justify-content: center;
+    color: var(--vt-tinta-3);
+}
+
+.accesos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.admin-content .acceso {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 12px;
+    min-height: 0;
+    padding: 16px;
+    color: var(--vt-tinta);
+    background: var(--vt-fondo);
+    border: 1px solid transparent;
+    border-radius: 14px;
+    text-align: left;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.admin-content .acceso:hover {
+    background: var(--vt-superficie);
+    border-color: var(--vt-turquesa);
+    box-shadow: none;
+}
+
+.admin-content .acceso .kpi-icono {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: var(--vt-superficie);
+}
+
+.admin-content .acceso .kpi-icono svg {
+    width: 19px;
+    height: 19px;
+}
+
+/* =========================================================
+   FORMULARIOS (base para el panel y los modales)
+========================================================= */
+
+:where(.admin-content, .modal-lotes) :where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+    display: block;
+    width: 100%;
+    min-height: 42px;
+    padding: 9px 12px;
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea-fuerte);
+    border-radius: var(--vt-r-md);
+    font: inherit;
+    font-size: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+:where(.admin-content, .modal-lotes) textarea {
+    min-height: 96px;
+    line-height: 1.55;
+    resize: vertical;
+}
+
+:where(.admin-content, .modal-lotes) select {
+    appearance: none;
+    padding-right: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%234E6362' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 13px center;
+    cursor: pointer;
+}
+
+:where(.admin-content, .modal-lotes) :where(input, textarea)::placeholder {
+    color: var(--vt-tinta-3);
+}
+
+:where(.admin-content, .modal-lotes) :where(input, select, textarea):hover {
+    border-color: var(--vt-tinta-3);
+}
+
+:where(.admin-content, .modal-lotes) :where(input, select, textarea):focus {
+    outline: none;
+    border-color: var(--vt-turquesa);
+    box-shadow: var(--vt-foco);
+}
+
+:where(.admin-content, .modal-lotes) :where(input[readonly], input:disabled, select:disabled, textarea:disabled) {
+    color: var(--vt-tinta-2);
+    background: var(--vt-fondo);
+    border-color: var(--vt-linea);
+    cursor: default;
+}
+
+:where(.admin-content, .modal-lotes) :where(input[type="checkbox"], input[type="radio"]) {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--vt-turquesa-700);
+}
+
+/* Selector de archivos */
+:where(.admin-content, .modal-lotes) input[type="file"] {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-turquesa-50);
+    border: 1.5px dashed var(--vt-linea-fuerte);
+    border-radius: var(--vt-r-md);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+:where(.admin-content, .modal-lotes) input[type="file"]:hover {
+    border-color: var(--vt-turquesa);
+}
+
+:where(.admin-content, .modal-lotes) input[type="file"]::file-selector-button {
+    margin-right: 12px;
+    padding: 8px 14px;
+    color: var(--vt-turquesa-700);
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea-fuerte);
+    border-radius: var(--vt-r-sm);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Etiquetas */
+:where(.admin-content, .modal-lotes) label,
+.label-admin {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--vt-tinta);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* Formularios apilados: un campo debajo del otro */
+.panel-admin > :where(input, select, textarea, .campo-clave),
+.contenido-modal-lotes > :where(input, select, textarea, .campo-clave),
+.panel-configuracion .card-admin > :where(input, select, textarea, .campo-clave) {
+    margin-bottom: 16px;
+}
+
+.panel-admin > .label-admin,
+.contenido-modal-lotes > .label-admin {
+    margin-top: 4px;
+}
+
+/* =========================================================
+   BOTONES
+   Primario: cinta turquesa con texto petróleo (contraste AA).
+========================================================= */
+
+:where(.admin-content, .modal-lotes) button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 10px 18px;
+    color: var(--vt-petroleo);
+    background: var(--vt-turquesa);
+    border: 1px solid transparent;
+    border-radius: var(--vt-r-md);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+        background-color var(--vt-dur-ui) ease,
+        color var(--vt-dur-ui) ease,
+        border-color var(--vt-dur-ui) ease,
+        box-shadow var(--vt-dur-ui) ease,
+        transform var(--vt-dur-press) var(--vt-ease-out);
+}
+
+:where(.admin-content, .modal-lotes) button:hover {
+    background: #19CFC4;
+    box-shadow: 0 6px 16px -8px rgba(2, 189, 178, 0.9);
+}
+
+:where(.admin-content, .modal-lotes) button:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+:where(.admin-content, .modal-lotes) button:focus-visible {
+    outline: none;
+    box-shadow: var(--vt-foco);
+}
+
+:where(.admin-content, .modal-lotes) button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* Secundario */
+.btn-cancelar,
+.btn-secundario {
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border-color: var(--vt-linea-fuerte);
+}
+
+.btn-cancelar:hover,
+.btn-secundario:hover {
+    background: var(--vt-fondo);
+    box-shadow: none;
+}
+
+.btn-confirmar {
+    min-width: 180px;
+}
+
+/* Botones chicos dentro de tablas */
+.admin-content .btn-tabla,
+.modal-lotes .btn-tabla,
+.btn-ver {
+    min-height: 32px;
+    padding: 6px 11px;
+    border: 1px solid transparent;
+    border-radius: var(--vt-r-sm);
+    font-size: 12px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.admin-content .btn-lotes,
+.modal-lotes .btn-lotes,
+.btn-ver {
+    color: var(--vt-turquesa-700);
+    background: var(--vt-turquesa-100);
+}
+
+.admin-content .btn-lotes:hover,
+.modal-lotes .btn-lotes:hover,
+.btn-ver:hover {
+    background: #C8EEEA;
+    box-shadow: none;
+}
+
+.admin-content .btn-editar,
+.modal-lotes .btn-editar {
+    color: var(--vt-trigo-700);
+    background: var(--vt-trigo-50);
+    border-color: #EADFCF;
+}
+
+.admin-content .btn-editar:hover,
+.modal-lotes .btn-editar:hover {
+    background: #F1E7D9;
+    box-shadow: none;
+}
+
+.admin-content .btn-eliminar,
+.modal-lotes .btn-eliminar {
+    color: var(--vt-peligro);
+    background: transparent;
+    border-color: #F1CDD1;
+}
+
+.admin-content .btn-eliminar:hover,
+.modal-lotes .btn-eliminar:hover {
+    color: #FFFFFF;
+    background: var(--vt-peligro);
+    border-color: var(--vt-peligro);
+    box-shadow: none;
+}
+
+.acciones-producto {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+/* =========================================================
+   PESTAÑAS (segmentadas)
+========================================================= */
+
+.tabs-admin,
+.tabs-reportes {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    padding: 4px;
+    margin: 0 0 22px;
+    background: #E6EDEB;
+    border-radius: 14px;
+}
+
+.admin-content .tabs-admin button,
+.admin-content .tabs-reportes button {
+    min-height: 36px;
+    padding: 7px 16px;
+    color: var(--vt-tinta-2);
+    background: transparent;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.admin-content .tabs-admin button:hover,
+.admin-content .tabs-reportes button:hover {
+    color: var(--vt-tinta);
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.admin-content .tabs-admin button.activo,
+.admin-content .tabs-reportes button.activo {
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    box-shadow: 0 1px 3px rgba(15, 59, 60, 0.14);
+}
+
+/* Botón "Categorías": abre un modal, se distingue de las pestañas */
+.admin-content .tabs-admin .tab-accion {
+    color: var(--vt-turquesa-700);
+}
+
+/* =========================================================
+   PANELES DE ALTA (producto / lote)
+========================================================= */
 
 .panel-admin {
-
     display: none;
-
-    background: white;
-
-    padding: 30px;
-
-    border-radius: 22px;
-
-    margin-bottom: 25px;
-
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
-
-    border: 1px solid #f1f1f1;
-}
-
-.tabla-usuarios {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-    overflow: hidden;
-
-    border-radius: 14px;
-}
-
-.tabla-usuarios th,
-.tabla-usuarios td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
-}
-
-.tabla-usuarios th {
-
-    background: #14b8a6;
-
-    color: white;
-}
-
-.tabla-usuarios select {
-    padding: 5px;
-}
-
-/* 🔥 TABLA STOCK */
-
-.tabla-stock {
-
-    width: 100%;
-
-    border-collapse: collapse;
-
-    margin-top: 25px;
-
-    background: white;
-
-    border-radius: 14px;
-
-    overflow: hidden;
-
-    table-layout: auto;
-}
-
-.tabla-stock th:nth-child(1),
-.tabla-stock td:nth-child(1) {
-
-    width: 25%;
-}
-
-.tabla-stock th:nth-child(2),
-.tabla-stock td:nth-child(2) {
-
-    width: 18%;
-
-    text-align: center;
-}
-
-.tabla-stock th:nth-child(3),
-.tabla-stock td:nth-child(3) {
-
-    width: 15%;
-
-    text-align: center;
-}
-
-.tabla-stock th:nth-child(4),
-.tabla-stock td:nth-child(4) {
-
-    width: 42%;
-
-    text-align: center;
-}
-
-.tabla-stock th {
-
-    background: #14b8a6;
-
-    color: white;
-
-    padding: 16px;
-
-    text-align: left;
-}
-
-.tabla-stock td {
-
-    padding: 16px;
-
-    border-bottom: 1px solid #eee;
-
-    text-align: center;
-}
-
-.tabla-stock td:first-child,
-.tabla-stock th:first-child {
-
-    text-align: left;
-}
-
-.tabla-stock tr:hover {
-
-    background: #f9f9f9;
-}
-
-.stock-bajo {
-    color: red;
-    font-weight: bold;
-}
-
-.stock-ok {
-    color: green;
-    font-weight: bold;
-}
-
-/* 🔥 MODAL LOTES */
-
-.modal-lotes {
-    display: none;
-    position: fixed;
-    inset: 0;
-    padding-top: 120px;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    justify-content: center;
-    align-items: flex-start;
-}
-
-.contenido-modal-lotes {
-    background: white;
-    width: 500px;
-    max-height: 80vh;
-    overflow-y: auto;
-    border-radius: 12px;
-    padding: 25px;
-    position: relative;
-}
-
-.cerrar-modal {
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    cursor: pointer;
-    font-size: 20px;
-}
-
-.modal-lote-item {
-    padding: 15px;
-    margin-bottom: 15px;
-    border-radius: 8px;
-    background: #f5f5f5;
-}
-
-.panel-admin input,
-.panel-admin select,
-.crear-promocion input,
-.crear-promocion select,
-.crear-usuario input,
-.crear-usuario select {
-
-    width: 100%;
-
-    padding: 14px;
-
-    margin-top: 10px;
-
-    margin-bottom: 15px;
-
-    border: 1px solid #ddd;
-
-    border-radius: 12px;
-
-    font-size: 15px;
-}
-
-.panel-admin button,
-.crear-promocion button,
-.crear-usuario button {
-
-    background: #14b8a6;
-
-    color: white;
-
-    border: none;
-
-    padding: 14px 20px;
-
-    border-radius: 12px;
-
-    cursor: pointer;
-
-    font-weight: bold;
-
-    transition: 0.3s;
-}
-
-.panel-admin button:hover,
-.crear-promocion button:hover,
-.crear-usuario button:hover {
-
-    background: #0f9f90;
+    max-width: 720px;
+    padding: 26px;
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-lg);
+    box-shadow: var(--vt-sombra);
 }
 
 .panel-admin.activo {
     display: block;
 }
 
-#buscarStock {
-
-    width: 100%;
-
-    max-width: 350px;
-
-    padding: 14px;
-
-    border: 1px solid #ddd;
-
-    border-radius: 12px;
-
-    margin-top: 10px;
+.panel-admin h2 {
+    margin: 0 0 20px;
+    font-size: 19px;
+    font-weight: 700;
 }
 
-.card-admin,
-.panel-admin,
-#lotesVencer li {
-
-    transition: 0.3s;
+.panel-admin > button {
+    margin-top: 8px;
 }
 
-.card-admin:hover,
-.panel-admin:hover {
-
-    transform: translateY(-3px);
+#loteCreado:empty {
+    display: none;
 }
 
-.label-admin {
+/* =========================================================
+   INVENTARIO
+========================================================= */
 
-    display: block;
+.resumen-alertas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
 
-    margin-top: 10px;
+.alerta-card {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 18px 20px;
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-lg);
+    box-shadow: var(--vt-sombra);
+}
 
-    margin-bottom: 6px;
+.alerta-card h3 {
+    margin: 0;
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.02em;
+}
 
+.alerta-card p {
+    margin: 0;
+    color: var(--vt-tinta-2);
     font-weight: 600;
-
-    color: #333;
 }
 
-/* 🔥 INPUT IMÁGENES */
-
-#imagenesProducto {
-
-    margin-top: 10px;
-
-    margin-bottom: 20px;
+.alerta-card::before {
+    content: "";
+    align-self: center;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: currentColor;
 }
 
-/* 🔥 PREVIEW IMÁGENES */
+.alerta-card.urgente { color: var(--vt-peligro); }
+.alerta-card.atencion { color: var(--vt-alerta); }
+.alerta-card.total { color: var(--vt-turquesa-700); }
+
+.alerta-card.urgente::before { box-shadow: 0 0 0 4px var(--vt-peligro-50); }
+.alerta-card.atencion::before { box-shadow: 0 0 0 4px var(--vt-alerta-50); }
+.alerta-card.total::before { box-shadow: 0 0 0 4px var(--vt-turquesa-100); }
+
+#buscarStock {
+    max-width: 360px;
+}
+
+/* Estados de stock y lotes */
+.stock-bajo,
+.stock-ok,
+.lote-urgente,
+.lote-atencion,
+.lote-ok {
+    font-weight: 600;
+}
+
+.stock-bajo { color: var(--vt-peligro); }
+.stock-ok { color: var(--vt-ok); }
+
+.lote-urgente {
+    color: #9E2E3A !important;
+    background: var(--vt-peligro-50) !important;
+    border-left: 3px solid var(--vt-peligro);
+}
+
+.lote-atencion {
+    color: #87550E !important;
+    background: var(--vt-alerta-50) !important;
+    border-left: 3px solid var(--vt-alerta);
+}
+
+.lote-ok {
+    color: var(--vt-turquesa-700) !important;
+    background: var(--vt-ok-50) !important;
+    border-left: 3px solid var(--vt-turquesa);
+}
+
+#lotesVencer {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+#lotesVencer li {
+    margin-bottom: 8px;
+    padding: 12px 14px;
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-md);
+}
+
+.filtros-lotes,
+.header-lotes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.header-lotes h2 {
+    margin: 0;
+}
+
+/* Paginación */
+.paginacion-lotes,
+.paginacion-stock {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: 16px;
+}
+
+.admin-content .paginacion-lotes button,
+.admin-content .paginacion-stock button {
+    min-width: 36px;
+    min-height: 36px;
+    padding: 6px 12px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.admin-content .paginacion-lotes button:hover,
+.admin-content .paginacion-stock button:hover {
+    color: var(--vt-tinta);
+    border-color: var(--vt-linea-fuerte);
+}
+
+.admin-content .paginacion-lotes button.activo,
+.admin-content .paginacion-stock button.activo {
+    color: var(--vt-petroleo);
+    background: var(--vt-turquesa);
+    border-color: var(--vt-turquesa);
+}
+
+/* =========================================================
+   TABLAS
+========================================================= */
+
+.tabla-stock,
+.tabla-usuarios {
+    width: 100%;
+    margin-top: 18px;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-md);
+    overflow: hidden;
+}
+
+.tabla-stock th,
+.tabla-usuarios th {
+    padding: 11px 14px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-turquesa-50);
+    border-bottom: 1px solid var(--vt-linea);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.tabla-stock td,
+.tabla-usuarios td {
+    padding: 12px 14px;
+    color: var(--vt-tinta);
+    border-bottom: 1px solid var(--vt-linea);
+    vertical-align: middle;
+}
+
+.tabla-stock tbody tr:last-child td,
+.tabla-usuarios tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.tabla-stock tbody tr:hover td,
+.tabla-usuarios tbody tr:hover td {
+    background: #F7FBFA;
+}
+
+/* La última columna (acciones / comprobante) a la derecha */
+.tabla-stock th:last-child,
+.tabla-stock td:last-child,
+.tabla-usuarios th:last-child,
+.tabla-usuarios td:last-child {
+    text-align: right;
+}
+
+.tabla-stock td a,
+.tabla-usuarios td a {
+    color: var(--vt-turquesa-700);
+    font-weight: 600;
+}
+
+.tabla-usuarios select {
+    display: inline-block;
+    width: auto;
+    min-height: 34px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.tabla-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+
+/* =========================================================
+   MENSAJES DE ESTADO
+========================================================= */
+
+.mensaje-exito {
+    margin-top: 12px;
+    padding: 10px 14px;
+    color: var(--vt-turquesa-700);
+    background: var(--vt-ok-50);
+    border-radius: var(--vt-r-md);
+    font-weight: 600;
+}
+
+#estadoConfiguracion,
+#estadoMiCuenta,
+#estadoCambiarContrasena,
+#estadoCierreCaja,
+#estadoHistorialVentas,
+#estadoClienteVenta,
+#filtroActual,
+#loteCreado {
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+}
+
+#estadoConfiguracion:empty,
+#estadoMiCuenta:empty,
+#estadoCambiarContrasena:empty,
+#estadoCierreCaja:empty,
+#estadoHistorialVentas:empty {
+    display: none;
+}
+
+.oculto {
+    display: none !important;
+}
+
+/* =========================================================
+   IMÁGENES DE PRODUCTOS
+========================================================= */
 
 .preview-imagenes {
-
     display: flex;
-
-    gap: 15px;
-
     flex-wrap: wrap;
-
-    margin-bottom: 20px;
-}
-
-.preview-imagenes img {
-
-    width: 120px;
-
-    height: 120px;
-
-    object-fit: cover;
-
-    border-radius: 14px;
-
-    border: 2px solid #eee;
-
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-}
-
-/* 🔥 ACCIONES TABLA */
-
-.acciones-producto {
-
-    display: flex;
-
     gap: 10px;
-
-    justify-content: center;
-
-    flex-wrap: nowrap;
+    margin-bottom: 16px;
 }
 
-.btn-tabla {
-
-    border: none;
-
-    padding: 8px 14px;
-
-    border-radius: 10px;
-
-    font-size: 13px;
-
-    font-weight: 600;
-
-    cursor: pointer;
-
-    transition: 0.3s;
-
-    min-width: 110px;
+.preview-imagenes:empty {
+    display: none;
 }
 
-.btn-lotes {
-
-    background: #14b8a6;
-
-    color: white;
-}
-
-.btn-lotes:hover {
-
-    background: #0f9f90;
-}
-
-.btn-editar {
-
-    background: #3b82f6;
-
-    color: white;
-}
-
-.btn-editar:hover {
-
-    background: #2563eb;
-}
-
-.btn-eliminar {
-
-    background: #ef4444;
-
-    color: white;
-}
-
-.btn-eliminar:hover {
-
-    background: #dc2626;
-}
-
-/* 🔥 MODAL EDITAR PRODUCTO */
-
-#editarDescripcion {
-
-    width: 100%;
-
-    margin-top: 15px;
-
-    padding: 14px;
-
-    border: 1px solid #ddd;
-
-    border-radius: 12px;
-
-    resize: vertical;
-
-    font-size: 15px;
-}
-
-.acciones-checks {
-
-    display: flex;
-
-    gap: 25px;
-
-    margin-top: 20px;
-
-    margin-bottom: 25px;
-}
-
-.acciones-checks label {
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 8px;
-
-    font-weight: 600;
-}
-
-#tituloEditarProducto {
-
-    margin-top: 10px;
-
-    margin-bottom: 15px;
-
-    color: #111;
+.preview-imagenes img,
+.img-preview-editar {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-md);
 }
 
 .img-preview-editar {
-
-    width: 150px;
-
-    height: 150px;
-
-    object-fit: cover;
-
-    border-radius: 16px;
-
-    margin: 15px 0;
-
-    border: 2px solid #eee;
+    display: block;
+    margin: 10px 0;
 }
 
-#modalEditarProducto button {
+#tituloEditarProducto {
+    margin: -12px 0 18px;
+    color: var(--vt-tinta-2);
+    font-size: 14px;
+    font-weight: 500;
+}
 
-    margin-top: 20px;
+#tituloEditarProducto:empty {
+    display: none;
+}
+
+.acciones-checks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin: 16px 0;
+}
+
+.acciones-checks label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+/* =========================================================
+   MODALES
+========================================================= */
+
+.modal-lotes {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(10, 43, 44, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.contenido-modal-lotes {
+    position: relative;
+    width: min(560px, 100%);
+    max-height: 88vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 28px;
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border-radius: 20px;
+    box-shadow: var(--vt-sombra-alta);
+    animation: vt-modal 0.2s ease both;
+}
+
+@keyframes vt-modal {
+    from { opacity: 0; transform: translateY(8px) scale(0.98); }
+    to { opacity: 1; transform: none; }
+}
+
+.contenido-modal-lotes h2 {
+    margin: 0 44px 22px 0;
+    font-size: 21px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+}
+
+.contenido-modal-lotes h3 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.contenido-modal-lotes > button {
+    margin-bottom: 16px;
+}
+
+.contenido-modal-lotes hr {
+    margin: 22px 0;
+    border: 0;
+    border-top: 1px solid var(--vt-linea);
+}
+
+.cerrar-modal {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-fondo);
+    border-radius: 10px;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.cerrar-modal:hover {
+    color: var(--vt-tinta);
+    background: var(--vt-linea);
+}
+
+.modal-lote-item {
+    margin-bottom: 10px;
+    padding: 14px 16px;
+    background: var(--vt-turquesa-50);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-md);
+    line-height: 1.6;
+}
+
+#listaCategorias > * {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--vt-linea);
+}
+
+#listaCategorias > *:last-child {
+    border-bottom: 0;
+}
+
+/* =========================================================
+   VENTAS (punto de venta)
+========================================================= */
+
+.venta-buscador {
+    position: relative;
+}
+
+.venta-buscador input {
+    padding-left: 42px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%237A8C8B' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.5-3.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 14px center;
+}
+
+#resultadosBusquedaVenta {
+    position: relative;
+    z-index: 5;
+    margin-top: 6px;
+    background: var(--vt-superficie);
+    border-radius: var(--vt-r-md);
+}
+
+#resultadosBusquedaVenta:not(:empty) {
+    border: 1px solid var(--vt-linea);
+    box-shadow: var(--vt-sombra);
+    overflow: hidden;
+}
+
+#resultadosBusquedaVenta > * {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--vt-linea);
+    cursor: pointer;
+}
+
+#resultadosBusquedaVenta > *:last-child {
+    border-bottom: 0;
+}
+
+#resultadosBusquedaVenta > *:hover {
+    background: var(--vt-turquesa-50);
 }
 
 .resumen-venta {
-    margin-top: 30px;
+    margin-top: 16px;
+    padding: 0;
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-lg);
+    box-shadow: var(--vt-sombra);
+    overflow: hidden;
 }
 
 .total-venta {
-    margin-bottom: 25px;
+    padding: 20px 24px;
+    background: var(--vt-petroleo);
+}
+
+.total-venta h2 {
+    margin: 0;
+    color: #FFFFFF;
+    font-size: clamp(24px, 2.4vw, 30px);
+    font-weight: 700;
+    letter-spacing: -0.02em;
 }
 
 .datos-venta {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    margin-top: 25px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 20px;
+    padding: 22px 24px 24px;
 }
 
+/* Cliente · Método de pago · Email, uno al lado del otro */
 .izquierda-venta {
-    display: flex;
-    gap: 40px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: 16px 20px;
+    min-width: 0;
+}
+
+@media (max-width: 1200px) {
+    .izquierda-venta {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .campo-venta-email {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 650px) {
+    .izquierda-venta {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 .campo-venta {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    min-width: 0;
 }
 
-.campo-venta label {
-    font-weight: 600;
+.contenedor-dni {
+    margin-top: 10px;
 }
 
-.campo-venta select,
-.campo-venta input {
-    min-width: 220px;
+#estadoClienteVenta {
+    display: block;
+    margin-top: 6px;
+}
+
+#ayudaEmailVenta {
+    display: block;
+    margin-top: 6px;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+}
+
+#ayudaEmailVenta:empty {
+    display: none;
+}
+
+#ayudaEmailVenta[data-tipo="ok"] {
+    color: var(--vt-turquesa-700);
+}
+
+#emailClienteVenta[aria-invalid="true"] {
+    border-color: var(--vt-peligro);
+}
+
+#nuevoClienteVenta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
 }
 
 .acciones-venta {
     display: flex;
-    gap: 15px;
-    align-self: flex-end;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 20px;
+    border-top: 1px solid var(--vt-linea);
 }
 
-.btn-cancelar {
-    background: #e5e7eb;
-}
+/* =========================================================
+   HISTORIAL
+========================================================= */
 
-.btn-confirmar {
-    background: #22c55e;
-    color: white;
-}
-
-.contenedor-dni {
-    height: 42px;
-    margin-top: 8px;
-}
-
-#dniClienteVenta {
-    width: 100%;
-}
-
-.oculto {
-    visibility: hidden;
-}
-
-.campo-venta input,
-.campo-venta select {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-#nuevoClienteVenta {
-    margin-top: 10px;
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-}
-
-#nuevoClienteVenta .campo-venta {
-    flex: 1;
-    min-width: 180px;
-}
-
-/* 🔥 RESUMEN ALERTAS */
-
-.resumen-alertas {
-
+.filtros-historial {
     display: grid;
-
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-
-    gap: 20px;
-
-    margin-bottom: 25px;
+    grid-template-columns: repeat(3, minmax(0, 200px));
+    gap: 14px;
+    margin: 16px 0 4px;
 }
 
-.alerta-card {
+/* =========================================================
+   PROMOCIONES Y USUARIOS
+========================================================= */
 
-    background: white;
-
-    border-radius: 20px;
-
-    padding: 25px;
-
-    box-shadow: 0 6px 25px rgba(0, 0, 0, 0.06);
-
-    border: 1px solid #f1f1f1;
-
-    transition: 0.3s;
+.crear-promocion,
+.crear-usuario {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: end;
+    gap: 14px;
+    padding: 18px;
+    margin: 4px 0 8px;
+    background: var(--vt-fondo);
+    border-radius: var(--vt-r-md);
 }
 
-.alerta-card:hover {
-
-    transform: translateY(-3px);
+.crear-promocion .campo,
+.crear-usuario .campo {
+    min-width: 0;
 }
 
-.alerta-card h3 {
-
-    font-size: 42px;
-
-    margin: 0 0 10px 0;
+.crear-promocion button,
+.crear-usuario button {
+    justify-self: start;
 }
 
-.alerta-card p {
+/* =========================================================
+   REPORTES
+========================================================= */
 
-    margin: 0;
-
-    font-weight: 600;
-
-    color: #666;
+.filtro {
+    display: grid;
+    justify-items: start;
+    gap: 14px;
+    padding: 20px 22px;
+    margin: 22px 0 16px;
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-lg);
+    box-shadow: var(--vt-sombra);
 }
 
-.alerta-card.urgente {
-
-    border-left: 6px solid #ef4444;
+.filtro .tabs-reportes {
+    margin: 0 0 4px;
 }
 
-.alerta-card.urgente h3 {
-
-    color: #ef4444;
-}
-
-.alerta-card.atencion {
-
-    border-left: 6px solid #f59e0b;
-}
-
-.alerta-card.atencion h3 {
-
-    color: #f59e0b;
-}
-
-.alerta-card.total {
-
-    border-left: 6px solid #14b8a6;
-}
-
-.alerta-card.total h3 {
-
-    color: #14b8a6;
-}
-
-.paginacion-lotes {
-
+.filtro > div:not(.tabs-reportes) {
     display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    gap: 15px;
-
-    margin-top: 20px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
 }
 
-.paginacion-lotes button {
+.filtro > div:not(.tabs-reportes) h3 {
+    flex-basis: 100%;
+    margin: 0 0 2px;
+    font-size: 15px;
+    font-weight: 700;
+}
 
-    background: #14b8a6;
+.filtro > div:not(.tabs-reportes) :where(input, select) {
+    width: 180px;
+}
 
-    color: white;
+#filtroActual {
+    flex-basis: 100%;
+    margin: 0;
+}
 
-    border: none;
+#filtroActual:empty {
+    display: none;
+}
 
-    padding: 8px 15px;
+#seccionCierreCaja {
+    margin-bottom: 0;
+}
 
+#seccionCierreCaja .section-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    margin-bottom: 18px;
+}
+
+#seccionCierreCaja .section-header > span {
+    flex-basis: 100%;
+    margin: 0;
+}
+
+#seccionCierreCaja .section-header h2 {
+    font-size: 22px;
+}
+
+#seccionCierreCaja .section-header p {
+    margin: 0;
+}
+
+#seccionCierreCaja .grid-admin .card-admin {
+    background: var(--vt-fondo);
+    border-color: transparent;
+    box-shadow: none;
+}
+
+#seccionCierreCaja .grid-admin .card-admin:first-child {
+    background: var(--vt-turquesa-50);
+    border-color: var(--vt-turquesa-100);
+}
+
+#seccionCierreCaja .grid-admin .card-admin h3 {
+    margin-bottom: 8px;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+#seccionCierreCaja .grid-admin .card-admin p strong {
+    color: var(--vt-tinta);
+}
+
+#seccionCierreCaja > button {
+    margin-top: 16px;
+}
+
+.numero-grande,
+#total {
+    margin: 0 0 4px !important;
+    color: var(--vt-tinta) !important;
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+}
+
+#seccion-reportes {
+    margin-top: 0;
+}
+
+#contenedorGraficoVentas {
+    min-height: 300px;
+}
+
+#graficoVentas {
+    display: block;
+    width: 100%;
+    max-height: 360px;
+}
+
+/* =========================================================
+   CONFIGURACIÓN
+========================================================= */
+
+.panel-configuracion {
+    max-width: 760px;
+}
+
+.panel-configuracion .section-header {
+    margin: 4px 0 18px;
+}
+
+.panel-configuracion form {
+    display: grid;
+    gap: 16px;
+}
+
+.panel-configuracion .card-admin + .card-admin {
+    margin-top: 0;
+}
+
+.panel-configuracion .card-admin > p {
+    margin: -8px 0 18px;
+}
+
+.panel-configuracion form > button,
+.panel-configuracion .card-admin > button {
+    justify-self: start;
+}
+
+/* Horarios en dos columnas */
+.config-horarios {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    align-items: center;
+    gap: 10px 14px;
+}
+
+.config-horarios h3 {
+    grid-column: 1 / -1;
+}
+
+.config-horarios label {
+    margin: 0;
+}
+
+
+/* =========================================================
+   PIEZAS QUE ARMA EL JAVASCRIPT
+========================================================= */
+
+/* Estado de vencimiento en la tabla de stock */
+.estado-ok,
+.estado-alerta,
+.estado-critico {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.estado-ok::before,
+.estado-alerta::before,
+.estado-critico::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.estado-ok { color: var(--vt-turquesa-700); background: var(--vt-ok-50); }
+.estado-alerta { color: #87550E; background: var(--vt-alerta-50); }
+.estado-critico { color: #9E2E3A; background: var(--vt-peligro-50); }
+
+.estado-lote {
+    display: block;
+    margin-top: 4px;
+    padding-left: 10px;
+    color: var(--vt-tinta-3);
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Mensajes de estado (ok / alerta / error) */
+[data-tipo="ok"] { color: var(--vt-turquesa-700) !important; font-weight: 600; }
+[data-tipo="alerta"] { color: var(--vt-alerta) !important; font-weight: 600; }
+[data-tipo="error"] { color: var(--vt-peligro) !important; font-weight: 600; }
+
+/* Carrito de la venta */
+.precio-tachado {
+    color: var(--vt-tinta-3);
+    font-size: 12px;
+    text-decoration: line-through;
+}
+
+.precio-oferta {
+    color: var(--vt-turquesa-700);
+    font-weight: 700;
+}
+
+.etiqueta-off {
+    display: inline-block;
+    margin-top: 2px;
+    padding: 1px 7px;
+    color: var(--vt-trigo-700);
+    background: var(--vt-trigo-50);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.control-cantidad {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px;
+    background: var(--vt-fondo);
     border-radius: 10px;
+}
 
+.control-cantidad span {
+    min-width: 28px;
+    text-align: center;
+    font-weight: 700;
+}
+
+.admin-content .btn-cantidad {
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0;
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.admin-content .btn-cantidad:hover {
+    background: var(--vt-turquesa-100);
+    border-color: var(--vt-turquesa-100);
+    box-shadow: none;
+}
+
+.stock-disponible {
+    display: block;
+    margin-top: 4px;
+    color: var(--vt-tinta-3);
+    font-size: 11px;
+}
+
+.resultado-producto:hover {
+    color: var(--vt-turquesa-700);
+}
+
+/* Tabla de lotes dentro del modal */
+#buscarLoteModal {
+    margin-bottom: 14px;
+}
+
+.tabla-lotes-modal {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-md);
+    overflow: hidden;
+    font-size: 13px;
+}
+
+.tabla-lotes-modal th {
+    padding: 10px 12px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-turquesa-50);
+    border-bottom: 1px solid var(--vt-linea);
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tabla-lotes-modal td {
+    padding: 10px 12px;
+    border-bottom: 1px solid var(--vt-linea);
+    font-variant-numeric: tabular-nums;
+}
+
+.tabla-lotes-modal tbody tr:last-child td {
+    border-bottom: 0;
+}
+
+.tabla-lotes-modal th:last-child,
+.tabla-lotes-modal td:last-child {
+    text-align: right;
+}
+
+.tabla-lotes-modal tr.lote-urgente,
+.tabla-lotes-modal tr.lote-atencion {
+    border-left: 0;
+}
+
+.tabla-lotes-modal tr.lote-urgente td:first-child {
+    box-shadow: inset 3px 0 0 var(--vt-peligro);
+}
+
+.tabla-lotes-modal tr.lote-atencion td:first-child {
+    box-shadow: inset 3px 0 0 var(--vt-alerta);
+}
+
+.paginacion-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+}
+
+.paginacion-stock span,
+.paginacion-lotes span {
+    padding: 0 6px;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+}
+
+.modal-lotes .paginacion-modal button {
+    min-height: 34px;
+    padding: 6px 12px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.modal-lotes .paginacion-modal button:hover {
+    color: var(--vt-tinta);
+    border-color: var(--vt-linea-fuerte);
+}
+
+/* Lista de categorías del modal */
+#listaCategorias > .categoria-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+/* Botón "+ Crear tipo" del modal de categorías: secundario */
+#modalCategorias .contenido-modal-lotes > button:first-of-type {
+    color: var(--vt-turquesa-700);
+    background: var(--vt-turquesa-100);
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+    .container-admin {
+        padding: 30px 28px 44px;
+    }
+
+    .grid-admin {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-detalle {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .crear-promocion,
+    .crear-usuario {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .container-admin {
+        padding: 24px 20px 36px;
+    }
+
+    .datos-venta {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .acciones-venta {
+        justify-content: flex-end;
+    }
+
+    .tabla-stock,
+    .tabla-usuarios {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+
+    .filtros-historial {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .container-admin {
+        padding: 20px 16px 32px;
+    }
+
+    .grid-admin,
+    .resumen-alertas,
+    .vencimientos-resumen,
+    .izquierda-venta,
+    .crear-promocion,
+    .crear-usuario,
+    .filtros-historial {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .card-admin,
+    .panel-admin {
+        padding: 18px;
+    }
+
+    #adminDashboard .grid-admin {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    #adminDashboard .grid-admin > .card-admin {
+        grid-template-columns: 1fr;
+        row-gap: 10px;
+        padding: 16px;
+    }
+
+    #adminDashboard .grid-admin > .card-admin .kpi-icono {
+        grid-row: auto;
+        width: 38px;
+        height: 38px;
+    }
+
+    #adminDashboard .grid-admin > .card-admin p {
+        font-size: 26px;
+    }
+
+    .tabs-admin,
+    .tabs-reportes {
+        display: flex;
+    }
+
+    .admin-content .tabs-admin button,
+    .admin-content .tabs-reportes button {
+        flex: 1 1 auto;
+        padding: 7px 10px;
+    }
+
+    .acciones-venta button,
+    .crear-promocion button,
+    .crear-usuario button {
+        flex: 1;
+        justify-self: stretch;
+    }
+
+    .filtro > div:not(.tabs-reportes) :where(input, select) {
+        width: 100%;
+    }
+
+    .config-horarios {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 6px;
+    }
+
+    .contenido-modal-lotes {
+        padding: 22px 18px;
+    }
+}
+
+/* =========================================================
+   SEGUNDA PASADA: TIPOGRAFÍA, MOVIMIENTO Y ESTADOS
+========================================================= */
+
+/* ---------- Tipografía de títulos y cifras ---------- */
+
+.section-header h2,
+.card-admin h2,
+.panel-admin h2,
+.contenido-modal-lotes h2,
+#adminDashboard .grid-admin > .card-admin p,
+.numero-grande,
+#total,
+.total-venta h2,
+.alerta-card h3,
+.venc-chip strong {
+    font-family: var(--vt-display);
+}
+
+.section-header h2 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+#adminDashboard .grid-admin > .card-admin p,
+.numero-grande,
+#total,
+.total-venta h2 {
+    font-weight: 600;
+    letter-spacing: -0.03em;
+}
+
+.card-admin h2,
+.panel-admin h2,
+.contenido-modal-lotes h2 {
+    font-weight: 600;
+    letter-spacing: -0.015em;
+}
+
+:is(h2, h3) {
+    text-wrap: balance;
+}
+
+.admin-content p {
+    text-wrap: pretty;
+}
+
+.section-header p,
+.dashboard-saludo {
+    max-width: 65ch;
+}
+
+/* ---------- Entrada escalonada (solo al abrir el panel) ---------- */
+
+@keyframes vt-aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+}
+
+body.inicio #adminDashboard .grid-admin > .card-admin,
+body.inicio #adminDashboard .dashboard-detalle > .card-admin {
+    animation: vt-aparecer 320ms var(--vt-ease-out) both;
+}
+
+body.inicio #adminDashboard .grid-admin > .card-admin:nth-child(2) { animation-delay: 40ms; }
+body.inicio #adminDashboard .grid-admin > .card-admin:nth-child(3) { animation-delay: 80ms; }
+body.inicio #adminDashboard .grid-admin > .card-admin:nth-child(4) { animation-delay: 120ms; }
+body.inicio #adminDashboard .dashboard-detalle > .card-admin:nth-child(1) { animation-delay: 160ms; }
+body.inicio #adminDashboard .dashboard-detalle > .card-admin:nth-child(2) { animation-delay: 200ms; }
+
+/* ---------- Esqueletos de carga ---------- */
+
+@keyframes vt-brillo {
+    to { background-position: -200% 0; }
+}
+
+.fila-esqueleto td span,
+.esqueleto-item span,
+.venc-chip strong:empty,
+#adminDashboard .grid-admin > .card-admin p:empty {
+    display: block;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #E9EFEE 25%, #F5F8F7 50%, #E9EFEE 75%);
+    background-size: 200% 100%;
+    animation: vt-brillo 1.4s linear infinite;
+}
+
+.fila-esqueleto td span {
+    width: 70%;
+    height: 12px;
+}
+
+.fila-esqueleto td:last-child span {
+    width: 120px;
+    margin-left: auto;
+}
+
+#adminDashboard .grid-admin > .card-admin p:empty {
+    width: 56px;
+    height: 32px;
+    margin-top: 4px;
+}
+
+#adminDashboard .grid-admin > .card-admin:first-child p:empty {
+    background: linear-gradient(90deg, rgba(255,255,255,0.10) 25%, rgba(255,255,255,0.22) 50%, rgba(255,255,255,0.10) 75%);
+    background-size: 200% 100%;
+}
+
+.card-admin .lista-proximos .esqueleto-item {
+    padding: 16px 0;
+}
+
+.esqueleto-item span:first-child {
+    width: 46%;
+    height: 14px;
+}
+
+.esqueleto-item span:last-child {
+    width: 56px;
+    height: 22px;
+    border-radius: 999px;
+}
+
+.fila-sin-datos td {
+    padding: 28px 14px !important;
+    color: var(--vt-tinta-2);
+    text-align: center !important;
+}
+
+/* ---------- Estados vacíos ---------- */
+
+.tabla-vacia {
+    display: none;
+    margin: 0;
+    padding: 28px 16px;
+    color: var(--vt-tinta-3);
+    text-align: center;
+    border: 1px dashed var(--vt-linea-fuerte);
+    border-top: 0;
+    border-radius: 0 0 var(--vt-r-md) var(--vt-r-md);
+}
+
+table:has(tbody:empty) + .tabla-vacia {
+    display: block;
+}
+
+table:has(tbody:empty) {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* ---------- Modales: entrada desde el centro ---------- */
+
+.contenido-modal-lotes {
+    animation: vt-modal var(--vt-dur-ui) var(--vt-ease-out) both;
+}
+
+@keyframes vt-modal {
+    from {
+        opacity: 0;
+        transform: scale(0.96);
+    }
+}
+
+.cerrar-modal:focus-visible {
+    outline: none;
+    box-shadow: var(--vt-foco);
+}
+
+/* ---------- Avisos (reemplazan a alert) ---------- */
+
+.avisos {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    width: min(380px, calc(100vw - 32px));
+    pointer-events: none;
+}
+
+.aviso {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+    padding: 13px 12px 13px 16px;
+    color: #FFFFFF;
+    background: var(--vt-petroleo);
+    border-radius: 14px;
+    box-shadow: 0 18px 40px -16px rgba(10, 43, 44, 0.6);
+    font-size: 14px;
+    line-height: 1.45;
+    pointer-events: auto;
+    transition:
+        opacity 240ms var(--vt-ease-out),
+        transform 240ms var(--vt-ease-out);
+}
+
+@starting-style {
+    .aviso {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+}
+
+.aviso.saliendo {
+    opacity: 0;
+    transform: translateY(6px);
+    transition-duration: 150ms;
+}
+
+.aviso-punto {
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: var(--vt-turquesa);
+    box-shadow: 0 0 0 4px rgba(2, 189, 178, 0.22);
+}
+
+.aviso-error .aviso-punto {
+    background: #FF7B88;
+    box-shadow: 0 0 0 4px rgba(255, 123, 136, 0.2);
+}
+
+.aviso-texto {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.aviso-cerrar {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: rgba(255, 255, 255, 0.6);
+    background: transparent;
+    border: 0;
+    border-radius: 6px;
+    font: inherit;
+    font-size: 18px;
+    line-height: 1;
     cursor: pointer;
 }
 
-.paginacion-lotes button:disabled {
+.aviso-cerrar:hover {
+    color: #FFFFFF;
+    background: rgba(255, 255, 255, 0.1);
+}
 
-    background: #ccc;
+/* ---------- Saltar al contenido ---------- */
 
+.saltar-contenido {
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 4000;
+    padding: 10px 16px;
+    color: var(--vt-petroleo);
+    background: var(--vt-turquesa);
+    border-radius: 10px;
+    font-weight: 700;
+    text-decoration: none;
+    transform: translateY(-160%);
+}
+
+.saltar-contenido:focus {
+    transform: none;
+}
+
+.admin-content:focus {
+    outline: none;
+}
+
+/* ---------- Hover con movimiento solo con mouse ---------- */
+
+@media (hover: hover) and (pointer: fine) {
+    .admin-content .acceso:hover .kpi-icono {
+        transform: translateY(-2px);
+    }
+}
+
+.admin-content .acceso .kpi-icono {
+    transition: transform var(--vt-dur-ui) var(--vt-ease-out);
+}
+
+@media (max-width: 650px) {
+    .avisos {
+        right: 16px;
+        bottom: 16px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 1ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* Horarios: campo alineado con su día */
+.panel-configuracion .config-horarios > input {
+    margin: 0;
+}
+
+@media (max-width: 900px) {
+    .acciones-producto {
+        flex-wrap: nowrap;
+    }
+}
+
+.venc-chip strong:empty {
+    width: 18px;
+    height: 22px;
+}
+
+
+/* =========================================================
+   TERCERA PASADA: MÁS MOVIMIENTO
+========================================================= */
+
+/* La tarjeta petróleo del dashboard: el turquesa se mueve despacio */
+#adminDashboard .grid-admin > .card-admin:first-child {
+    isolation: isolate;
+    overflow: hidden;
+}
+
+#adminDashboard .grid-admin > .card-admin:first-child::after {
+    content: "";
+    position: absolute;
+    inset: -40%;
+    z-index: -1;
+    background: radial-gradient(40% 40% at 70% 30%, rgba(2, 189, 178, 0.55), transparent 70%);
+    animation: vt-aurora 12s ease-in-out infinite alternate;
+    pointer-events: none;
+}
+
+@keyframes vt-aurora {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(-18%, 14%) scale(1.25); }
+}
+
+/* Tarjetas y accesos que responden al mouse */
+#adminDashboard .grid-admin > .card-admin,
+.admin-content .acceso,
+.alerta-card {
+    transition:
+        transform 260ms var(--vt-ease-out),
+        box-shadow 260ms ease,
+        background-color 200ms ease,
+        border-color 200ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    #adminDashboard .grid-admin > .card-admin:hover,
+    .alerta-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 2px 4px rgba(15, 59, 60, 0.06), 0 22px 40px -22px rgba(15, 59, 60, 0.45);
+    }
+
+    #adminDashboard .grid-admin > .card-admin:hover .kpi-icono {
+        transform: rotate(-8deg) scale(1.06);
+    }
+
+    .admin-content .acceso:hover {
+        transform: translateY(-3px);
+    }
+}
+
+.kpi-icono {
+    transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Próximos vencimientos: entran uno detrás de otro */
+.lista-proximos li:not(.esqueleto-item) {
+    animation: vt-aparecer 360ms var(--vt-ease-out) both;
+}
+
+.lista-proximos li:nth-child(2) { animation-delay: 50ms; }
+.lista-proximos li:nth-child(3) { animation-delay: 100ms; }
+.lista-proximos li:nth-child(4) { animation-delay: 150ms; }
+.lista-proximos li:nth-child(5) { animation-delay: 200ms; }
+
+/* Los vencimientos urgentes laten suave para llamar la atención */
+.proximo-dias.urgente,
+.estado-critico {
+    position: relative;
+}
+
+.proximo-dias.urgente::before,
+.estado-critico::before {
+    animation: vt-latido 1.8s ease-in-out infinite;
+}
+
+.proximo-dias.urgente::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 0 rgba(200, 65, 79, 0.35);
+}
+
+@keyframes vt-latido {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(200, 65, 79, 0.35); }
+    50% { box-shadow: 0 0 0 5px rgba(200, 65, 79, 0); }
+}
+
+/* Botón principal con brillo al pasar el mouse */
+:where(.admin-content, .modal-lotes) button:not(.btn-tabla):not(.btn-cancelar):not(.btn-cantidad):not(.acceso):not(.btn-link):not(.ver-clave) {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+
+:where(.admin-content, .modal-lotes) button:not(.btn-tabla):not(.btn-cancelar):not(.btn-cantidad):not(.acceso):not(.btn-link):not(.ver-clave)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+    transform: translateX(-120%);
+    pointer-events: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    :where(.admin-content, .modal-lotes) button:not(.btn-tabla):not(.btn-cancelar):not(.btn-cantidad):not(.acceso):not(.btn-link):not(.ver-clave):hover::after {
+        transform: translateX(120%);
+        transition: transform 700ms var(--vt-ease-out);
+    }
+}
+
+/* Las pestañas no llevan brillo */
+.admin-content .tabs-admin button::after,
+.admin-content .tabs-reportes button::after,
+.admin-content .paginacion-stock button::after,
+.admin-content .paginacion-lotes button::after {
+    display: none;
+}
+
+/* El total de la venta "late" cuando cambia */
+#totalVenta.cambio {
+    animation: vt-total 420ms var(--vt-ease-out);
+}
+
+@keyframes vt-total {
+    40% { transform: scale(1.06); color: var(--vt-turquesa); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #adminDashboard .grid-admin > .card-admin:first-child::after,
+    .proximo-dias.urgente::before,
+    .estado-critico::before {
+        animation: none !important;
+    }
+}
+
+/* =========================================================
+   TABLAS: cada título centrado sobre su contenido
+   (la primera columna, que es el nombre, queda a la izquierda)
+========================================================= */
+
+.tabla-stock th,
+.tabla-stock td,
+.tabla-usuarios th,
+.tabla-usuarios td,
+.tabla-lotes-modal th,
+.tabla-lotes-modal td {
+    text-align: center;
+}
+
+.tabla-stock th:first-child,
+.tabla-stock td:first-child,
+.tabla-usuarios th:first-child,
+.tabla-usuarios td:first-child,
+.tabla-lotes-modal th:first-child,
+.tabla-lotes-modal td:first-child {
+    text-align: left;
+}
+
+.tabla-stock th:last-child,
+.tabla-stock td:last-child,
+.tabla-usuarios th:last-child,
+.tabla-usuarios td:last-child,
+.tabla-lotes-modal th:last-child,
+.tabla-lotes-modal td:last-child {
+    text-align: center;
+}
+
+.acciones-producto {
+    justify-content: center;
+}
+
+.estado-lote {
+    padding-left: 0;
+}
+
+/* =========================================================
+   IMÁGENES DE PRODUCTO: ayuda y vista previa
+========================================================= */
+
+.ayuda-imagen {
+    margin: -2px 0 10px;
+    padding: 10px 14px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-trigo-50);
+    border-radius: var(--vt-r-md);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.ayuda-imagen strong {
+    color: var(--vt-tinta);
+}
+
+.preview-subida {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 4px 0 18px;
+}
+
+.preview-subida:empty {
+    display: none;
+}
+
+.subida {
+    margin: 0;
+    overflow: hidden;
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-md);
+    animation: vt-aparecer 280ms var(--vt-ease-out) both;
+}
+
+.subida img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    background: var(--vt-fondo);
+}
+
+.subida figcaption {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px 10px;
+    font-size: 12px;
+    line-height: 1.4;
+}
+
+.subida figcaption strong {
+    font-variant-numeric: tabular-nums;
+}
+
+.subida figcaption em {
+    position: absolute;
+    top: -26px;
+    left: 8px;
+    padding: 2px 8px;
+    color: var(--vt-petroleo);
+    background: var(--vt-turquesa);
+    border-radius: 999px;
+    font-size: 11px;
+    font-style: normal;
+    font-weight: 700;
+}
+
+.subida-ok { border-color: var(--vt-turquesa-100); }
+.subida-ok figcaption span { color: var(--vt-turquesa-700); }
+
+.subida-alerta { border-color: #F2DDB5; }
+.subida-alerta figcaption span { color: var(--vt-alerta); }
+
+.subida-error { border-color: #F1CDD1; }
+.subida-error figcaption span { color: var(--vt-peligro); }
+
+/* =========================================================
+   VENTANAS DE CONFIRMACIÓN (reemplazan a confirm y prompt)
+========================================================= */
+
+.dialogo {
+    position: fixed;
+    inset: 0;
+    width: min(420px, calc(100vw - 32px));
+    max-width: none;
+    height: fit-content;
+    margin: auto;
+    padding: 0;
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border: 0;
+    border-radius: var(--vt-r-lg);
+    box-shadow: var(--vt-sombra-alta);
+    font-family: "DM Sans", system-ui, sans-serif;
+    overflow: visible;
+}
+
+.dialogo::backdrop {
+    background: rgba(10, 43, 44, 0.42);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+}
+
+.dialogo[open] {
+    animation: dialogo-entra 220ms var(--vt-ease-out);
+}
+
+.dialogo[open]::backdrop {
+    animation: dialogo-fondo 220ms ease;
+}
+
+.dialogo.cerrando {
+    animation: dialogo-sale 150ms ease-in forwards;
+}
+
+.dialogo.cerrando::backdrop {
+    animation: dialogo-fondo 150ms ease reverse forwards;
+}
+
+@keyframes dialogo-entra {
+    from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.97);
+    }
+}
+
+@keyframes dialogo-sale {
+    to {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+}
+
+@keyframes dialogo-fondo {
+    from {
+        opacity: 0;
+    }
+}
+
+.dialogo-caja {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 26px 26px 22px;
+}
+
+.dialogo-icono {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-bottom: 10px;
+    color: var(--vt-peligro);
+    background: #FBEAEC;
+    border-radius: 12px;
+}
+
+.dialogo[data-tipo="nuevo"] .dialogo-icono {
+    color: var(--vt-turquesa-700);
+    background: var(--vt-turquesa-100);
+}
+
+.dialogo-icono svg {
+    width: 22px;
+    height: 22px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.dialogo-titulo {
+    margin: 0;
+    color: var(--vt-petroleo);
+    font-family: var(--vt-display);
+    font-size: 19px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-wrap: balance;
+}
+
+.dialogo-mensaje {
+    margin: 0;
+    color: var(--vt-tinta-2);
+    font-size: 14px;
+    line-height: 1.55;
+    text-wrap: pretty;
+    overflow-wrap: anywhere;
+}
+
+.dialogo-campo {
+    display: grid;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.dialogo-etiqueta {
+    color: var(--vt-tinta);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.dialogo-campo input {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 14px;
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea-fuerte);
+    border-radius: var(--vt-r-md);
+    font: inherit;
+    font-size: 15px;
+    transition: border-color var(--vt-dur-ui) ease, box-shadow var(--vt-dur-ui) ease;
+}
+
+.dialogo-campo input:focus {
+    outline: none;
+    border-color: var(--vt-turquesa);
+    box-shadow: var(--vt-foco);
+}
+
+.dialogo-acciones {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.dialogo-acciones button {
+    min-height: 42px;
+    padding: 10px 18px;
+    border: 1px solid transparent;
+    border-radius: var(--vt-r-md);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition:
+        background-color var(--vt-dur-ui) ease,
+        border-color var(--vt-dur-ui) ease,
+        box-shadow var(--vt-dur-ui) ease,
+        transform var(--vt-dur-press) var(--vt-ease-out);
+}
+
+.dialogo-acciones button:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.dialogo-acciones button:focus-visible {
+    outline: none;
+    box-shadow: var(--vt-foco);
+}
+
+.dialogo-cancelar {
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border-color: var(--vt-linea-fuerte) !important;
+}
+
+.dialogo-cancelar:hover {
+    background: var(--vt-fondo);
+}
+
+.dialogo-aceptar {
+    color: #FFFFFF;
+    background: var(--vt-peligro);
+}
+
+.dialogo-aceptar:hover:not(:disabled) {
+    background: #B23541;
+    box-shadow: 0 6px 16px -8px rgba(200, 65, 79, 0.9);
+}
+
+.dialogo-aceptar:focus-visible {
+    box-shadow: 0 0 0 3px rgba(200, 65, 79, 0.3) !important;
+}
+
+.dialogo[data-tipo="nuevo"] .dialogo-aceptar {
+    color: var(--vt-petroleo);
+    background: var(--vt-turquesa);
+}
+
+.dialogo[data-tipo="nuevo"] .dialogo-aceptar:hover:not(:disabled) {
+    background: #19CFC4;
+    box-shadow: 0 6px 16px -8px rgba(2, 189, 178, 0.9);
+}
+
+.dialogo[data-tipo="nuevo"] .dialogo-aceptar:focus-visible {
+    box-shadow: var(--vt-foco) !important;
+}
+
+.dialogo-aceptar:disabled {
+    opacity: 0.45;
     cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+    .dialogo-caja {
+        padding: 22px 20px 18px;
+    }
+
+    .dialogo-acciones {
+        flex-direction: column-reverse;
+    }
+
+    .dialogo-acciones button {
+        width: 100%;
+    }
+}
+
+.dialogo [hidden] {
+    display: none;
+}
+
+/* ---------- Ojito para ver la contraseña ---------- */
+
+.campo-clave {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.campo-clave input {
+    width: 100%;
+    padding-right: 50px !important;
+}
+
+/* Oculta el ojito propio de Edge para que no haya dos */
+.campo-clave input::-ms-reveal,
+.campo-clave input::-ms-clear {
+    display: none;
+}
+
+.campo-clave .ver-clave {
+    position: absolute;
+    top: 0;
+    right: 5px;
+    bottom: 0;
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    min-height: 0;
+    margin: auto 0;
+    padding: 0;
+    color: var(--vt-tinta-3);
+    background: transparent;
+    border: 0;
+    border-radius: var(--vt-r-sm);
+    box-shadow: none;
+    cursor: pointer;
+    transition: color 160ms ease, background-color 160ms ease, transform 160ms var(--vt-ease-out);
+}
+
+.campo-clave .ver-clave:hover {
+    color: var(--vt-petroleo);
+    background: var(--vt-fondo);
+    box-shadow: none;
+}
+
+.campo-clave .ver-clave:active {
+    transform: scale(0.92);
+}
+
+.campo-clave .ver-clave:focus-visible {
+    outline: none;
+    box-shadow: var(--vt-foco);
+}
+
+.campo-clave .ver-clave svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
 }

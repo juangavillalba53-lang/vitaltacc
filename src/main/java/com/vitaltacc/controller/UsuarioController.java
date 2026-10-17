@@ -4,6 +4,8 @@ import com.vitaltacc.model.Usuario;
 import com.vitaltacc.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.util.List;
 
@@ -62,4 +64,30 @@ public class UsuarioController {
 
         return usuarioService.guardarUsuario(usuario);
     }
+
+    // Cambiar contraseña
+    @PutMapping("/{id}/contrasena")
+    public Map<String, String> cambiarContrasena(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> datos) {
+
+        usuarioService.cambiarContrasena(
+                id,
+                datos.get("contrasenaActual"),
+                datos.get("contrasenaNueva"));
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.put("mensaje", "Contraseña actualizada correctamente");
+
+        return respuesta;
+    }
+
+    @PutMapping("/{id}/datos")
+    public Usuario actualizarDatosPersonales(
+            @PathVariable Long id,
+            @RequestBody Usuario datos) {
+
+        return usuarioService.actualizarDatosPersonales(id, datos);
+    }
+
 }

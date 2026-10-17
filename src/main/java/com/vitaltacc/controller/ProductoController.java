@@ -63,6 +63,17 @@ public class ProductoController {
             data.put("stock", productoService.calcularStock(producto));
             data.put("imagenes", producto.getImagenes());
 
+            // Categoría para los filtros de la tienda
+            data.put("categoria",
+                    producto.getCategoria() != null
+                            ? producto.getCategoria().getNombre()
+                            : null);
+            data.put("tipoCategoria",
+                    producto.getCategoria() != null
+                            && producto.getCategoria().getTipoCategoria() != null
+                                    ? producto.getCategoria().getTipoCategoria().getNombre()
+                                    : null);
+
             return data;
 
         }).toList();
@@ -137,4 +148,4 @@ public class ProductoController {
     public void eliminarProducto(@PathVariable Long id) {
         productoService.eliminarProducto(id);
     }
-}
+}

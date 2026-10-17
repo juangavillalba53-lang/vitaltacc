@@ -1,12 +1,15 @@
+
 function aplicarPermisos() {
-    const usuarioActual = JSON.parse(localStorage.getItem("usuario"));
+    const usuarioActual = JSON.parse(
+        localStorage.getItem("usuario") || "null"
+    );
+
     const esAdmin = usuarioActual?.rol === "ADMIN";
 
     const opcionesSoloAdmin = [
         "btnReportes",
         "btnPromociones",
-        "btnUsuarios",
-        "btnConfiguracion"
+        "btnUsuarios"
     ];
 
     opcionesSoloAdmin.forEach(id => {
@@ -16,7 +19,20 @@ function aplicarPermisos() {
             elemento.style.display = esAdmin ? "" : "none";
         }
     });
+
+    // Configuración visible para ADMIN y EMPLEADO.
+    const btnConfiguracion = document.getElementById("btnConfiguracion");
+
+    if (btnConfiguracion) {
+        btnConfiguracion.style.display = "";
+    }
 }
+
+
+// Solo se listan admin y empleados: 5 por página
+const USUARIOS_POR_PAGINA = 5;
+let usuariosPersonal = [];
+let paginaUsuarios = 1;
 
 function cargarUsuarios() {
 
@@ -24,39 +40,58 @@ function cargarUsuarios() {
         .then(res => res.json())
         .then(data => {
 
-            const tabla = document.getElementById("tablaUsuarios");
+            usuariosPersonal = data.filter(user => user.rol !== "CLIENTE");
 
-            if (!tabla) return;
+            renderUsuarios();
+        });
+}
 
-            tabla.innerHTML = "";
+function renderUsuarios() {
 
-            data.forEach(user => {
+    const tabla = document.getElementById("tablaUsuarios");
 
-                if (user.rol === "CLIENTE") return;
+    if (!tabla) return;
 
-                const tr = document.createElement("tr");
+    tabla.innerHTML = "";
 
-                tr.innerHTML = `
-                    <td>${user.id}</td>
-                    <td>${user.nombre} ${user.apellido}</td>
-                    <td>${user.email}</td>
+    const { items, pagina, totalPaginas } =
+        paginar(usuariosPersonal, paginaUsuarios, USUARIOS_POR_PAGINA);
 
-                    <td>
-                        <select onchange="cambiarRol(${user.id}, this.value)">
-                            <option value="EMPLEADO" ${user.rol === "EMPLEADO" ? "selected" : ""}>EMPLEADO</option>
-                            <option value="ADMIN" ${user.rol === "ADMIN" ? "selected" : ""}>ADMIN</option>
-                        </select>
-                    </td>
+    paginaUsuarios = pagina;
 
-                    <td>
-                        <button onclick="eliminarUsuario(${user.id})">
-                            Eliminar
-                        </button>
-                    </td>
-                `;
+    items.forEach(user => {
 
-                tabla.appendChild(tr);
-            });
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+            <td>${user.id}</td>
+            <td>${user.nombre} ${user.apellido}</td>
+            <td>${user.email}</td>
+
+            <td>
+                <select onchange="cambiarRol(${user.id}, this.value)">
+                    <option value="EMPLEADO" ${user.rol === "EMPLEADO" ? "selected" : ""}>EMPLEADO</option>
+                    <option value="ADMIN" ${user.rol === "ADMIN" ? "selected" : ""}>ADMIN</option>
+                </select>
+            </td>
+
+            <td>
+                <button class="btn-tabla btn-eliminar" onclick="eliminarUsuario(${user.id})">
+                    Eliminar
+                </button>
+            </td>
+        `;
+
+        tabla.appendChild(tr);
+    });
+
+    dibujarPaginacion(
+        document.getElementById("paginacionUsuarios"),
+        pagina,
+        totalPaginas,
+        nueva => {
+            paginaUsuarios = nueva;
+            renderUsuarios();
         });
 }
 
@@ -143,9 +178,19 @@ function cambiarRol(id, rol) {
         });
 }
 
-function eliminarUsuario(id) {
+async function eliminarUsuario(id) {
 
-    if (!confirm("¿Eliminar usuario?")) return;
+    const nombre = textoDeFila("td:nth-child(2)");
+
+    const seguro = await confirmar({
+        titulo: "¿Eliminar este usuario?",
+        mensaje: nombre
+            ? `${nombre} ya no va a poder entrar al panel. No se puede deshacer.`
+            : "Ya no va a poder entrar al panel. No se puede deshacer.",
+        aceptar: "Eliminar usuario"
+    });
+
+    if (!seguro) return;
 
     fetch(`http://localhost:8080/usuarios/${id}`, {
         method: "DELETE"

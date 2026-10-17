@@ -73,6 +73,12 @@
             <version>2.0.5</version>
         </dependency>
 
+        <!-- Envío de mails (comprobante de las compras online) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

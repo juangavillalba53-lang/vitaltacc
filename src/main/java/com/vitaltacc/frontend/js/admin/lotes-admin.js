@@ -269,7 +269,7 @@ function abrirModalLotes(productoId) {
                             ? `
                                     <td>
                                         <button
-                                            class="btn-eliminar-lote"
+                                            class="btn-tabla btn-eliminar btn-eliminar-lote"
                                             onclick="eliminarLote(${lote.id}, ${productoId})">
                                             Eliminar
                                         </button>
@@ -358,9 +358,19 @@ function cerrarModalLotes() {
     document.getElementById("modalLotes").style.display = "none";
 }
 
-function eliminarLote(loteId, productoId) {
+async function eliminarLote(loteId, productoId) {
 
-    if (!confirm("¿Eliminar lote?")) {
+    const numero = textoDeFila("td:first-child");
+
+    const seguro = await confirmar({
+        titulo: "¿Eliminar este lote?",
+        mensaje: numero
+            ? `El lote ${numero} se descuenta del stock. No se puede deshacer.`
+            : "Se descuenta del stock. No se puede deshacer.",
+        aceptar: "Eliminar lote"
+    });
+
+    if (!seguro) {
         return;
     }
 
