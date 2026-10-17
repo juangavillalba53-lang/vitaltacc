@@ -1,14 +1,21 @@
-let filtroActual = "TODOS";
-let textoBusqueda = "";
+// =========================================================
+// LOTES: alta, alertas de vencimiento, retiro y baja
+// =========================================================
 
-// 🔥 CREAR LOTE
+// Fecha de hoy en formato AAAA-MM-DD según la hora local (no la de Londres)
+function hoyLocal() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+// CREAR LOTE
 function crearLote() {
 
     const productoId = document.getElementById("productoLote").value;
     const cantidad = parseInt(document.getElementById("cantidadLote").value);
     const fecha = document.getElementById("vencimientoLote").value;
 
-    const hoy = new Date().toISOString().split("T")[0];
+    const hoy = hoyLocal();
 
     if (!productoId) {
         alert("Seleccionar producto");
@@ -30,31 +37,20 @@ function crearLote() {
         return;
     }
 
-    fetch("http://localhost:8080/lotes", {
+    pedir("/lotes", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
+        json: {
             cantidad: cantidad,
             fechaVencimiento: fecha,
             producto: { id: productoId }
-        })
+        }
     })
-        .then(res => {
-            if (!res.ok) throw new Error("Error backend");
-            return res.json();
-        })
         .then(data => {
-
-            console.log("Lote creado:", data);
-
-            const mensaje = "Lote creado - N°: " + data.numeroLote;
 
             const p = document.getElementById("loteCreado");
             if (p) {
-                p.innerText = mensaje;
-                p.className = "mensaje-exito"; // 🔥 ahora usa CSS
+                p.innerText = "Lote creado · N.º " + data.numeroLote;
+                p.className = "mensaje-exito";
             }
 
             document.getElementById("cantidadLote").value = "";
@@ -64,42 +60,27 @@ function crearLote() {
             cargarStock();
         })
         .catch(error => {
-            console.error(error);
-            alert("Error al crear lote");
+            mostrarAviso("No se pudo crear el lote: " + error.message, "error");
         });
 }
 
 
 function cargarLotesPorVencer() {
 
-    fetch("http://localhost:8080/lotes/por-vencer")
-        .then(res => {
-            if (!res.ok) {
-                throw new Error("Error al cargar lotes");
-            }
+    Promise.all([
+        pedir("/lotes/por-vencer"),
+        pedir("/lotes/vencidos").catch(() => [])
+    ])
+        .then(([porVencer, vencidos]) => {
 
-            return res.json();
-        })
-        .then(data => {
+            window.lotesStock = porVencer;
 
-            window.lotesStock = data;
+            const contar = nivel => porVencer.filter(l => l.alerta === nivel).length;
 
-            const urgentes = data.filter(
-                l => l.alerta === "URGENTE"
-            ).length;
-
-            const atencion = data.filter(
-                l => l.alerta === "ATENCION"
-            ).length;
-
-            document.getElementById("cantidadUrgentes").innerText =
-                urgentes;
-
-            document.getElementById("cantidadAtencion").innerText =
-                atencion;
-
-            document.getElementById("cantidadMonitoreados").innerText =
-                data.length;
+            ponerTexto(document.getElementById("cantidadUrgentes"), contar("URGENTE"));
+            ponerTexto(document.getElementById("cantidadAtencion"), contar("ATENCION"));
+            ponerTexto(document.getElementById("cantidadVencidos"), vencidos.length);
+            ponerTexto(document.getElementById("cantidadMonitoreados"), porVencer.length);
 
             if (productosStock.length > 0) {
                 renderStock(productosStock);
@@ -110,30 +91,6 @@ function cargarLotesPorVencer() {
         });
 }
 
-function setFiltro(filtro) {
-    filtroActual = filtro;
-    cargarLotesPorVencer();
-}
-
-function toggleBusqueda() {
-    const input = document.getElementById("busquedaLote");
-
-    if (input.style.display === "none") {
-        input.style.display = "block";
-        input.focus();
-    } else {
-        input.style.display = "none";
-        input.value = "";
-        textoBusqueda = "";
-        cargarLotesPorVencer();
-    }
-}
-
-function buscarLotes() {
-    textoBusqueda = document.getElementById("busquedaLote").value.toLowerCase();
-    cargarLotesPorVencer();
-}
-
 function abrirModalLotes(productoId) {
 
     const modal = document.getElementById("modalLotes");
@@ -142,15 +99,12 @@ function abrirModalLotes(productoId) {
     modal.style.display = "flex";
     lista.innerHTML = "Cargando...";
 
-    fetch(`http://localhost:8080/lotes/producto/${productoId}`)
-        .then(res => res.json())
+    pedir(`/lotes/producto/${productoId}`)
         .then(data => {
 
+            // Todos los lotes con unidades, incluidos los vencidos (para poder retirarlos)
             const lotesValidos = data
-                .filter(l =>
-                    l.cantidad > 0 &&
-                    l.diasRestantes >= 0
-                )
+                .filter(l => l.cantidad > 0)
                 .sort((a, b) => a.diasRestantes - b.diasRestantes);
 
             if (lotesValidos.length === 0) {
@@ -236,11 +190,8 @@ function abrirModalLotes(productoId) {
                                 <th>Lote</th>
                                 <th>Cantidad</th>
                                 <th>Vence</th>
-                                <th>Días</th>
-
-                                ${usuario.rol === "ADMIN"
-                        ? "<th>Acciones</th>"
-                        : ""}
+                                <th>Estado</th>
+                                <th>Acciones</th>
                             </tr>
                         </thead>
 
@@ -249,33 +200,26 @@ function abrirModalLotes(productoId) {
 
                 pagina.forEach(lote => {
 
-                    let clase = "";
+                    const clase = {
+                        VENCIDO: "lote-vencido",
+                        URGENTE: "lote-urgente",
+                        ATENCION: "lote-atencion"
+                    }[lote.alerta] || "";
 
-                    if (lote.alerta === "URGENTE") {
-                        clase = "lote-urgente";
-                    }
-                    else if (lote.alerta === "ATENCION") {
-                        clase = "lote-atencion";
-                    }
+                    // Vencido: cualquiera del equipo lo puede retirar. Si no, solo el admin lo borra.
+                    const accion = lote.alerta === "VENCIDO"
+                        ? `<button class="btn-tabla btn-retirar" onclick="retirarLote(${lote.id}, ${productoId})">Retirar</button>`
+                        : usuario.rol === "ADMIN"
+                            ? `<button class="btn-tabla btn-eliminar btn-eliminar-lote" onclick="eliminarLote(${lote.id}, ${productoId})">Eliminar</button>`
+                            : "—";
 
                     html += `
                         <tr class="${clase}">
-                            <td>${lote.numeroLote}</td>
+                            <td>${escaparHTML(lote.numeroLote)}</td>
                             <td>${lote.cantidad}</td>
-                            <td>${lote.fechaVencimiento}</td>
-                            <td>${lote.diasRestantes}</td>
-
-                            ${usuario.rol === "ADMIN"
-                            ? `
-                                    <td>
-                                        <button
-                                            class="btn-tabla btn-eliminar btn-eliminar-lote"
-                                            onclick="eliminarLote(${lote.id}, ${productoId})">
-                                            Eliminar
-                                        </button>
-                                    </td>
-                                `
-                            : ""}
+                            <td>${fechaCorta(lote.fechaVencimiento)}</td>
+                            <td>${textoDias(Number(lote.diasRestantes))}</td>
+                            <td>${accion}</td>
                         </tr>
                     `;
                 });
@@ -364,29 +308,52 @@ async function eliminarLote(loteId, productoId) {
 
     const seguro = await confirmar({
         titulo: "¿Eliminar este lote?",
-        mensaje: numero
-            ? `El lote ${numero} se descuenta del stock. No se puede deshacer.`
-            : "Se descuenta del stock. No se puede deshacer.",
+        mensaje: (numero ? `El lote ${numero} ` : "El lote ") +
+            "se descuenta del stock. Solo se puede si todavía no se vendió nada de él.",
         aceptar: "Eliminar lote"
     });
 
-    if (!seguro) {
-        return;
+    if (!seguro) return;
+
+    try {
+        await pedir(`/lotes/${loteId}`, { method: "DELETE" });
+        mostrarAviso("Lote eliminado.", "ok");
+        actualizarDespuesDeLote(productoId);
+    } catch (error) {
+        mostrarAviso(error.message, "error");
     }
+}
 
-    fetch(`http://localhost:8080/lotes/${loteId}`, {
-        method: "DELETE"
-    })
-        .then(() => {
+// Saca del stock un lote vencido (queda registrado con la fecha de retiro)
+async function retirarLote(loteId, productoId, numeroLote) {
 
-            alert("Lote eliminado");
+    const numero = numeroLote || textoDeFila("td:first-child");
 
-            abrirModalLotes(productoId);
+    const seguro = await confirmar({
+        titulo: "¿Retirar este lote vencido?",
+        mensaje: (numero ? `El lote ${numero} ` : "El lote ") +
+            "queda en 0 unidades. Hacelo cuando lo saques del local.",
+        aceptar: "Retirar lote"
+    });
 
-            cargarStock();
-            cargarLotesPorVencer();
-        })
-        .catch(() => {
-            alert("Error eliminando lote");
-        });
+    if (!seguro) return;
+
+    try {
+        await pedir(`/lotes/${loteId}/retirar`, { method: "PUT" });
+        mostrarAviso("Lote retirado del stock.", "ok");
+        actualizarDespuesDeLote(productoId);
+    } catch (error) {
+        mostrarAviso(error.message, "error");
+    }
+}
+
+// Refresca todo lo que muestra lotes
+function actualizarDespuesDeLote(productoId) {
+    if (productoId && document.getElementById("modalLotes")?.style.display === "flex") {
+        abrirModalLotes(productoId);
+    }
+    cargarStock();
+    cargarLotesPorVencer();
+    cargarProductosVenta();
+    cargarDashboard();
 }

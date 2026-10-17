@@ -35,6 +35,10 @@ public class Promocion {
     @JoinColumn(name = "producto_id")
     private Producto producto;
 
+    // Baja lógica: al "eliminar" se marca como inactivo y el historial queda intacto
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean activo = true;
+
     public Promocion(
             Long id,
             String descripcion,

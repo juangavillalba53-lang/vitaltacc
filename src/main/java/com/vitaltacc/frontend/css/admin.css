@@ -792,7 +792,7 @@ body {
 
 .resumen-alertas {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 16px;
     margin-bottom: 18px;
 }
@@ -835,6 +835,8 @@ body {
 .alerta-card.urgente { color: var(--vt-peligro); }
 .alerta-card.atencion { color: var(--vt-alerta); }
 .alerta-card.total { color: var(--vt-turquesa-700); }
+.alerta-card.vencido { color: #7A1F2B; }
+.alerta-card.vencido::before { box-shadow: 0 0 0 4px var(--vt-peligro-50); }
 
 .alerta-card.urgente::before { box-shadow: 0 0 0 4px var(--vt-peligro-50); }
 .alerta-card.atencion::before { box-shadow: 0 0 0 4px var(--vt-alerta-50); }
@@ -2783,4 +2785,179 @@ table:has(tbody:empty) {
     stroke-width: 1.8;
     stroke-linecap: round;
     stroke-linejoin: round;
+}
+
+/* =========================================================
+   ALERTAS: vencidos para retirar y stock bajo
+========================================================= */
+
+.dashboard-alertas {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.alerta-panel .card-encabezado {
+    margin-bottom: 6px;
+}
+
+.alerta-ayuda {
+    margin: 0 0 12px !important;
+    color: var(--vt-tinta-3) !important;
+    font-size: 13px !important;
+}
+
+.contador-alerta {
+    display: inline-grid;
+    place-items: center;
+    min-width: 30px;
+    height: 26px;
+    padding: 0 9px;
+    color: var(--vt-turquesa-700);
+    background: var(--vt-ok-50);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Cuando hay algo que atender, el panel se marca */
+#panelVencidos.con-alerta {
+    border-color: #F1CDD1;
+    box-shadow: inset 4px 0 0 var(--vt-peligro), var(--vt-sombra);
+}
+
+#panelVencidos.con-alerta .contador-alerta {
+    color: #FFFFFF;
+    background: var(--vt-peligro);
+}
+
+#panelStockBajo.con-alerta {
+    border-color: #F0DDB9;
+    box-shadow: inset 4px 0 0 var(--vt-alerta), var(--vt-sombra);
+}
+
+#panelStockBajo.con-alerta .contador-alerta {
+    color: #FFFFFF;
+    background: var(--vt-alerta);
+}
+
+.alerta-panel .lista-proximos li {
+    gap: 12px;
+}
+
+.proximo-dias.vencido {
+    color: #FFFFFF;
+    background: var(--vt-peligro);
+}
+
+/* Botón "Retirar" (lotes vencidos) */
+.admin-content .btn-retirar,
+.modal-lotes .btn-retirar {
+    flex-shrink: 0;
+    color: #FFFFFF;
+    background: var(--vt-peligro);
+    border-color: var(--vt-peligro);
+}
+
+.admin-content .btn-retirar:hover,
+.modal-lotes .btn-retirar:hover {
+    background: #B23541;
+    box-shadow: none;
+}
+
+.alerta-panel .btn-lotes {
+    flex-shrink: 0;
+}
+
+/* Lote vencido en la ventana "Ver lotes" */
+.tabla-lotes-modal tr.lote-vencido td {
+    color: #7A1F2B;
+    background: var(--vt-peligro-50);
+    font-weight: 600;
+}
+
+.tabla-lotes-modal tr.lote-vencido td:first-child {
+    box-shadow: inset 3px 0 0 #7A1F2B;
+}
+
+/* Configuración: número con su unidad al lado */
+.campo-con-unidad {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.campo-con-unidad input {
+    width: 110px !important;
+    margin: 0 !important;
+}
+
+.campo-con-unidad span {
+    color: var(--vt-tinta-2);
+    font-size: 14px;
+}
+
+.ayuda-campo {
+    margin: 0 0 4px !important;
+    color: var(--vt-tinta-3) !important;
+    font-size: 13px !important;
+}
+
+@media (max-width: 1200px) {
+    .resumen-alertas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    .dashboard-alertas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 650px) {
+    .resumen-alertas {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Promociones: vigente o próxima */
+.etiqueta-promo {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.etiqueta-promo.vigente {
+    color: var(--vt-turquesa-700);
+    background: var(--vt-ok-50);
+}
+
+.etiqueta-promo.proxima {
+    color: var(--vt-trigo-700);
+    background: var(--vt-trigo-50);
+}
+
+.etiqueta-vos {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 2px 8px;
+    color: var(--vt-turquesa-700);
+    background: var(--vt-ok-50);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.tabla-lotes-modal td:first-child,
+.estado-lote {
+    white-space: nowrap;
 }

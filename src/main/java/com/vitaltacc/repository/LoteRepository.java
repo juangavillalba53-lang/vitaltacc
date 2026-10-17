@@ -17,6 +17,9 @@ public interface LoteRepository extends JpaRepository<Lote, Long> {
     // 🔥 Lotes ordenados por fecha de vencimiento (FEFO)
     List<Lote> findByProductoIdOrderByFechaVencimientoAsc(Long productoId);
 
-    // 🔥 Cantidad de lotes creados en una fecha (para generar el número de lote)
+    // Cantidad de lotes creados en una fecha
     int countByFechaProduccion(LocalDate fechaProduccion);
+
+    // Lotes creados en una fecha (para generar el próximo número de lote sin repetir)
+    List<Lote> findByFechaProduccion(LocalDate fechaProduccion);
 }

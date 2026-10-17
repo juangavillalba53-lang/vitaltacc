@@ -148,6 +148,32 @@
 
                     </div>
 
+                    <div class="dashboard-alertas">
+
+                        <div class="card-admin alerta-panel" id="panelVencidos">
+                            <div class="card-encabezado">
+                                <h2>Vencidos para retirar</h2>
+                                <span class="contador-alerta" id="totalVencidos">0</span>
+                            </div>
+                            <p class="alerta-ayuda">Ya vencieron y siguen en el local. Al sacarlos, tocá Retirar.</p>
+                            <ul id="dashboardVencidos" class="lista-proximos">
+                                <li class="esqueleto-item"><span></span><span></span></li>
+                            </ul>
+                        </div>
+
+                        <div class="card-admin alerta-panel" id="panelStockBajo">
+                            <div class="card-encabezado">
+                                <h2>Stock bajo</h2>
+                                <span class="contador-alerta" id="totalStockBajo">0</span>
+                            </div>
+                            <p class="alerta-ayuda" id="ayudaStockBajo">Productos con pocas unidades.</p>
+                            <ul id="dashboardStockBajo" class="lista-proximos">
+                                <li class="esqueleto-item"><span></span><span></span></li>
+                            </ul>
+                        </div>
+
+                    </div>
+
                     <div class="dashboard-detalle">
 
                         <div class="card-admin dashboard-vencimientos">
@@ -166,7 +192,7 @@
                                 </div>
                                 <div class="venc-chip atencion">
                                     <strong id="totalAtencion"></strong>
-                                    <span>vencen en 16 a 20 días</span>
+                                    <span>vencen en 16 a 30 días</span>
                                 </div>
                                 <div class="venc-chip total">
                                     <strong id="totalMonitoreados"></strong>
@@ -328,17 +354,22 @@
 
                         <div class="alerta-card urgente">
                             <h3 id="cantidadUrgentes">0</h3>
-                            <p>Lotes urgentes</p>
+                            <p>Urgentes · 15 días o menos</p>
                         </div>
 
                         <div class="alerta-card atencion">
                             <h3 id="cantidadAtencion">0</h3>
-                            <p>Lotes en atención</p>
+                            <p>Atención · 16 a 30 días</p>
+                        </div>
+
+                        <div class="alerta-card vencido">
+                            <h3 id="cantidadVencidos">0</h3>
+                            <p>Vencidos para retirar</p>
                         </div>
 
                         <div class="alerta-card total">
                             <h3 id="cantidadMonitoreados">0</h3>
-                            <p>Lotes monitoreados</p>
+                            <p>Vencen en los próximos 2 meses</p>
                         </div>
 
                     </div>
@@ -489,7 +520,7 @@
 
                             <div class="acciones-venta">
 
-                                <button class="btn-cancelar">
+                                <button type="button" class="btn-cancelar" onclick="cancelarVenta()">
                                     Cancelar
                                 </button>
 
@@ -986,6 +1017,17 @@
                                 <label for="configMaps">Google Maps (URL)</label>
                                 <input type="url" id="configMaps" maxlength="1000"
                                     placeholder="https://maps.google.com/...">
+                            </div>
+
+                            <div class="card-admin full">
+                                <h3>Avisos del panel</h3>
+
+                                <label for="configStockBajo">Avisar stock bajo cuando queden</label>
+                                <div class="campo-con-unidad">
+                                    <input type="number" id="configStockBajo" min="0" max="999" step="1" inputmode="numeric" placeholder="5">
+                                    <span>unidades o menos</span>
+                                </div>
+                                <p class="ayuda-campo">Esos productos aparecen en el Dashboard, en "Stock bajo".</p>
                             </div>
 
                             <button type="submit">Guardar configuración</button>

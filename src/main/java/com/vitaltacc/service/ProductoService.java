@@ -12,6 +12,7 @@ import com.vitaltacc.repository.ProductoRepository;
 import com.vitaltacc.repository.PromocionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -22,6 +23,10 @@ import java.util.List;
 
 @Service
 public class ProductoService {
+
+    // Carpeta donde se guardan las fotos de los productos
+    public static final String CARPETA_UPLOADS =
+            System.getProperty("user.dir") + "/vitaltacc/uploads/";
 
     @Autowired
     private ProductoRepository productoRepository;
@@ -38,127 +43,132 @@ public class ProductoService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
-    // 🔥 Guardar producto
+    // =========================================================
+    // ALTA Y EDICIÓN
+    // =========================================================
+
     public Producto guardarProducto(Producto producto) {
         return productoRepository.save(producto);
     }
 
-    // 🔥 Guardar producto con imágenes y categoría
+    @Transactional
     public Producto guardarProductoConImagenes(
-
             Producto producto,
-
             Long categoriaId,
+            List<MultipartFile> imagenes) {
 
-            List<MultipartFile> imagenes
+        validarDatos(producto.getNombre(), producto.getPrecio());
 
-    ) {
-
-        Categoria categoria = categoriaRepository.findById(categoriaId)
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
-
-        producto.setCategoria(categoria);
+        producto.setCategoria(buscarCategoria(categoriaId));
+        producto.setActivo(true);
 
         Producto productoGuardado = productoRepository.save(producto);
 
-        List<ProductoImagen> listaImagenes = new ArrayList<>();
-
-        if (imagenes != null) {
-
-            for (MultipartFile imagen : imagenes) {
-
-                try {
-
-                    String nombreArchivo = System.currentTimeMillis()
-                            + "_"
-                            + imagen.getOriginalFilename();
-
-                    String carpetaUploads = System.getProperty("user.dir") + "/vitaltacc/uploads/";
-
-                    File carpeta = new File(carpetaUploads);
-
-                    if (!carpeta.exists()) {
-                        carpeta.mkdirs();
-                    }
-
-                    String ruta = carpetaUploads + nombreArchivo;
-
-                    File destino = new File(ruta);
-
-                    imagen.transferTo(destino);
-
-                    ProductoImagen productoImagen = new ProductoImagen();
-
-                    productoImagen.setUrl("/uploads/" + nombreArchivo);
-
-                    productoImagen.setProducto(productoGuardado);
-
-                    listaImagenes.add(productoImagen);
-
-                } catch (Exception e) {
-
-                    throw new RuntimeException(
-                            "Error al guardar imagen: " + e.getMessage());
-                }
-            }
-
-            productoImagenRepository.saveAll(listaImagenes);
-
-            productoGuardado.setImagenes(listaImagenes);
+        if (imagenes != null && !imagenes.isEmpty()) {
+            productoGuardado.setImagenes(guardarImagenes(productoGuardado, imagenes));
         }
 
         return productoGuardado;
     }
 
-    // 🔥 GUARDAR IMÁGENES
-    private void guardarImagenes(
-
-            Producto producto,
-
+    @Transactional
+    public Producto editarProducto(
+            Long id,
+            String nombre,
+            Double precio,
+            String descripcion,
+            Long categoriaId,
             List<MultipartFile> imagenes) {
+
+        validarDatos(nombre, precio);
+
+        Producto producto = obtenerPorId(id);
+
+        producto.setNombre(nombre.trim());
+        producto.setPrecio(precio);
+        producto.setDescripcion(descripcion);
+        producto.setCategoria(buscarCategoria(categoriaId));
+
+        if (imagenes != null && !imagenes.isEmpty()) {
+            eliminarImagenesProducto(producto);
+            guardarImagenes(producto, imagenes);
+        }
+
+        return productoRepository.save(producto);
+    }
+
+    private void validarDatos(String nombre, Double precio) {
+        if (nombre == null || nombre.isBlank()) {
+            throw new RuntimeException("El nombre del producto es obligatorio");
+        }
+        if (precio == null || precio <= 0) {
+            throw new RuntimeException("El precio tiene que ser mayor a 0");
+        }
+    }
+
+    private Categoria buscarCategoria(Long categoriaId) {
+
+        if (categoriaId == null) {
+            throw new RuntimeException("Elegí una categoría");
+        }
+
+        Categoria categoria = categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+
+        if (Boolean.FALSE.equals(categoria.getActivo())) {
+            throw new RuntimeException("Esa categoría fue dada de baja");
+        }
+
+        return categoria;
+    }
+
+    // =========================================================
+    // IMÁGENES
+    // =========================================================
+
+    // Guarda los archivos en la carpeta de uploads y registra cada imagen
+    private List<ProductoImagen> guardarImagenes(
+            Producto producto,
+            List<MultipartFile> imagenes) {
+
+        File carpeta = new File(CARPETA_UPLOADS);
+
+        if (!carpeta.exists()) {
+            carpeta.mkdirs();
+        }
 
         List<ProductoImagen> listaImagenes = new ArrayList<>();
 
         for (MultipartFile imagen : imagenes) {
 
+            String nombreArchivo = System.currentTimeMillis()
+                    + "_"
+                    + nombreSeguro(imagen.getOriginalFilename());
+
             try {
-
-                String nombreArchivo = System.currentTimeMillis()
-                        + "_"
-                        + imagen.getOriginalFilename();
-
-                String carpetaUploads = System.getProperty("user.dir") + "/vitaltacc/uploads/";
-
-                File carpeta = new File(carpetaUploads);
-
-                if (!carpeta.exists()) {
-                    carpeta.mkdirs();
-                }
-
-                String ruta = carpetaUploads + nombreArchivo;
-
-                File destino = new File(ruta);
-
-                imagen.transferTo(destino);
-
-                ProductoImagen productoImagen = new ProductoImagen();
-
-                productoImagen.setUrl("/uploads/" + nombreArchivo);
-
-                productoImagen.setProducto(producto);
-
-                listaImagenes.add(productoImagen);
-
-            } catch (IOException e) {
-
-                throw new RuntimeException("Error guardando imagen");
+                imagen.transferTo(new File(CARPETA_UPLOADS + nombreArchivo));
+            } catch (IOException | IllegalStateException e) {
+                throw new RuntimeException("No se pudo guardar la imagen: " + e.getMessage());
             }
+
+            ProductoImagen productoImagen = new ProductoImagen();
+            productoImagen.setUrl("/uploads/" + nombreArchivo);
+            productoImagen.setProducto(producto);
+
+            listaImagenes.add(productoImagen);
         }
 
-        productoImagenRepository.saveAll(listaImagenes);
+        return productoImagenRepository.saveAll(listaImagenes);
     }
 
-    // 🔥 Eliminar imágenes anteriores del producto
+    // Deja solo letras, números, punto, guion y guion bajo en el nombre del archivo
+    private String nombreSeguro(String original) {
+        String nombre = original == null ? "imagen" : new File(original).getName();
+        nombre = nombre.replaceAll("[^A-Za-z0-9._-]", "_");
+        return nombre.isBlank() ? "imagen" : nombre;
+    }
+
+    // Borra las imágenes anteriores (archivo y registro)
     private void eliminarImagenesProducto(Producto producto) {
 
         List<ProductoImagen> imagenes = productoImagenRepository.findByProductoId(producto.getId());
@@ -168,13 +178,7 @@ public class ProductoService {
         }
 
         for (ProductoImagen imagen : imagenes) {
-
-            String rutaArchivo = System.getProperty("user.dir")
-                    + "/vitaltacc"
-                    + imagen.getUrl();
-
-            File archivo = new File(rutaArchivo);
-
+            File archivo = new File(System.getProperty("user.dir") + "/vitaltacc" + imagen.getUrl());
             if (archivo.exists()) {
                 archivo.delete();
             }
@@ -183,36 +187,91 @@ public class ProductoService {
         productoImagenRepository.deleteAll(imagenes);
     }
 
-    // 🔥 Listar productos
+    // =========================================================
+    // CONSULTAS
+    // =========================================================
+
+    // Productos activos (los dados de baja no se muestran en ningún lado)
     public List<Producto> obtenerProductos() {
-        return productoRepository.findAll();
+        return productoRepository.findAll()
+                .stream()
+                .filter(p -> !Boolean.FALSE.equals(p.getActivo()))
+                .toList();
     }
 
-    // 🔥 Buscar por ID
     public Producto obtenerPorId(Long id) {
-
         return productoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
     }
 
-    // 🔥 Eliminar producto
+    // =========================================================
+    // BAJA
+    // =========================================================
+
+    // Baja lógica: el producto deja de verse, pero sus ventas y lotes quedan guardados.
+    // Sus promociones también se dan de baja.
+    @Transactional
     public void eliminarProducto(Long id) {
-        productoRepository.deleteById(id);
+
+        Producto producto = obtenerPorId(id);
+
+        producto.setActivo(false);
+        productoRepository.save(producto);
+
+        promocionRepository.findAll().stream()
+                .filter(promo -> promo.getProducto() != null
+                        && id.equals(promo.getProducto().getId())
+                        && !Boolean.FALSE.equals(promo.getActivo()))
+                .forEach(promo -> {
+                    promo.setActivo(false);
+                    promocionRepository.save(promo);
+                });
     }
 
-    // 🔥 Actualizar precio
+    // =========================================================
+    // PRECIO Y STOCK
+    // =========================================================
+
     public Producto actualizarPrecio(Long id, Double precio) {
 
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+        if (precio == null || precio <= 0) {
+            throw new RuntimeException("El precio tiene que ser mayor a 0");
+        }
 
+        Producto producto = obtenerPorId(id);
         producto.setPrecio(precio);
 
         return productoRepository.save(producto);
     }
 
-    // Calcular precio con descuento
+    public Producto actualizarDescripcion(Long id, String descripcion) {
+
+        Producto producto = obtenerPorId(id);
+        producto.setDescripcion(descripcion);
+
+        return productoRepository.save(producto);
+    }
+
+    // Promociones vigentes hoy (sin las dadas de baja)
+    public List<Promocion> promocionesVigentesHoy() {
+
+        LocalDate hoy = LocalDate.now();
+
+        return promocionRepository
+                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(hoy, hoy)
+                .stream()
+                .filter(promo -> !Boolean.FALSE.equals(promo.getActivo()))
+                .toList();
+    }
+
+    // Precio con la promoción que corresponda (null si no hay promoción)
     public Double calcularPrecioConDescuento(Producto producto) {
+        return calcularPrecioConDescuento(producto, promocionesVigentesHoy());
+    }
+
+    // Igual que el anterior, pero con las promociones ya cargadas
+    // (para no consultar la base una vez por cada producto del listado)
+    public Double calcularPrecioConDescuento(Producto producto, List<Promocion> promociones) {
 
         Double precioOriginal = producto.getPrecio();
 
@@ -220,32 +279,17 @@ public class ProductoService {
             return null;
         }
 
-        LocalDate hoy = LocalDate.now();
-
-        List<Promocion> promociones = promocionRepository
-                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(
-                        hoy, hoy);
-
-        // Buscar primero una promoción específica para el producto.
-        Promocion promocionProducto = promociones.stream()
+        // Primero una promoción específica del producto; si no hay, una global
+        Promocion promocionAplicable = promociones.stream()
                 .filter(promo -> promo.getProducto() != null
                         && promo.getProducto().getId().equals(producto.getId()))
                 .findFirst()
-                .orElse(null);
+                .orElseGet(() -> promociones.stream()
+                        .filter(promo -> promo.getProducto() == null)
+                        .findFirst()
+                        .orElse(null));
 
-        // Si no existe una específica, buscar una promoción global.
-        Promocion promocionAplicable = promocionProducto;
-
-        if (promocionAplicable == null) {
-            promocionAplicable = promociones.stream()
-                    .filter(promo -> promo.getProducto() == null)
-                    .findFirst()
-                    .orElse(null);
-        }
-
-        // Si no hay promoción aplicable, no hay precio promocional.
-        if (promocionAplicable == null
-                || promocionAplicable.getDescuento() == null) {
+        if (promocionAplicable == null || promocionAplicable.getDescuento() == null) {
             return null;
         }
 
@@ -254,7 +298,7 @@ public class ProductoService {
         return precioOriginal - (precioOriginal * descuento / 100);
     }
 
-    // 🔥 Calcular stock
+    // Stock = unidades de los lotes que no están vencidos
     public Integer calcularStock(Producto producto) {
 
         LocalDate hoy = LocalDate.now();
@@ -264,58 +308,5 @@ public class ProductoService {
                 .filter(lote -> !lote.getFechaVencimiento().isBefore(hoy))
                 .mapToInt(Lote::getCantidad)
                 .sum();
-    }
-
-    // 🔥 Actualizar descripción
-    public Producto actualizarDescripcion(
-
-            Long id,
-
-            String descripcion) {
-
-        Producto producto = productoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        producto.setDescripcion(descripcion);
-
-        return productoRepository.save(producto);
-    }
-
-    // 🔥 Editar producto
-    public Producto editarProducto(
-
-            Long id,
-
-            String nombre,
-
-            Double precio,
-
-            String descripcion,
-
-            Long categoriaId,
-
-            List<MultipartFile> imagenes) {
-
-        Producto producto = productoRepository
-                .findById(id)
-                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-
-        Categoria categoria = categoriaRepository
-                .findById(categoriaId)
-                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
-
-        producto.setNombre(nombre);
-        producto.setPrecio(precio);
-        producto.setDescripcion(descripcion);
-        producto.setCategoria(categoria);
-
-        if (imagenes != null && !imagenes.isEmpty()) {
-
-            eliminarImagenesProducto(producto);
-
-            guardarImagenes(producto, imagenes);
-        }
-
-        return productoRepository.save(producto);
     }
 }

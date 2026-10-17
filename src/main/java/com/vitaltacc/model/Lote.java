@@ -39,6 +39,10 @@ public class Lote {
     @Column(name = "cantidad_inicial", nullable = false)
     private Integer cantidadInicial;
 
+    // Día en que se retiró del local por estar vencido (null = no se retiró)
+    @Column(name = "fecha_retiro")
+    private LocalDate fechaRetiro;
+
     public Lote(
             Long id,
             Integer cantidad,

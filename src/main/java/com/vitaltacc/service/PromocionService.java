@@ -1,11 +1,14 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.Producto;
 import com.vitaltacc.model.Promocion;
+import com.vitaltacc.repository.ProductoRepository;
 import com.vitaltacc.repository.PromocionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -14,29 +17,95 @@ public class PromocionService {
     @Autowired
     private PromocionRepository promocionRepository;
 
-    // 🔥 Crear promoción
+    @Autowired
+    private ProductoRepository productoRepository;
+
+    private static boolean activa(Promocion promo) {
+        return !Boolean.FALSE.equals(promo.getActivo());
+    }
+
+    // Crear promoción (con validaciones)
     public Promocion guardarPromocion(Promocion promocion) {
+
+        if (promocion.getDescripcion() == null || promocion.getDescripcion().isBlank()) {
+            throw new RuntimeException("Escribí una descripción para la promoción");
+        }
+
+        if (promocion.getDescuento() == null
+                || promocion.getDescuento() <= 0
+                || promocion.getDescuento() > 100) {
+            throw new RuntimeException("El descuento tiene que ser entre 1 y 100 %");
+        }
+
+        if (promocion.getFechaInicio() == null || promocion.getFechaFin() == null) {
+            throw new RuntimeException("Elegí la fecha de inicio y la de fin");
+        }
+
+        if (promocion.getFechaFin().isBefore(promocion.getFechaInicio())) {
+            throw new RuntimeException("La fecha de fin no puede ser anterior a la de inicio");
+        }
+
+        if (promocion.getFechaFin().isBefore(LocalDate.now())) {
+            throw new RuntimeException("La promoción ya terminaría antes de hoy");
+        }
+
+        if (promocion.getProducto() != null && promocion.getProducto().getId() != null) {
+
+            Producto producto = productoRepository.findById(promocion.getProducto().getId())
+                    .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+            if (Boolean.FALSE.equals(producto.getActivo())) {
+                throw new RuntimeException("Ese producto fue dado de baja");
+            }
+
+            promocion.setProducto(producto);
+        } else {
+            promocion.setProducto(null);
+        }
+
+        promocion.setDescripcion(promocion.getDescripcion().trim());
+        promocion.setActivo(true);
+
         return promocionRepository.save(promocion);
     }
 
-    // 🔥 Listar todas
+    // Todas las que no se dieron de baja
     public List<Promocion> obtenerPromociones() {
-        return promocionRepository.findAll();
+        return promocionRepository.findAll().stream().filter(PromocionService::activa).toList();
     }
 
-    // 🔥 Promociones activas
+    // Vigentes hoy
     public List<Promocion> obtenerPromocionesActivas() {
 
         LocalDate hoy = LocalDate.now();
 
         return promocionRepository
-                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(
-                        hoy,
-                        hoy);
+                .findByFechaInicioLessThanEqualAndFechaFinGreaterThanEqual(hoy, hoy)
+                .stream()
+                .filter(PromocionService::activa)
+                .toList();
     }
 
-    // 🔥 Eliminar promoción
+    // Vigentes y las que todavía no empezaron (las terminadas no se muestran)
+    public List<Promocion> obtenerVigentesYProximas() {
+
+        LocalDate hoy = LocalDate.now();
+
+        return promocionRepository.findAll()
+                .stream()
+                .filter(PromocionService::activa)
+                .filter(promo -> !promo.getFechaFin().isBefore(hoy))
+                .sorted(Comparator.comparing(Promocion::getFechaInicio))
+                .toList();
+    }
+
+    // Baja lógica: deja de aplicarse, pero queda guardada
     public void eliminarPromocion(Long id) {
-        promocionRepository.deleteById(id);
+
+        Promocion promocion = promocionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Promoción no encontrada"));
+
+        promocion.setActivo(false);
+        promocionRepository.save(promocion);
     }
 }

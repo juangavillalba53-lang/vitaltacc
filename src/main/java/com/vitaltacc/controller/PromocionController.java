@@ -27,6 +27,12 @@ public class PromocionController {
         return promocionService.obtenerPromociones();
     }
 
+    // Vigentes y próximas (para el panel)
+    @GetMapping("/vigentes")
+    public List<Promocion> promocionesVigentesYProximas() {
+        return promocionService.obtenerVigentesYProximas();
+    }
+
     // Promociones activas hoy
     @GetMapping("/activas")
     public List<Promocion> promocionesActivas() {

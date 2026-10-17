@@ -143,6 +143,10 @@ public class VentaService {
             Producto producto = productoRepository.findById(item.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
+            if (Boolean.FALSE.equals(producto.getActivo())) {
+                throw new RuntimeException(producto.getNombre() + " ya no está a la venta.");
+            }
+
             List<Lote> lotes = loteRepository
                     .findByProductoIdOrderByFechaVencimientoAsc(producto.getId())
                     .stream()

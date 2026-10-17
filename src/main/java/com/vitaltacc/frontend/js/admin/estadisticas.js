@@ -80,7 +80,7 @@ function filtrar() {
 
             data.slice(0, TOP_REPORTES).forEach(item => {
                 const li = document.createElement("li");
-                li.innerText = `${item.producto} - ${item.cantidadVendida} vendidos`;
+                li.innerText = `${item.producto} · ${item.cantidadVendida} vendidos`;
                 lista.appendChild(li);
             });
         })
@@ -103,7 +103,7 @@ function filtrar() {
 
             data.slice(0, TOP_REPORTES).forEach((item, index) => {
                 const li = document.createElement("li");
-                li.innerText = `${index + 1}. ${item.cliente} - $${item.totalGastado}`;
+                li.innerText = `${index + 1}. ${item.cliente} · ${formatoPesos(item.totalGastado)}`;
                 lista.appendChild(li);
             });
         })
@@ -153,7 +153,7 @@ function filtrarDia() {
                 const li = document.createElement("li");
 
                 li.innerText =
-                    `${item.producto} - ${item.cantidadVendida} vendidos`;
+                    `${item.producto} · ${item.cantidadVendida} vendidos`;
 
                 lista.appendChild(li);
             });
@@ -176,7 +176,7 @@ function filtrarDia() {
                 const li = document.createElement("li");
 
                 li.innerText =
-                    `${index + 1}. ${item.cliente} - $${item.totalGastado}`;
+                    `${index + 1}. ${item.cliente} · ${formatoPesos(item.totalGastado)}`;
 
                 lista.appendChild(li);
             });
@@ -253,7 +253,7 @@ function filtrarAnio() {
             data.slice(0, TOP_REPORTES).forEach(item => {
                 const li = document.createElement("li");
                 li.innerText =
-                    `${item.producto} - ${item.cantidadVendida} vendidos`;
+                    `${item.producto} · ${item.cantidadVendida} vendidos`;
                 lista.appendChild(li);
             });
         })
@@ -278,7 +278,7 @@ function filtrarAnio() {
             data.slice(0, TOP_REPORTES).forEach((item, index) => {
                 const li = document.createElement("li");
                 li.innerText =
-                    `${index + 1}. ${item.cliente} - $${item.totalGastado}`;
+                    `${index + 1}. ${item.cliente} · ${formatoPesos(item.totalGastado)}`;
                 lista.appendChild(li);
             });
         })

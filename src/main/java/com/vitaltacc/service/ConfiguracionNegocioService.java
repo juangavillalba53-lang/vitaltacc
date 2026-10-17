@@ -65,6 +65,10 @@ public class ConfiguracionNegocioService {
         configuracion.setWhatsapp(datos.getWhatsapp());
         configuracion.setUbicacionMaps(datos.getUbicacionMaps());
 
+        if (datos.getStockBajo() != null && datos.getStockBajo() >= 0) {
+            configuracion.setStockBajo(datos.getStockBajo());
+        }
+
         return configuracionRepository.save(configuracion);
     }
 }

@@ -16,7 +16,8 @@ const camposConfiguracion = {
     horarioDomingo: "configHorarioDomingo",
     instagram: "configInstagram",
     whatsapp: "configWhatsapp",
-    ubicacionMaps: "configMaps"
+    ubicacionMaps: "configMaps",
+    stockBajo: "configStockBajo"
 };
 
 function obtenerUsuarioActual() {
@@ -138,6 +139,13 @@ async function guardarConfiguracionNegocio(evento) {
     if (!datos.nombreNegocio) {
         mostrarEstadoConfiguracion("El nombre del negocio es obligatorio.", true);
         return;
+    }
+
+    // El aviso de stock bajo es un número (si se deja vacío, queda el que estaba)
+    if (datos.stockBajo === "") {
+        delete datos.stockBajo;
+    } else {
+        datos.stockBajo = Math.max(0, parseInt(datos.stockBajo, 10) || 0);
     }
 
     const boton = formulario.querySelector('button[type="submit"]');

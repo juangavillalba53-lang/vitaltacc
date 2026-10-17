@@ -34,3 +34,6 @@ build/
 
 ### Datos del correo (no subir) ###
 src/main/resources/mail.properties
+
+### Fotos de productos subidas desde el panel (no subir) ###
+vitaltacc/uploads/

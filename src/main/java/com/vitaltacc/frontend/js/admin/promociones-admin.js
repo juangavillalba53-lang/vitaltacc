@@ -22,7 +22,13 @@ function crearPromocion() {
     }
 
     if (descuento <= 0 || descuento > 100) {
-        alert("Descuento inválido");
+        alert("El descuento tiene que ser entre 1 y 100 %.");
+        return;
+    }
+
+    // Las fechas vienen como AAAA-MM-DD, así que se pueden comparar como texto
+    if (fin < inicio) {
+        alert("La fecha de fin no puede ser anterior a la de inicio.");
         return;
     }
 
@@ -40,20 +46,10 @@ function crearPromocion() {
         };
     }
 
-    fetch("http://localhost:8080/promociones", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(body)
-    })
-        .then(res => {
-            if (!res.ok) throw new Error();
-            return res.json();
-        })
+    pedir("/promociones", { method: "POST", json: body })
         .then(() => {
 
-            alert("Promoción creada");
+            mostrarAviso("Promoción creada.", "ok");
 
             document.getElementById("descripcionPromo").value = "";
             document.getElementById("descuentoPromo").value = "";
@@ -62,8 +58,8 @@ function crearPromocion() {
 
             cargarPromociones();
         })
-        .catch(() => {
-            alert("Error creando promoción");
+        .catch(error => {
+            mostrarAviso("No se pudo crear la promoción: " + error.message, "error");
         });
 }
 
@@ -73,14 +69,9 @@ const PROMOCIONES_POR_PAGINA = 10;
 let promocionesVigentes = [];
 let paginaPromociones = 1;
 
+// Se ven las vigentes y las que todavía no empezaron (las terminadas no)
 function cargarPromociones() {
-    fetch("http://localhost:8080/promociones/activas")
-        .then(res => {
-            if (!res.ok) {
-                throw new Error("No se pudieron cargar las promociones");
-            }
-            return res.json();
-        })
+    pedir("/promociones/vigentes")
         .then(data => {
             promocionesVigentes = Array.isArray(data) ? data : [];
             renderPromociones();
@@ -105,15 +96,19 @@ function renderPromociones() {
     items.forEach(promo => {
         const tr = document.createElement("tr");
 
+        const empezo = diasHasta(promo.fechaInicio) <= 0;
+        const estado = empezo
+            ? `<span class="etiqueta-promo vigente">Vigente</span>`
+            : `<span class="etiqueta-promo proxima">Empieza el ${fechaCorta(promo.fechaInicio)}</span>`;
+
         tr.innerHTML = `
-            <td>
-                ${promo.producto
-                ? promo.producto.nombre
-                : "Toda la tienda"}
-            </td>
-            <td>${promo.descripcion}</td>
+            <td>${promo.producto ? escaparHTML(promo.producto.nombre) : "Toda la tienda"}</td>
+            <td>${escaparHTML(promo.descripcion)}</td>
             <td>${promo.descuento}%</td>
-            <td>${promo.fechaInicio} → ${promo.fechaFin}</td>
+            <td>
+                ${fechaCorta(promo.fechaInicio)} → ${fechaCorta(promo.fechaFin)}
+                ${estado}
+            </td>
             <td>
                 <button class="btn-tabla btn-eliminar" onclick="eliminarPromocion(${promo.id})">
                     Eliminar
@@ -141,24 +136,20 @@ async function eliminarPromocion(id) {
 
     const seguro = await confirmar({
         titulo: "¿Eliminar esta promoción?",
-        mensaje: nombre
-            ? `«${nombre}» deja de aplicarse en la tienda. No se puede deshacer.`
-            : "Deja de aplicarse en la tienda. No se puede deshacer.",
+        mensaje: (nombre ? `«${nombre}» ` : "La promoción ") +
+            "deja de aplicarse en la tienda y en el local.",
         aceptar: "Eliminar promoción"
     });
 
     if (!seguro) return;
 
-    fetch(`http://localhost:8080/promociones/${id}`, {
-        method: "DELETE"
-    })
-        .then(() => {
-
-            alert("Promoción eliminada");
-
-            cargarPromociones();
-        })
-        .catch(() => {
-            alert("Error eliminando promoción");
-        });
+    try {
+        await pedir(`/promociones/${id}`, { method: "DELETE" });
+        mostrarAviso("Promoción eliminada.", "ok");
+        cargarPromociones();
+        cargarProductosVenta();
+        cargarDashboard();
+    } catch (error) {
+        mostrarAviso("No se pudo eliminar: " + error.message, "error");
+    }
 }

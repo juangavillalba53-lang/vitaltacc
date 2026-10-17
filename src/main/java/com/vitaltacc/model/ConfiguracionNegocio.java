@@ -57,11 +57,23 @@ public class ConfiguracionNegocio {
     @Column(length = 1000)
     private String ubicacionMaps;
 
+    // Avisar en el Dashboard cuando a un producto le quedan estas unidades o menos
+    @Column(name = "stock_bajo")
+    private Integer stockBajo = 5;
+
     public ConfiguracionNegocio() {
     }
 
     public Long getId() {
         return id;
+    }
+
+    public Integer getStockBajo() {
+        return stockBajo == null ? 5 : stockBajo;
+    }
+
+    public void setStockBajo(Integer stockBajo) {
+        this.stockBajo = stockBajo;
     }
 
     public void setId(Long id) {

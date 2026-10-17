@@ -1,7 +1,6 @@
 const usuario = JSON.parse(localStorage.getItem("usuario"));
 
 
-console.log("VERSION NUEVA");
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -16,8 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "index.html";
         return;
     }
-
-    console.log("Usuario logueado:", usuario);
 
     aplicarPermisos();
 
@@ -176,156 +173,180 @@ function mostrarSeccion(id) {
 
 function cargarDashboard() {
 
-    // Productos
-    fetch("http://localhost:8080/productos")
-        .then(res => res.json())
-        .then(data => {
+    const seguro = promesa => promesa.catch(() => null);
 
-            ponerTexto(document.getElementById("dashboardProductos"), data.length);
+    Promise.all([
+        seguro(pedir("/productos")),
+        seguro(pedir("/usuarios")),
+        seguro(pedir("/promociones/activas")),
+        seguro(pedir("/lotes")),
+        seguro(pedir("/lotes/por-vencer")),
+        seguro(pedir("/lotes/vencidos")),
+        seguro(pedir("/configuracion"))
+    ]).then(([productos, usuarios, promociones, lotes, porVencer, vencidos, config]) => {
 
-        });
+        if (productos) {
+            ponerTexto(document.getElementById("dashboardProductos"), productos.length);
+        }
 
-    // Usuarios
-    fetch("http://localhost:8080/usuarios")
-        .then(res => res.json())
-        .then(data => {
+        if (usuarios) {
+            const equipo = usuarios.filter(u => u.rol === "ADMIN" || u.rol === "EMPLEADO");
+            ponerTexto(document.getElementById("dashboardUsuarios"), equipo.length);
+        }
 
-            const usuariosInternos = data.filter(
-                u => u.rol === "ADMIN" || u.rol === "EMPLEADO"
-            );
+        if (promociones) {
+            ponerTexto(document.getElementById("dashboardPromociones"), promociones.length);
+        }
 
-            ponerTexto(document.getElementById("dashboardUsuarios"), usuariosInternos.length);
-
-        });
-
-    // Promociones
-    fetch("http://localhost:8080/promociones")
-        .then(res => res.json())
-        .then(data => {
-
-            ponerTexto(document.getElementById("dashboardPromociones"), data.length);
-
-        });
-
-    // Lotes + Alertas
-    fetch("http://localhost:8080/lotes")
-        .then(res => res.json())
-        .then(data => {
-
-            const hoy = new Date();
-
-            const lotesActivos = data.filter(lote =>
-                lote.cantidad > 0 &&
-                new Date(lote.fechaVencimiento) >= hoy
-            );
-
+        if (lotes) {
+            const lotesActivos = lotes.filter(l => l.cantidad > 0 && diasHasta(l.fechaVencimiento) >= 0);
             ponerTexto(document.getElementById("dashboardLotes"), lotesActivos.length);
+            ponerTexto(document.getElementById("totalMonitoreados"), lotesActivos.length);
+        }
 
-            let urgentes = 0;
-            let atencion = 0;
+        if (porVencer) {
+            ponerTexto(document.getElementById("totalUrgentes"), porVencer.filter(l => l.alerta === "URGENTE").length);
+            ponerTexto(document.getElementById("totalAtencion"), porVencer.filter(l => l.alerta === "ATENCION").length);
+            renderProximosVencimientos(porVencer);
+        }
 
-            lotesActivos.forEach(lote => {
+        if (vencidos) {
+            renderVencidosDashboard(vencidos);
+        }
 
-                const vencimiento = new Date(lote.fechaVencimiento);
-
-                const dias =
-                    Math.ceil(
-                        (vencimiento - hoy) /
-                        (1000 * 60 * 60 * 24)
-                    );
-
-                if (dias <= 15) {
-                    urgentes++;
-                }
-                else if (dias > 15 && dias <= 20) {
-                    atencion++;
-                }
-
-            });
-
-            const urgentesEl =
-                document.getElementById("totalUrgentes");
-
-            const atencionEl =
-                document.getElementById("totalAtencion");
-
-            const monitoreadosEl =
-                document.getElementById("totalMonitoreados");
-
-            ponerTexto(urgentesEl, urgentes);
-            ponerTexto(atencionEl, atencion);
-            ponerTexto(monitoreadosEl, lotesActivos.length);
-
-            renderProximosVencimientos(lotesActivos, hoy);
-
-        });
-
+        if (productos) {
+            renderStockBajo(productos, Number(config?.stockBajo ?? 5));
+        }
+    });
 }
 
 // ===============================
 // DASHBOARD: PRÓXIMOS VENCIMIENTOS
 // ===============================
 
-function renderProximosVencimientos(lotes, hoy) {
+function renderProximosVencimientos(lotes) {
 
     const lista = document.getElementById("dashboardProximos");
 
     if (!lista) return;
 
-    // Si no cambió nada desde la última vez, no se vuelve a dibujar
-    const firma = JSON.stringify(
-        [...lotes]
-            .sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento))
-            .slice(0, 5)
-            .map(l => [l.id, l.numeroLote, l.cantidad, l.fechaVencimiento])
-    );
+    const proximos = [...lotes]
+        .sort((a, b) => a.diasRestantes - b.diasRestantes)
+        .slice(0, 5);
 
+    // Si no cambió nada desde la última vez, no se vuelve a dibujar (así no parpadea)
+    const firma = JSON.stringify(proximos.map(l => [l.id, l.cantidad, l.diasRestantes]));
     if (lista.dataset.firma === firma) return;
     lista.dataset.firma = firma;
-
-    const proximos = [...lotes]
-        .sort((a, b) =>
-            new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento)
-        )
-        .slice(0, 5);
 
     if (proximos.length === 0) {
         lista.innerHTML = `<li class="vacio">No hay lotes con stock por vencer.</li>`;
         return;
     }
 
-    lista.innerHTML = "";
+    lista.innerHTML = proximos.map(lote => {
+        const dias = Number(lote.diasRestantes);
+        return `
+            <li>
+                <span class="proximo-nombre">
+                    <strong>${escaparHTML(lote.producto || "Lote " + lote.numeroLote)}</strong>
+                    <small>Lote ${escaparHTML(lote.numeroLote ?? "-")} · ${lote.cantidad} u.</small>
+                </span>
+                <span class="proximo-dias ${nivelVencimiento(dias)}">
+                    ${dias <= 0 ? "Vence hoy" : dias === 1 ? "1 día" : dias + " días"}
+                </span>
+            </li>`;
+    }).join("");
+}
 
-    proximos.forEach(lote => {
+// Lotes vencidos con unidades: hay que sacarlos del local
+function renderVencidosDashboard(vencidos) {
 
-        const dias = Math.ceil(
-            (new Date(lote.fechaVencimiento) - hoy) / (1000 * 60 * 60 * 24)
-        );
+    const lista = document.getElementById("dashboardVencidos");
+    const panel = document.getElementById("panelVencidos");
 
-        const nombre =
-            lote.producto?.nombre ||
-            lote.nombreProducto ||
-            lote.productoNombre ||
-            `Lote ${lote.numeroLote}`;
+    if (!lista) return;
 
-        const nivel = dias <= 15 ? "urgente" : dias <= 20 ? "atencion" : "ok";
+    ponerTexto(document.getElementById("totalVencidos"), vencidos.length);
+    panel?.classList.toggle("con-alerta", vencidos.length > 0);
 
-        const li = document.createElement("li");
+    const firma = JSON.stringify(vencidos.map(l => [l.id, l.cantidad]));
+    if (lista.dataset.firma === firma) return;
+    lista.dataset.firma = firma;
 
-        li.innerHTML = `
-            <span class="proximo-nombre">
-                <strong></strong>
-                <small>Lote ${lote.numeroLote ?? "-"} · ${lote.cantidad} u.</small>
-            </span>
-            <span class="proximo-dias ${nivel}">
-                ${dias <= 0 ? "Vence hoy" : dias === 1 ? "1 día" : dias + " días"}
-            </span>
-        `;
+    if (!vencidos.length) {
+        lista.innerHTML = `<li class="vacio">No hay productos vencidos en el local.</li>`;
+        return;
+    }
 
-        li.querySelector("strong").textContent = nombre;
+    lista.innerHTML = [...vencidos]
+        .sort((a, b) => a.diasRestantes - b.diasRestantes)
+        .map(lote => `
+            <li>
+                <span class="proximo-nombre">
+                    <strong>${escaparHTML(lote.producto)}</strong>
+                    <small>Lote ${escaparHTML(lote.numeroLote)} · ${lote.cantidad} u. · venció el ${fechaCorta(lote.fechaVencimiento)}</small>
+                </span>
+                <button type="button" class="btn-tabla btn-retirar"
+                    onclick="retirarLote(${lote.id}, ${lote.productoId}, '${escaparHTML(lote.numeroLote)}')">
+                    Retirar
+                </button>
+            </li>`)
+        .join("");
+}
 
-        lista.appendChild(li);
-    });
+// Productos que se están quedando sin stock (el límite se elige en Configuración)
+function renderStockBajo(productos, limite) {
+
+    const lista = document.getElementById("dashboardStockBajo");
+
+    if (!lista) return;
+
+    const bajos = productos
+        .filter(p => (Number(p.stock) || 0) <= limite)
+        .sort((a, b) => (Number(a.stock) || 0) - (Number(b.stock) || 0));
+
+    ponerTexto(document.getElementById("totalStockBajo"), bajos.length);
+    ponerTexto(document.getElementById("ayudaStockBajo"),
+        `Productos con ${limite} ${limite === 1 ? "unidad" : "unidades"} o menos.`);
+    document.getElementById("panelStockBajo")?.classList.toggle("con-alerta", bajos.length > 0);
+
+    const visibles = bajos.slice(0, 6);
+    const firma = JSON.stringify([limite, bajos.length, visibles.map(p => [p.id, p.stock])]);
+    if (lista.dataset.firma === firma) return;
+    lista.dataset.firma = firma;
+
+    if (!bajos.length) {
+        lista.innerHTML = `<li class="vacio">Todos los productos tienen stock suficiente.</li>`;
+        return;
+    }
+
+    lista.innerHTML = visibles.map(p => {
+        const stock = Number(p.stock) || 0;
+        return `
+            <li>
+                <span class="proximo-nombre">
+                    <strong>${escaparHTML(p.nombre)}</strong>
+                    <small>${stock === 0 ? "Sin stock" : stock === 1 ? "Queda 1 unidad" : `Quedan ${stock} unidades`}</small>
+                </span>
+                <button type="button" class="btn-tabla btn-lotes" onclick="irACargarLote(${p.id})">
+                    Cargar lote
+                </button>
+            </li>`;
+    }).join("") + (bajos.length > visibles.length
+        ? `<li class="vacio">Y ${bajos.length - visibles.length} más en Inventario.</li>`
+        : "");
+}
+
+// Lleva al formulario de lotes con el producto ya elegido
+function irACargarLote(productoId) {
+    mostrarSeccion("adminProductos");
+    mostrarPanel("lote");
+    const select = document.getElementById("productoLote");
+    if (select) {
+        select.value = String(productoId);
+        select.dispatchEvent(new Event("change"));
+    }
 }
 
 

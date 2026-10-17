@@ -41,7 +41,7 @@ public class UsuarioController {
         return usuarioService.buscarPorDni(dni);
     }
 
-    // Eliminar
+    // Dar de baja (no se borra: sus ventas quedan guardadas)
     @DeleteMapping("/{id}")
     public void eliminarUsuario(@PathVariable Long id) {
         usuarioService.eliminarUsuario(id);
@@ -57,12 +57,7 @@ public class UsuarioController {
     // 🔥 ACTUALIZAR ROL
     @PutMapping("/{id}/rol")
     public Usuario actualizarRol(@PathVariable Long id, @RequestBody Usuario datos) {
-
-        Usuario usuario = usuarioService.obtenerPorId(id);
-
-        usuario.setRol(datos.getRol());
-
-        return usuarioService.guardarUsuario(usuario);
+        return usuarioService.cambiarRol(id, datos.getRol());
     }
 
     // Cambiar contraseña

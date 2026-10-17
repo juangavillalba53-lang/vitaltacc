@@ -163,6 +163,27 @@ public class UsuarioService {
 
         if (existente != null) {
 
+            // Cuenta dada de baja (por ejemplo, un empleado que vuelve): se reactiva
+            if (Boolean.FALSE.equals(existente.getActivo())) {
+
+                if (!tieneTexto(usuario.getEmail()) || !tieneTexto(usuario.getContrasena())) {
+                    throw new RuntimeException("El email y la contraseña son obligatorios");
+                }
+
+                existente.setNombre(usuario.getNombre().trim());
+                existente.setApellido(usuario.getApellido().trim());
+                existente.setEmail(usuario.getEmail());
+                existente.setContrasena(usuario.getContrasena());
+                existente.setRol(usuario.getRol() != null ? usuario.getRol() : Rol.CLIENTE);
+                existente.setActivo(true);
+
+                if (tieneTexto(usuario.getTelefono())) {
+                    existente.setTelefono(usuario.getTelefono().trim());
+                }
+
+                return usuarioRepository.save(existente);
+            }
+
             // Una cuenta activa no se puede volver a registrar
             if (!esCuentaPendiente(existente)) {
                 throw new RuntimeException(
@@ -206,8 +227,12 @@ public class UsuarioService {
     // CONSULTAS
     // =========================================================
 
+    // Usuarios activos (los dados de baja no se listan)
     public List<Usuario> obtenerUsuarios() {
-        return usuarioRepository.findAll();
+        return usuarioRepository.findAll()
+                .stream()
+                .filter(u -> !Boolean.FALSE.equals(u.getActivo()))
+                .toList();
     }
 
     public Usuario obtenerPorId(Long id) {
@@ -218,8 +243,44 @@ public class UsuarioService {
         return usuarioRepository.findByDni(normalizarDni(dni)).orElse(null);
     }
 
+    // Baja lógica: el usuario ya no puede entrar, pero sus ventas quedan guardadas
     public void eliminarUsuario(Long id) {
-        usuarioRepository.deleteById(id);
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (usuario.getRol() == Rol.ADMIN && contarAdminsActivos() <= 1) {
+            throw new RuntimeException(
+                    "No se puede eliminar al único administrador. Primero nombrá a otro.");
+        }
+
+        usuario.setActivo(false);
+        usuarioRepository.save(usuario);
+    }
+
+    public Usuario cambiarRol(Long id, Rol rol) {
+
+        if (rol == null) {
+            throw new RuntimeException("Elegí un rol");
+        }
+
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (usuario.getRol() == Rol.ADMIN && rol != Rol.ADMIN && contarAdminsActivos() <= 1) {
+            throw new RuntimeException(
+                    "Tiene que quedar al menos un administrador.");
+        }
+
+        usuario.setRol(rol);
+        return usuarioRepository.save(usuario);
+    }
+
+    private long contarAdminsActivos() {
+        return usuarioRepository.findAll()
+                .stream()
+                .filter(u -> u.getRol() == Rol.ADMIN && !Boolean.FALSE.equals(u.getActivo()))
+                .count();
     }
 
     // =========================================================
@@ -235,6 +296,10 @@ public class UsuarioService {
         Usuario usuario = usuarioRepository.findByEmail(email.trim().toLowerCase())
                 .or(() -> usuarioRepository.findByEmail(email.trim()))
                 .orElseThrow(() -> new RuntimeException("Email o contraseña incorrectos"));
+
+        if (Boolean.FALSE.equals(usuario.getActivo())) {
+            throw new RuntimeException("Esta cuenta fue dada de baja.");
+        }
 
         // Las cuentas creadas en el local no pueden iniciar sesión hasta registrarse
         if (esCuentaPendiente(usuario)) {

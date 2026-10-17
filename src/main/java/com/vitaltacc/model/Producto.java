@@ -29,8 +29,13 @@ public class Producto {
     @Column(nullable = false)
     private Double precio;
 
+    // Ya no se usa en el panel (el stock real está en los lotes); se deja por compatibilidad
     @Column(name = "stock_minimo", nullable = false)
-    private Integer stockMinimo;
+    private Integer stockMinimo = 0;
+
+    // Baja lógica: al "eliminar" se marca como inactivo y el historial queda intacto
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean activo = true;
 
     // Relación con categoría
     @ManyToOne

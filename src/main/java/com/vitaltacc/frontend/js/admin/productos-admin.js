@@ -36,19 +36,10 @@ function crearProducto() {
         formData.append("imagenes", imagenes[i]);
     }
 
-    fetch("http://localhost:8080/productos", {
+    pedir("/productos", {
         method: "POST",
         body: formData
     })
-        .then(async res => {
-            const texto = await res.text();
-
-            if (!res.ok) {
-                throw new Error(texto || "Error al crear el producto.");
-            }
-
-            return texto ? JSON.parse(texto) : null;
-        })
         .then(() => {
             alert("Producto creado correctamente.");
 
@@ -65,8 +56,7 @@ function crearProducto() {
             cargarStock();
         })
         .catch(error => {
-            console.error("Error al crear producto:", error);
-            alert("Error al crear el producto. Revisá los datos e intentá nuevamente.");
+            mostrarAviso("No se pudo crear el producto: " + error.message, "error");
         });
 }
 
@@ -223,21 +213,13 @@ function cargarStock() {
     ])
         .then(([productos, lotes]) => {
 
-            const hoy = new Date();
-            hoy.setHours(0, 0, 0, 0);
-
-            window.lotesTodos = lotes.map(lote => {
-                const [anio, mes, dia] = String(lote.fechaVencimiento).split("-").map(Number);
-                const vence = new Date(anio, mes - 1, dia);
-
-                return {
-                    productoId: lote.producto?.id ?? lote.productoId,
-                    numeroLote: lote.numeroLote,
-                    cantidad: lote.cantidad,
-                    fechaVencimiento: lote.fechaVencimiento,
-                    diasRestantes: Math.round((vence - hoy) / (1000 * 60 * 60 * 24))
-                };
-            });
+            window.lotesTodos = lotes.map(lote => ({
+                productoId: lote.producto?.id ?? lote.productoId,
+                numeroLote: lote.numeroLote,
+                cantidad: lote.cantidad,
+                fechaVencimiento: lote.fechaVencimiento,
+                diasRestantes: diasHasta(lote.fechaVencimiento)
+            }));
 
             productosStock = productos;
 
@@ -287,23 +269,36 @@ function renderStock(productos) {
 
         const stock = Number(prod.stock) || 0;
 
-        // Buscar el lote disponible que vence primero
-        const loteProximo = (window.lotesTodos || window.lotesStock || [])
+        const lotesConStock = (window.lotesTodos || window.lotesStock || [])
             .filter(l =>
                 Number(l.productoId) === Number(prod.id) &&
-                Number(l.cantidad) > 0 &&
-                Number(l.diasRestantes) >= 0
+                Number(l.cantidad) > 0
             )
-            .sort((a, b) =>
-                new Date(a.fechaVencimiento) -
-                new Date(b.fechaVencimiento)
-            )[0];
+            .sort((a, b) => Number(a.diasRestantes) - Number(b.diasRestantes));
+
+        // Lotes vencidos que siguen en el local, y el disponible que vence primero
+        const vencidos = lotesConStock.filter(l => Number(l.diasRestantes) < 0);
+        const loteProximo = lotesConStock.find(l => Number(l.diasRestantes) >= 0);
+
+        // Clases según el nivel: vencido/urgente en rojo, atención en amarillo
+        const CLASES = {
+            vencido: "estado-critico",
+            urgente: "estado-critico",
+            atencion: "estado-alerta",
+            ok: "estado-ok"
+        };
 
         let estado;
         let claseEstado;
         let detalleLote = "";
 
-        if (stock <= 0) {
+        if (vencidos.length) {
+
+            estado = "Lote vencido · retirar";
+            claseEstado = "estado-critico";
+            detalleLote = `<small class="estado-lote">${vencidos.map(l => "Lote #" + escaparHTML(l.numeroLote)).join(", ")}</small>`;
+
+        } else if (stock <= 0) {
 
             estado = "Sin stock";
             claseEstado = "estado-critico";
@@ -317,26 +312,15 @@ function renderStock(productos) {
 
             const dias = Number(loteProximo.diasRestantes);
 
-            if (dias <= 10) {
-                claseEstado = "estado-critico";
-                estado = `Vence en ${dias} ${dias === 1 ? "día" : "días"}`;
-
-            } else if (dias <= 20) {
-                claseEstado = "estado-alerta";
-                estado = `Vence en ${dias} días`;
-
-            } else {
-                claseEstado = "estado-ok";
-                estado = `Vence en ${dias} días`;
-            }
-
-            detalleLote = `<small class="estado-lote">Lote #${loteProximo.numeroLote}</small>`;
+            claseEstado = CLASES[nivelVencimiento(dias)];
+            estado = textoDias(dias);
+            detalleLote = `<small class="estado-lote">Lote #${escaparHTML(loteProximo.numeroLote)}</small>`;
         }
 
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td>${prod.nombre}</td>
+            <td>${escaparHTML(prod.nombre)}</td>
 
             <td>$${formatoPrecio.format(Number(prod.precio) || 0)}</td>
 
@@ -439,48 +423,30 @@ function filtrarStock() {
 async function eliminarProductoAdmin(id) {
 
     if (usuario.rol !== "ADMIN") {
-
-        alert("No tiene permisos.");
-
+        mostrarAviso("No tenés permisos para dar de baja productos.", "error");
         return;
     }
 
     const nombre = productosStock.find(p => p.id === id)?.nombre;
 
     const seguro = await confirmar({
-        titulo: "¿Eliminar este producto?",
-        mensaje: nombre
-            ? `Vas a eliminar «${nombre}» del catálogo. No se puede deshacer.`
-            : "Se elimina del catálogo. No se puede deshacer.",
-        aceptar: "Eliminar producto"
+        titulo: "¿Dar de baja este producto?",
+        mensaje: (nombre ? `«${nombre}» ` : "El producto ") +
+            "deja de verse en la tienda y en el panel. Sus ventas y comprobantes quedan guardados.",
+        aceptar: "Dar de baja"
     });
 
-    if (!seguro) {
-        return;
+    if (!seguro) return;
+
+    try {
+        await pedir(`/productos/${id}`, { method: "DELETE" });
+        mostrarAviso("Producto dado de baja.", "ok");
+        cargarProductos();
+        cargarStock();
+        cargarProductosVenta();
+    } catch (error) {
+        mostrarAviso("No se pudo dar de baja: " + error.message, "error");
     }
-
-    fetch(`http://localhost:8080/productos/${id}`, {
-
-        method: "DELETE"
-
-    })
-        .then(() => {
-
-            alert("Producto eliminado");
-
-            cargarProductos();
-            cargarStock();
-
-        })
-        .catch(() => {
-
-            alert("Error eliminando producto");
-        });
-}
-
-function editarProducto(id) {
-
-    alert("Editar producto ID: " + id);
 }
 
 let productoEditando = null;
@@ -623,22 +589,10 @@ function guardarEdicionProducto() {
         );
     }
 
-    fetch(`http://localhost:8080/productos/${productoEditando.id}/editar`, {
-
+    pedir(`/productos/${productoEditando.id}/editar`, {
         method: "PUT",
         body: formData
-
     })
-
-        .then(res => {
-
-            if (!res.ok) {
-                throw new Error();
-            }
-
-            return res.json();
-        })
-
         .then(() => {
 
             cerrarModalEditarProducto();
@@ -646,14 +600,12 @@ function guardarEdicionProducto() {
             cargarProductos();
             cargarStock();
 
-            alert("Producto actualizado");
+            cargarProductosVenta();
+
+            mostrarAviso("Producto actualizado.", "ok");
         })
-
         .catch(error => {
-
-            console.error(error);
-
-            alert("Error actualizando producto");
+            mostrarAviso("No se pudo guardar: " + error.message, "error");
         });
 }
 
@@ -675,38 +627,17 @@ async function crearTipoCategoria() {
         return;
     }
 
-    fetch("http://localhost:8080/tipos-categoria", {
-
+    pedir("/tipos-categoria", {
         method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-            nombre: nombre.trim()
-        })
-
+        json: { nombre: nombre.trim() }
     })
-        .then(res => {
-
-            if (!res.ok) {
-                throw new Error();
-            }
-
-            return res.json();
-        })
         .then(() => {
-
             cargarTiposCategoriaModal();
-
-            alert("Tipo de categoría creado");
-
+            cargarTiposCategoria();
+            mostrarAviso("Tipo de categoría creado.", "ok");
         })
-        .catch(() => {
-
-            alert("Error al crear tipo de categoría");
-
+        .catch(error => {
+            mostrarAviso("No se pudo crear el tipo: " + error.message, "error");
         });
 }
 
@@ -756,34 +687,10 @@ function crearCategoria() {
         return;
     }
 
-    fetch("http://localhost:8080/categorias", {
-
+    pedir("/categorias", {
         method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-
-            nombre: nombre,
-
-            tipoCategoria: {
-                id: Number(tipoId)
-            }
-
-        })
-
+        json: { nombre, tipoCategoria: { id: Number(tipoId) } }
     })
-        .then(res => {
-
-            if (!res.ok) {
-                throw new Error("Error al crear categoría");
-            }
-
-            return res.json();
-        })
-
         .then(() => {
 
             document.getElementById("nombreNuevaCategoria").value = "";
@@ -795,13 +702,11 @@ function crearCategoria() {
                 cargarTiposCategoria();
             }
 
-            alert("Categoría creada");
+            mostrarAviso("Categoría creada.", "ok");
         })
 
         .catch(error => {
-
-            console.error(error);
-            alert("Error al crear categoría");
+            mostrarAviso("No se pudo crear la categoría: " + error.message, "error");
         });
 }
 
@@ -853,34 +758,20 @@ async function eliminarCategoria(id) {
     const seguro = await confirmar({
         titulo: "¿Eliminar esta categoría?",
         mensaje: nombre
-            ? `Vas a eliminar «${nombre}». No se puede deshacer.`
-            : "No se puede deshacer.",
+            ? `«${nombre}» deja de aparecer para elegir. Solo se puede si no tiene productos.`
+            : "Deja de aparecer para elegir. Solo se puede si no tiene productos.",
         aceptar: "Eliminar categoría"
     });
 
-    if (!seguro) {
-        return;
+    if (!seguro) return;
+
+    try {
+        await pedir(`/categorias/${id}`, { method: "DELETE" });
+        mostrarAviso("Categoría eliminada.", "ok");
+        cargarCategoriasModal();
+    } catch (error) {
+        mostrarAviso(error.message, "error");
     }
-
-    fetch(`http://localhost:8080/categorias/${id}`, {
-
-        method: "DELETE"
-
-    })
-        .then(res => {
-
-            if (!res.ok) {
-                throw new Error();
-            }
-
-            cargarCategoriasModal();
-        })
-
-        .catch(error => {
-
-            console.error(error);
-            alert("No se pudo eliminar la categoría");
-        });
 }
 
 function abrirModalCategorias() {

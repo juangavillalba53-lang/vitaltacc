@@ -1,9 +1,108 @@
 // =========================================================
 // VITALTACC · DETALLES DE INTERFAZ DEL PANEL
+// - Dirección del servidor y pedidos con manejo de errores
 // - Avisos (toasts) en lugar de las ventanas alert()
 // - Indicador animado de la sección activa en el menú
 // - Estados de carga con esqueletos
 // =========================================================
+
+// Dirección del servidor: si cambia (por ejemplo al subirlo a internet), se cambia acá
+const API = "http://localhost:8080";
+
+/**
+ * Hace un pedido al servidor y, si falla, lanza un Error con el mensaje
+ * que mandó el servidor (por ejemplo "Ya existe una cuenta con ese DNI").
+ * Devuelve el JSON de la respuesta, o null si vino vacía.
+ *   await pedir("/productos")
+ *   await pedir("/lotes", { method: "POST", json: { cantidad: 5 } })
+ */
+async function pedir(ruta, opciones = {}) {
+
+    const { json, ...resto } = opciones;
+    const config = { ...resto };
+
+    if (json !== undefined) {
+        config.headers = { "Content-Type": "application/json", ...(resto.headers || {}) };
+        config.body = JSON.stringify(json);
+    }
+
+    let respuesta;
+
+    try {
+        respuesta = await fetch(ruta.startsWith("http") ? ruta : API + ruta, config);
+    } catch {
+        throw new Error("No se pudo conectar con el servidor. Revisá que esté iniciado.");
+    }
+
+    const texto = await respuesta.text();
+    let datos = null;
+
+    if (texto) {
+        try {
+            datos = JSON.parse(texto);
+        } catch {
+            datos = texto;
+        }
+    }
+
+    if (!respuesta.ok) {
+        const mensaje =
+            (datos && typeof datos === "object" && (datos.error || datos.message)) ||
+            (typeof datos === "string" && datos.length < 200 ? datos : "") ||
+            "Algo salió mal. Probá de nuevo.";
+        throw new Error(mensaje);
+    }
+
+    return datos;
+}
+
+// Días que faltan hasta una fecha "AAAA-MM-DD" (negativo si ya pasó). Sin líos de zona horaria.
+function diasHasta(fecha) {
+    const [anio, mes, dia] = String(fecha).substring(0, 10).split("-").map(Number);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    return Math.round((new Date(anio, mes - 1, dia) - hoy) / 86400000);
+}
+
+// Mismos umbrales que el servidor: urgente 15 días o menos, atención hasta 30
+const DIAS_URGENTE = 15;
+const DIAS_ATENCION = 30;
+
+function nivelVencimiento(dias) {
+    if (dias < 0) return "vencido";
+    if (dias <= DIAS_URGENTE) return "urgente";
+    if (dias <= DIAS_ATENCION) return "atencion";
+    return "ok";
+}
+
+function textoDias(dias) {
+    if (dias < 0) return dias === -1 ? "Venció ayer" : `Venció hace ${-dias} días`;
+    if (dias === 0) return "Vence hoy";
+    if (dias === 1) return "Vence mañana";
+    return `Vence en ${dias} días`;
+}
+
+// "2026-10-20" → "20/10/2026"
+function fechaCorta(fecha) {
+    const [anio, mes, dia] = String(fecha || "").substring(0, 10).split("-");
+    return anio ? `${dia}/${mes}/${anio}` : "";
+}
+
+const FORMATO_PESOS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
+
+function pesos(valor) {
+    return FORMATO_PESOS.format(Number(valor) || 0);
+}
+
+// Evita que un texto con < o > se interprete como HTML
+function escaparHTML(texto) {
+    return String(texto ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
 (function () {
 

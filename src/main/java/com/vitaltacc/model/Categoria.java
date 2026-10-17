@@ -23,6 +23,10 @@ public class Categoria {
     @JsonIgnore
     private List<Producto> productos;
 
+    // Baja lógica: al "eliminar" se marca como inactivo y el historial queda intacto
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private Boolean activo = true;
+
     public Categoria() {
     }
 
@@ -64,5 +68,13 @@ public class Categoria {
 
     public void setProductos(List<Producto> productos) {
         this.productos = productos;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
     }
 }

@@ -63,22 +63,26 @@ function renderUsuarios() {
 
         const tr = document.createElement("tr");
 
+        // Uno no se puede dar de baja ni cambiar el rol a sí mismo
+        const esUnoMismo = Number(user.id) === Number(usuario?.id);
+
         tr.innerHTML = `
             <td>${user.id}</td>
-            <td>${user.nombre} ${user.apellido}</td>
-            <td>${user.email}</td>
+            <td>${escaparHTML(user.nombre)} ${escaparHTML(user.apellido)}${esUnoMismo ? ' <span class="etiqueta-vos">Vos</span>' : ""}</td>
+            <td>${escaparHTML(user.email)}</td>
 
             <td>
-                <select onchange="cambiarRol(${user.id}, this.value)">
-                    <option value="EMPLEADO" ${user.rol === "EMPLEADO" ? "selected" : ""}>EMPLEADO</option>
-                    <option value="ADMIN" ${user.rol === "ADMIN" ? "selected" : ""}>ADMIN</option>
+                <select onchange="cambiarRol(${user.id}, this.value)" ${esUnoMismo ? "disabled" : ""} aria-label="Rol de ${escaparHTML(user.nombre)}">
+                    <option value="EMPLEADO" ${user.rol === "EMPLEADO" ? "selected" : ""}>Empleado</option>
+                    <option value="ADMIN" ${user.rol === "ADMIN" ? "selected" : ""}>Admin</option>
                 </select>
             </td>
 
             <td>
+                ${esUnoMismo ? "—" : `
                 <button class="btn-tabla btn-eliminar" onclick="eliminarUsuario(${user.id})">
-                    Eliminar
-                </button>
+                    Dar de baja
+                </button>`}
             </td>
         `;
 
@@ -115,36 +119,13 @@ function crearUsuario() {
         return;
     }
 
-    console.log({
-        nombre,
-        apellido,
-        dni,
-        email,
-        contrasena,
-        rol
-    });
-
-    fetch("http://localhost:8080/usuarios", {
+    pedir("/usuarios", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            nombre,
-            apellido,
-            dni,
-            email,
-            contrasena,
-            rol
-        })
+        json: { nombre, apellido, dni, email, contrasena, rol }
     })
-        .then(res => {
-            if (!res.ok) throw new Error();
-            return res.json();
-        })
         .then(() => {
 
-            alert("Usuario creado");
+            mostrarAviso("Usuario creado.", "ok");
 
             document.getElementById("nombreUsuario").value = "";
             document.getElementById("apellidoUsuario").value = "";
@@ -156,25 +137,21 @@ function crearUsuario() {
 
             cargarUsuarios();
         })
-        .catch(() => {
-            alert("Error creando usuario");
+        .catch(error => {
+            mostrarAviso("No se pudo crear el usuario: " + error.message, "error");
         });
 }
 
 function cambiarRol(id, rol) {
 
-    fetch(`http://localhost:8080/usuarios/${id}/rol`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ rol })
-    })
+    pedir(`/usuarios/${id}/rol`, { method: "PUT", json: { rol } })
         .then(() => {
-            alert("Rol actualizado");
+            mostrarAviso("Rol actualizado.", "ok");
+            cargarUsuarios();
         })
-        .catch(() => {
-            alert("Error actualizando rol");
+        .catch(error => {
+            mostrarAviso(error.message, "error");
+            cargarUsuarios(); // vuelve a mostrar el rol que tenía
         });
 }
 
@@ -183,25 +160,22 @@ async function eliminarUsuario(id) {
     const nombre = textoDeFila("td:nth-child(2)");
 
     const seguro = await confirmar({
-        titulo: "¿Eliminar este usuario?",
-        mensaje: nombre
-            ? `${nombre} ya no va a poder entrar al panel. No se puede deshacer.`
-            : "Ya no va a poder entrar al panel. No se puede deshacer.",
-        aceptar: "Eliminar usuario"
+        titulo: "¿Dar de baja este usuario?",
+        mensaje: (nombre ? `${nombre} ` : "Esta persona ") +
+            "ya no va a poder entrar al panel. Las ventas que registró quedan guardadas.",
+        aceptar: "Dar de baja"
     });
 
     if (!seguro) return;
 
-    fetch(`http://localhost:8080/usuarios/${id}`, {
-        method: "DELETE"
-    })
-        .then(() => {
-            alert("Usuario eliminado");
-            cargarUsuarios();
-        })
-        .catch(() => {
-            alert("Error eliminando usuario");
-        });
+    try {
+        await pedir(`/usuarios/${id}`, { method: "DELETE" });
+        mostrarAviso("Usuario dado de baja.", "ok");
+        cargarUsuarios();
+        cargarDashboard();
+    } catch (error) {
+        mostrarAviso(error.message, "error");
+    }
 }
 
 function mostrarUsuario() {

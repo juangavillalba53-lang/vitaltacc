@@ -1,6 +1,7 @@
 package com.vitaltacc.controller;
 
 import com.vitaltacc.model.Producto;
+import com.vitaltacc.model.Promocion;
 import com.vitaltacc.service.ProductoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,8 @@ public class ProductoController {
 
             @RequestParam("descripcion") String descripcion,
 
-            @RequestParam("stockMinimo") Integer stockMinimo,
+            // Ya no se carga desde el panel: el stock real está en los lotes
+            @RequestParam(value = "stockMinimo", required = false, defaultValue = "0") Integer stockMinimo,
 
             @RequestParam("categoriaId") Long categoriaId,
 
@@ -52,6 +54,9 @@ public class ProductoController {
     @GetMapping
     public List<Map<String, Object>> listarProductos() {
 
+        // Las promociones se buscan una sola vez para todo el listado
+        List<Promocion> promociones = productoService.promocionesVigentesHoy();
+
         return productoService.obtenerProductos().stream().map(producto -> {
 
             Map<String, Object> data = new HashMap<>();
@@ -59,7 +64,7 @@ public class ProductoController {
             data.put("nombre", producto.getNombre());
             data.put("descripcion", producto.getDescripcion());
             data.put("precio", producto.getPrecio());
-            data.put("precioFinal", productoService.calcularPrecioConDescuento(producto));
+            data.put("precioFinal", productoService.calcularPrecioConDescuento(producto, promociones));
             data.put("stock", productoService.calcularStock(producto));
             data.put("imagenes", producto.getImagenes());
 
@@ -143,7 +148,7 @@ public class ProductoController {
                 imagenes);
     }
 
-    // 🔥 Eliminar producto
+    // Dar de baja un producto (deja de verse, pero sus ventas quedan guardadas)
     @DeleteMapping("/{id}")
     public void eliminarProducto(@PathVariable Long id) {
         productoService.eliminarProducto(id);

@@ -426,20 +426,7 @@ async function confirmarVenta() {
     try {
 
         // 1. Registrar la venta
-        const respuesta = await fetch("http://localhost:8080/ventas", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(venta)
-        });
-
-        if (!respuesta.ok) {
-            const mensaje = await respuesta.text();
-            throw new Error(mensaje || "No se pudo registrar la venta.");
-        }
-
-        const ventaGuardada = await respuesta.json();
+        const ventaGuardada = await pedir("/ventas", { method: "POST", json: venta });
 
         if (!ventaGuardada.id) {
             throw new Error(
@@ -452,9 +439,7 @@ async function confirmarVenta() {
 
         try {
 
-            const respuestaPdf = await fetch(
-                `http://localhost:8080/ventas/${ventaGuardada.id}/pdf`
-            );
+            const respuestaPdf = await fetch(`${API}/ventas/${ventaGuardada.id}/pdf`);
 
             if (!respuestaPdf.ok) {
                 throw new Error("No se pudo generar el comprobante PDF.");
@@ -486,20 +471,7 @@ async function confirmarVenta() {
         }
 
         // 3. Limpiar el formulario y actualizar los datos
-        carrito = [];
-        renderCarrito();
-
-        document.getElementById("buscarProductoVenta").value = "";
-        document.getElementById("resultadosBusquedaVenta").innerHTML = "";
-        document.getElementById("dniClienteVenta").value = "";
-        document.getElementById("estadoClienteVenta").innerText = "";
-
-        document.getElementById("nuevoClienteVenta")
-            .classList.add("oculto");
-
-        clienteVenta = null;
-
-        reiniciarEmailVenta();
+        limpiarVenta();
 
         cargarProductosVenta();
         cargarProductos();
@@ -523,13 +495,53 @@ async function confirmarVenta() {
         }
 
     } catch (error) {
-
-        console.error("Error al registrar la venta:", error);
-
-        alert(
-            "No se pudo confirmar la venta.\n" + error.message
-        );
+        mostrarAviso("No se pudo confirmar la venta: " + error.message, "error");
     }
+}
+
+// Deja la venta en blanco: sin productos, sin cliente y sin email
+function limpiarVenta() {
+
+    carrito = [];
+    renderCarrito();
+
+    document.getElementById("buscarProductoVenta").value = "";
+    document.getElementById("resultadosBusquedaVenta").innerHTML = "";
+    document.getElementById("dniClienteVenta").value = "";
+    document.getElementById("estadoClienteVenta").innerText = "";
+    document.getElementById("nombreClienteVenta").value = "";
+    document.getElementById("apellidoClienteVenta").value = "";
+    document.getElementById("telefonoClienteVenta").value = "";
+    document.getElementById("nuevoClienteVenta").classList.add("oculto");
+
+    clienteVenta = null;
+    reiniciarEmailVenta();
+}
+
+// Botón "Cancelar": si ya hay algo cargado, pregunta antes de borrar
+async function cancelarVenta() {
+
+    const hayAlgo = carrito.length > 0
+        || document.getElementById("dniClienteVenta").value.trim()
+        || document.getElementById("emailClienteVenta")?.value.trim();
+
+    if (!hayAlgo) return;
+
+    if (carrito.length > 0) {
+        const seguro = await confirmar({
+            titulo: "¿Cancelar esta venta?",
+            mensaje: carrito.length === 1
+                ? "Se borra el producto cargado y los datos del cliente."
+                : `Se borran los ${carrito.length} productos cargados y los datos del cliente.`,
+            aceptar: "Cancelar venta",
+            cancelar: "Seguir con la venta"
+        });
+        if (!seguro) return;
+    }
+
+    limpiarVenta();
+    document.getElementById("buscarProductoVenta").focus();
+    mostrarAviso("Venta cancelada.", "ok");
 }
 
 
