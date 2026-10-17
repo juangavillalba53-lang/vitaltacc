@@ -798,9 +798,9 @@ body {
 }
 
 .alerta-card {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
+    display: grid;
+    align-content: start;
+    gap: 6px;
     padding: 18px 20px;
     background: var(--vt-superficie);
     border: 1px solid var(--vt-linea);
@@ -809,8 +809,8 @@ body {
 }
 
 .alerta-card h3 {
-    margin: 0;
-    font-size: 30px;
+    margin: 4px 0 0;
+    font-size: 32px;
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.02em;
@@ -822,25 +822,41 @@ body {
     font-weight: 600;
 }
 
-.alerta-card::before {
-    content: "";
-    align-self: center;
-    flex-shrink: 0;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: currentColor;
+.alerta-card .alerta-titulo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--vt-tinta);
+    font-size: 13px;
+    font-weight: 700;
 }
 
-.alerta-card.urgente { color: var(--vt-peligro); }
-.alerta-card.atencion { color: var(--vt-alerta); }
-.alerta-card.total { color: var(--vt-turquesa-700); }
-.alerta-card.vencido { color: #7A1F2B; }
-.alerta-card.vencido::before { box-shadow: 0 0 0 4px var(--vt-peligro-50); }
+/* Puntito de color al lado del título */
+.alerta-card .alerta-titulo::before {
+    content: "";
+    flex-shrink: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--tono, currentColor);
+}
 
-.alerta-card.urgente::before { box-shadow: 0 0 0 4px var(--vt-peligro-50); }
-.alerta-card.atencion::before { box-shadow: 0 0 0 4px var(--vt-alerta-50); }
-.alerta-card.total::before { box-shadow: 0 0 0 4px var(--vt-turquesa-100); }
+.alerta-card .alerta-sub {
+    color: var(--vt-tinta-3);
+    font-size: 12px;
+    line-height: 1.35;
+}
+
+.alerta-card.urgente { --tono: var(--vt-peligro); color: var(--vt-peligro); }
+.alerta-card.atencion { --tono: var(--vt-alerta); color: var(--vt-alerta); }
+.alerta-card.total { --tono: var(--vt-turquesa); color: var(--vt-turquesa-700); }
+.alerta-card.vencido { --tono: #7A1F2B; color: #7A1F2B; }
+.alerta-card.vencido .alerta-titulo::before { box-shadow: 0 0 0 4px var(--vt-peligro-50); }
+
+.alerta-card.urgente .alerta-titulo::before { box-shadow: 0 0 0 4px var(--vt-peligro-50); }
+.alerta-card.atencion .alerta-titulo::before { box-shadow: 0 0 0 4px var(--vt-alerta-50); }
+.alerta-card.total .alerta-titulo::before { box-shadow: 0 0 0 4px var(--vt-turquesa-100); }
 
 #buscarStock {
     max-width: 360px;
@@ -2919,6 +2935,21 @@ table:has(tbody:empty) {
 }
 
 @media (max-width: 650px) {
+    .resumen-alertas {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .alerta-card {
+        padding: 14px 16px;
+    }
+
+    .alerta-card h3 {
+        font-size: 28px;
+    }
+}
+
+@media (max-width: 340px) {
     .resumen-alertas {
         grid-template-columns: minmax(0, 1fr);
     }
