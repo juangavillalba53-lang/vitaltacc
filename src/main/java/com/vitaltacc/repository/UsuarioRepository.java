@@ -11,7 +11,7 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
 
     boolean existsByDni(String dni);
 
-    // 🔥 AGREGAR ESTO
+    // Para el login y para no repetir emails
     Optional<Usuario> findByEmail(String email);
 
     Optional<Usuario> findByDni(String dni);

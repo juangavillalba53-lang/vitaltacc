@@ -30,7 +30,7 @@ public class VentaController {
     @Autowired
     private CompraEmailService compraEmailService;
 
-    // 🔥 Crear venta
+    // Crear venta
     @PostMapping
     public Venta crearVenta(@RequestBody VentaRequest ventaRequest) {
         Venta venta = ventaService.crearVenta(ventaRequest);
@@ -43,7 +43,7 @@ public class VentaController {
         return venta;
     }
 
-    // 🔥 Listar ventas
+    // Listar ventas
     @GetMapping
     public List<Venta> listarVentas() {
         return ventaService.obtenerVentas();
@@ -83,19 +83,19 @@ public class VentaController {
                 .body(pdf);
     }
 
-    // 🔥 Total facturado (general)
+    // Total facturado (general)
     @GetMapping("/total")
     public Double obtenerTotalFacturado() {
         return ventaService.obtenerTotalFacturado();
     }
 
-    // 🔥 Productos más vendidos (general)
+    // Productos más vendidos (general)
     @GetMapping("/mas-vendidos")
     public List<Map<String, Object>> obtenerProductosMasVendidos() {
         return ventaService.obtenerProductosMasVendidos();
     }
 
-    // 🔥 Productos más vendidos por mes
+    // Productos más vendidos por mes
     @GetMapping("/mas-vendidos/por-mes")
     public List<Map<String, Object>> obtenerProductosMasVendidosPorMes(
             @RequestParam int mes,
@@ -104,7 +104,7 @@ public class VentaController {
         return ventaService.obtenerProductosMasVendidosPorMes(mes, anio);
     }
 
-    // 🔥 Total por mes
+    // Total por mes
     @GetMapping("/total-por-mes")
     public Double obtenerTotalPorMes(
             @RequestParam int mes,
@@ -113,7 +113,7 @@ public class VentaController {
         return ventaService.obtenerTotalPorMes(mes, anio);
     }
 
-    // 🔥 Total por año (gráfico)
+    // Total por año (gráfico)
     @GetMapping("/total-por-anio")
     public List<Map<String, Object>> obtenerTotalPorAnio(
             @RequestParam int anio) {
@@ -121,7 +121,7 @@ public class VentaController {
         return ventaService.obtenerTotalPorAnio(anio);
     }
 
-    // 🔥 TOP CLIENTES POR MES (🔥 ESTE ES EL NUEVO)
+    // Top clientes por mes
     @GetMapping("/top-clientes/por-mes")
     public List<Map<String, Object>> obtenerTopClientesPorMes(
             @RequestParam int mes,

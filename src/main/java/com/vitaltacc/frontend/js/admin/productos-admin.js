@@ -1,5 +1,6 @@
-
-// 🔥 CREAR PRODUCTO
+// =========================================================
+// PRODUCTOS: alta, edición, baja, stock y categorías
+// =========================================================
 
 function crearProducto() {
     const nombre = document.getElementById("nombreProducto").value.trim();
@@ -12,8 +13,6 @@ function crearProducto() {
 
     const categoriaId = document.getElementById("categoriaProducto").value;
 
-    const imagenes = document.getElementById("imagenesProducto").files;
-
     if (
         !nombre ||
         isNaN(precio) ||
@@ -21,7 +20,7 @@ function crearProducto() {
         !descripcion ||
         !categoriaId
     ) {
-        alert("Completá el nombre, un precio válido, la descripción y la categoría.");
+        mostrarAviso("Completá el nombre, un precio válido, la descripción y la categoría.", "error");
         return;
     }
 
@@ -32,16 +31,18 @@ function crearProducto() {
     formData.append("descripcion", descripcion);
     formData.append("categoriaId", categoriaId);
 
-    for (let i = 0; i < imagenes.length; i++) {
-        formData.append("imagenes", imagenes[i]);
-    }
+    galeriaAlta.completarFormulario(formData, false);
+
+    const boton = document.getElementById("btnCrearProducto");
+    boton.disabled = true;
 
     pedir("/productos", {
         method: "POST",
         body: formData
     })
+        .finally(() => { boton.disabled = false; })
         .then(() => {
-            alert("Producto creado correctamente.");
+            mostrarAviso("Producto creado.", "ok");
 
             document.getElementById("nombreProducto").value = "";
             document.getElementById("precioProducto").value = "";
@@ -49,104 +50,92 @@ function crearProducto() {
             document.getElementById("tipoCategoriaProducto").value = "";
             document.getElementById("categoriaProducto").innerHTML =
                 '<option value="">Seleccionar categoría</option>';
-            document.getElementById("imagenesProducto").value = "";
-            document.getElementById("previewImagenesProducto")?.replaceChildren();
+            galeriaAlta.limpiar();
 
             cargarProductos();
-            cargarStock();
         })
         .catch(error => {
             mostrarAviso("No se pudo crear el producto: " + error.message, "error");
         });
 }
 
+// ---------------------------------------------------------
+// Productos y lotes se piden una sola vez y alimentan todo:
+// los selects de lote y promoción, la tabla de stock y el
+// buscador de la venta en el local.
+// ---------------------------------------------------------
 
-// 🔥 CARGAR PRODUCTOS (LOTE + EDITAR + TABLA)
+let productosStock = [];
+let productosVenta = [];
+let carrito = [];
+let lotesTodos = [];
 
-function cargarProductos() {
+async function cargarProductos() {
 
-    fetch("http://localhost:8080/productos")
-        .then(res => res.json())
-        .then(data => {
+    try {
+        const [productos, lotes] = await Promise.all([
+            pedir("/productos"),
+            pedir("/lotes").catch(() => [])
+        ]);
 
-            const select =
-                document.getElementById("productoLote");
+        lotesTodos = (lotes || []).map(lote => ({
+            productoId: lote.producto?.id ?? lote.productoId,
+            numeroLote: lote.numeroLote,
+            cantidad: lote.cantidad,
+            fechaVencimiento: lote.fechaVencimiento,
+            diasRestantes: diasHasta(lote.fechaVencimiento)
+        }));
 
-            const selectPromo =
-                document.getElementById("productoPromo");
+        productosStock = productos;
+        productosVenta = productos;
 
-            // 🔥 LIMPIAR
+        llenarSelectsProductos(productos);
+        filtrarStock(false);
 
-            select.innerHTML = "";
-
-            if (selectPromo) {
-
-                selectPromo.innerHTML = `
-                    <option value="">
-                        Promoción global (toda la tienda)
-                    </option>
-                `;
-            }
-            console.log(data);
-
-            data.forEach(prod => {
-                console.log(prod);
-
-                // 🔥 SELECT LOTES
-
-                const option = document.createElement("option");
-
-                option.value = prod.id;
-
-                option.text = prod.nombre;
-
-                option.setAttribute(
-                    "data-precio",
-                    prod.precio ?? 0
-                );
-
-                select.appendChild(option);
-
-                // 🔥 SELECT PROMOS
-
-                if (selectPromo) {
-
-                    const optionPromo =
-                        document.createElement("option");
-
-                    optionPromo.value = prod.id;
-
-                    optionPromo.text = prod.nombre;
-
-                    selectPromo.appendChild(optionPromo);
-                }
-
-                // La tabla de stock la arma renderStock(), que además
-                // muestra el lote más próximo a vencer de cada producto.
-            });
-
-            // 🔥 SETEAR PRECIO INICIAL
-
-            if (select.options.length > 0) {
-
-                const first = select.options[0];
-
-                const precio =
-                    first.getAttribute("data-precio");
-
-                document.getElementById("precioLote").value =
-                    "$" + precio;
-            }
-
-        })
-
-        .catch(() => {
-
-            alert("Error cargando productos");
-        });
+    } catch (error) {
+        mostrarAviso("No se pudieron cargar los productos: " + error.message, "error");
+    }
 }
 
-// 🔥 SELECTS DE TIPO Y CATEGORÍA (se usan al crear y al editar)
+function llenarSelectsProductos(productos) {
+
+    const selectLote = document.getElementById("productoLote");
+    const selectPromo = document.getElementById("productoPromo");
+    const loteElegido = selectLote.value;
+    const promoElegida = selectPromo?.value;
+
+    const sinElegir = new Option("Elegí un producto", "");
+    sinElegir.dataset.placeholder = "";
+
+    selectLote.replaceChildren(sinElegir, ...productos.map(prod => {
+        const opcion = new Option(prod.nombre, prod.id);
+        opcion.dataset.precio = prod.precio ?? 0;
+        return opcion;
+    }));
+
+    if (selectPromo) {
+        selectPromo.replaceChildren(
+            new Option("Promoción global (toda la tienda)", ""),
+            ...productos.map(prod => new Option(prod.nombre, prod.id))
+        );
+        if (promoElegida) selectPromo.value = promoElegida;
+    }
+
+    // Si ya había un producto elegido, se respeta
+    if (loteElegido && productos.some(p => String(p.id) === loteElegido)) {
+        selectLote.value = loteElegido;
+    }
+
+    mostrarPrecioLote();
+}
+
+// El precio del producto elegido en el formulario de lotes
+function mostrarPrecioLote() {
+    const opcion = document.getElementById("productoLote").selectedOptions[0];
+    document.getElementById("precioLote").value = opcion?.value ? pesos(opcion.dataset.precio) : "";
+}
+
+// Selects de tipo y categoría (se usan al crear y al editar)
 
 function opcionesSelect(select, textoVacio, items, seleccionado) {
 
@@ -161,8 +150,7 @@ function opcionesSelect(select, textoVacio, items, seleccionado) {
 
 function llenarTipos(select, seleccionado) {
 
-    return fetch("http://localhost:8080/tipos-categoria")
-        .then(res => res.json())
+    return pedir("/tipos-categoria")
         .then(tipos => opcionesSelect(select, "Seleccionar tipo", tipos, seleccionado));
 }
 
@@ -174,58 +162,36 @@ function llenarCategorias(select, tipoId, seleccionado) {
         return Promise.resolve();
     }
 
-    return fetch(`http://localhost:8080/categorias/tipo/${tipoId}`)
-        .then(res => res.json())
+    return pedir(`/categorias/tipo/${tipoId}`)
         .then(categorias =>
             opcionesSelect(select, "Seleccionar categoría", categorias, seleccionado));
 }
 
-// 🔥 CARGAR TIPOS DE CATEGORÍA (formulario de alta)
+// Formulario de alta: tipos y categorías
 function cargarTiposCategoria() {
 
     return llenarTipos(document.getElementById("tipoCategoriaProducto"));
 }
 
-// 🔥 CARGAR CATEGORÍAS POR TIPO (formulario de alta)
 function cargarCategoriasPorTipo(tipoId) {
 
     return llenarCategorias(document.getElementById("categoriaProducto"), tipoId);
 }
 
-// 🔥 STOCK
-
-let productosStock = [];
-let productosVenta = [];
-let carrito = [];
-window.lotesStock = [];
+// ---------------------------------------------------------
+// Tabla de stock (Inventario)
+// ---------------------------------------------------------
 
 let paginaStockActual = 1;
 const productosPorPagina = 15;
 
-function cargarStock() {
-
-    // Productos y todos sus lotes, para mostrar el que vence primero
-    Promise.all([
-        fetch("http://localhost:8080/productos").then(res => res.json()),
-        fetch("http://localhost:8080/lotes")
-            .then(res => res.ok ? res.json() : [])
-            .catch(() => [])
-    ])
-        .then(([productos, lotes]) => {
-
-            window.lotesTodos = lotes.map(lote => ({
-                productoId: lote.producto?.id ?? lote.productoId,
-                numeroLote: lote.numeroLote,
-                cantidad: lote.cantidad,
-                fechaVencimiento: lote.fechaVencimiento,
-                diasRestantes: diasHasta(lote.fechaVencimiento)
-            }));
-
-            productosStock = productos;
-
-            renderStock(productos);
-        });
-}
+// Clases según el nivel: vencido/urgente en rojo, atención en amarillo
+const CLASES_VENCIMIENTO = {
+    vencido: "estado-critico",
+    urgente: "estado-critico",
+    atencion: "estado-alerta",
+    ok: "estado-ok"
+};
 
 function renderStock(productos) {
 
@@ -252,11 +218,6 @@ function renderStock(productos) {
         inicio + productosPorPagina
     );
 
-    const formatoPrecio = new Intl.NumberFormat("es-AR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-
     if (productosPagina.length === 0) {
         tabla.innerHTML = `
             <tr>
@@ -269,7 +230,7 @@ function renderStock(productos) {
 
         const stock = Number(prod.stock) || 0;
 
-        const lotesConStock = (window.lotesTodos || window.lotesStock || [])
+        const lotesConStock = lotesTodos
             .filter(l =>
                 Number(l.productoId) === Number(prod.id) &&
                 Number(l.cantidad) > 0
@@ -279,14 +240,6 @@ function renderStock(productos) {
         // Lotes vencidos que siguen en el local, y el disponible que vence primero
         const vencidos = lotesConStock.filter(l => Number(l.diasRestantes) < 0);
         const loteProximo = lotesConStock.find(l => Number(l.diasRestantes) >= 0);
-
-        // Clases según el nivel: vencido/urgente en rojo, atención en amarillo
-        const CLASES = {
-            vencido: "estado-critico",
-            urgente: "estado-critico",
-            atencion: "estado-alerta",
-            ok: "estado-ok"
-        };
 
         let estado;
         let claseEstado;
@@ -312,7 +265,7 @@ function renderStock(productos) {
 
             const dias = Number(loteProximo.diasRestantes);
 
-            claseEstado = CLASES[nivelVencimiento(dias)];
+            claseEstado = CLASES_VENCIMIENTO[nivelVencimiento(dias)];
             estado = textoDias(dias);
             detalleLote = `<small class="estado-lote">Lote #${escaparHTML(loteProximo.numeroLote)}</small>`;
         }
@@ -322,7 +275,7 @@ function renderStock(productos) {
         tr.innerHTML = `
             <td>${escaparHTML(prod.nombre)}</td>
 
-            <td>$${formatoPrecio.format(Number(prod.precio) || 0)}</td>
+            <td>${pesos(prod.precio)}</td>
 
             <td>${stock}</td>
 
@@ -403,23 +356,18 @@ function renderStock(productos) {
     };
 }
 
-function filtrarStock() {
+// Al escribir en el buscador vuelve a la página 1; al recargar datos se queda donde estaba
+function filtrarStock(volverAlInicio = true) {
 
-    paginaStockActual = 1;
+    if (volverAlInicio) paginaStockActual = 1;
 
-    const texto = document
-        .getElementById("buscarStock")
-        .value
-        .toLowerCase();
+    const texto = (document.getElementById("buscarStock")?.value || "").toLowerCase().trim();
 
-    const filtrados = productosStock.filter(p =>
-        p.nombre.toLowerCase().includes(texto)
-    );
-
-    renderStock(filtrados);
+    renderStock(texto
+        ? productosStock.filter(p => p.nombre.toLowerCase().includes(texto))
+        : productosStock);
 }
 
-// 🔥 ELIMINAR PRODUCTO
 async function eliminarProductoAdmin(id) {
 
     if (usuario.rol !== "ADMIN") {
@@ -442,8 +390,6 @@ async function eliminarProductoAdmin(id) {
         await pedir(`/productos/${id}`, { method: "DELETE" });
         mostrarAviso("Producto dado de baja.", "ok");
         cargarProductos();
-        cargarStock();
-        cargarProductosVenta();
     } catch (error) {
         mostrarAviso("No se pudo dar de baja: " + error.message, "error");
     }
@@ -451,104 +397,76 @@ async function eliminarProductoAdmin(id) {
 
 let productoEditando = null;
 
-// 🔥 ABRIR MODAL EDITAR
+// Galerías de imágenes del alta y de la ventana de edición
+let galeriaAlta = null;
+let galeriaEditar = null;
 
-function abrirModalEditarProducto(id) {
+document.addEventListener("DOMContentLoaded", () => {
+    galeriaAlta = crearGaleria("galeriaProducto", "imagenesProducto");
+    galeriaEditar = crearGaleria("galeriaEditar", "editarImagenes");
 
-    // Arranca sin imágenes nuevas elegidas
-    document.getElementById("editarImagenes").value = "";
-    document.getElementById("previewEditarImagenes")?.replaceChildren();
+    // Con muchos productos, en lotes y promociones se busca escribiendo
+    agregarBuscadorASelect(document.getElementById("productoLote"), {
+        placeholder: "Buscar producto…", etiqueta: "Producto del lote"
+    });
+    agregarBuscadorASelect(document.getElementById("productoPromo"), {
+        placeholder: "Buscar producto…", etiqueta: "Aplica a"
+    });
+});
+
+// ---------------------------------------------------------
+// Editar producto
+// ---------------------------------------------------------
+
+async function abrirModalEditarProducto(id) {
 
     if (usuario.rol !== "ADMIN") {
-
-        alert("No tiene permisos.");
-
+        mostrarAviso("No tenés permisos para editar productos.", "error");
         return;
     }
 
-    fetch(`http://localhost:8080/productos/${id}`)
-        .then(res => {
+    let prod;
 
-            return res.json();
-        })
+    try {
+        prod = await pedir(`/productos/${id}`);
+    } catch (error) {
+        mostrarAviso("No se pudo abrir el producto: " + error.message, "error");
+        return;
+    }
 
-        .then(prod => {
+    productoEditando = prod;
 
-            productoEditando = prod;
+    document.getElementById("editarNombre").value = prod.nombre || "";
+    document.getElementById("editarPrecio").value = prod.precio || "";
+    document.getElementById("editarDescripcion").value = prod.descripcion || "";
+    document.getElementById("tituloEditarProducto").textContent = prod.nombre;
 
-            document.getElementById("editarNombre").value =
-                prod.nombre || "";
+    const tipoId = prod.tipoCategoria?.id || prod.categoria?.tipoCategoria?.id;
+    const selectTipo = document.getElementById("editarTipoCategoria");
+    const selectCategoria = document.getElementById("editarCategoria");
 
-            document.getElementById("editarPrecio").value =
-                prod.precio || "";
+    llenarTipos(selectTipo, tipoId)
+        .then(() => llenarCategorias(selectCategoria, tipoId, prod.categoria?.id))
+        .catch(() => mostrarAviso("No se pudieron cargar las categorías.", "error"));
 
-            document.getElementById("tituloEditarProducto").innerText =
-                prod.nombre;
+    selectTipo.onchange = () => llenarCategorias(selectCategoria, selectTipo.value);
 
-            document.getElementById("editarDescripcion").value =
-                prod.descripcion || "";
+    galeriaEditar.cargar(prod.imagenes || []);
 
-            const tipoId = prod.tipoCategoria?.id || prod.categoria?.tipoCategoria?.id;
-            const selectTipo = document.getElementById("editarTipoCategoria");
-            const selectCategoria = document.getElementById("editarCategoria");
-
-            llenarTipos(selectTipo, tipoId)
-                .then(() => llenarCategorias(selectCategoria, tipoId, prod.categoria?.id))
-                .catch(() => alert("No se pudieron cargar las categorías."));
-
-            selectTipo.onchange = () => llenarCategorias(selectCategoria, selectTipo.value);
-
-            const contenedor =
-                document.getElementById("imagenesActuales");
-
-            contenedor.innerHTML = "";
-
-            if (prod.imagenes && prod.imagenes.length > 0) {
-                prod.imagenes.forEach(img => {
-
-                    contenedor.innerHTML += `
-                        <img
-                            src="http://localhost:8080${img.url}"
-                            class="img-preview-editar"
-                        >
-                    `;
-                });
-
-            } else {
-
-                contenedor.innerHTML = `
-                    <p>Este producto no tiene imágenes</p>
-                `;
-            }
-
-            document.getElementById("modalEditarProducto").style.display =
-                "flex";
-        })
-
-        .catch(error => {
-
-            console.error(error);
-
-            alert("Error abriendo modal");
-        });
+    document.getElementById("modalEditarProducto").style.display = "flex";
 }
-
-// 🔥 CERRAR MODAL
 
 function cerrarModalEditarProducto() {
 
     document.getElementById("modalEditarProducto").style.display =
         "none";
+    galeriaEditar?.limpiar();
 }
-
-// 🔥 GUARDAR EDICIÓN PRODUCTO
 
 function guardarEdicionProducto() {
 
     if (usuario.rol !== "ADMIN") {
-
-        alert("No tiene permisos.");
-
+        mostrarAviso("No tenés permisos para editar productos.", "error");
         return;
     }
 
@@ -561,16 +479,12 @@ function guardarEdicionProducto() {
     const descripcion =
         document.getElementById("editarDescripcion").value;
 
-    const imagenes =
-        document.getElementById("editarImagenes").files;
-
     const categoriaId =
         document.getElementById("editarCategoria").value;
 
     if (!nombre.trim() || !(parseFloat(precio) > 0) || !categoriaId) {
 
-        alert("Completá el nombre, un precio válido y la categoría.");
-
+        mostrarAviso("Completá el nombre, un precio válido y la categoría.", "error");
         return;
     }
 
@@ -581,27 +495,22 @@ function guardarEdicionProducto() {
     formData.append("descripcion", descripcion);
     formData.append("categoriaId", categoriaId);
 
-    for (let i = 0; i < imagenes.length; i++) {
+    // Archivos nuevos y el orden final de la galería
+    galeriaEditar.completarFormulario(formData, true);
 
-        formData.append(
-            "imagenes",
-            imagenes[i]
-        );
-    }
+    const boton = document.getElementById("btnGuardarEdicionProducto");
+    boton.disabled = true;
 
     pedir(`/productos/${productoEditando.id}/editar`, {
         method: "PUT",
         body: formData
     })
+        .finally(() => { boton.disabled = false; })
         .then(() => {
 
             cerrarModalEditarProducto();
 
             cargarProductos();
-            cargarStock();
-
-            cargarProductosVenta();
-
             mostrarAviso("Producto actualizado.", "ok");
         })
         .catch(error => {
@@ -609,9 +518,9 @@ function guardarEdicionProducto() {
         });
 }
 
-// ==========================
-// MODAL CATEGORIAS
-// ==========================
+// ---------------------------------------------------------
+// Ventana de categorías
+// ---------------------------------------------------------
 
 async function crearTipoCategoria() {
 
@@ -647,27 +556,8 @@ function cargarTiposCategoriaModal() {
 
     if (!select) return;
 
-    fetch("http://localhost:8080/tipos-categoria")
-        .then(res => res.json())
-        .then(data => {
-
-            select.innerHTML =
-                '<option value="">Seleccionar tipo</option>';
-
-            data.forEach(tipo => {
-
-                select.innerHTML += `
-                    <option value="${tipo.id}">
-                        ${tipo.nombre}
-                    </option>
-                `;
-            });
-
-        })
-        .catch(error => {
-
-            console.error(error);
-        });
+    llenarTipos(select)
+        .catch(error => mostrarAviso("No se pudieron cargar los tipos: " + error.message, "error"));
 }
 
 function crearCategoria() {
@@ -683,7 +573,7 @@ function crearCategoria() {
 
     if (!nombre || !tipoId) {
 
-        alert("Completar todos los datos");
+        mostrarAviso("Completá el nombre y el tipo de la categoría.", "error");
         return;
     }
 
@@ -698,9 +588,7 @@ function crearCategoria() {
 
             cargarCategoriasModal();
 
-            if (typeof cargarTiposCategoria === "function") {
-                cargarTiposCategoria();
-            }
+            cargarTiposCategoria();
 
             mostrarAviso("Categoría creada.", "ok");
         })
@@ -712,44 +600,27 @@ function crearCategoria() {
 
 function cargarCategoriasModal() {
 
-    fetch("http://localhost:8080/categorias")
-        .then(res => res.json())
-        .then(data => {
+    const lista = document.getElementById("listaCategorias");
+    if (!lista) return;
 
-            const lista =
-                document.getElementById("listaCategorias");
-
-            if (!lista) return;
-
-            lista.innerHTML = "";
-
-            data.forEach(cat => {
-
-                lista.innerHTML += `
-                    <div class="categoria-item">
-
-                        <span>
-                            ${cat.nombre}
-                            (${cat.tipoCategoria?.nombre || "Sin tipo"})
-                        </span>
-
-                        <button
-                            class="btn-tabla btn-eliminar"
-                            onclick="eliminarCategoria(${cat.id})">
-                            Eliminar
-                        </button>
-
-                    </div>
-                `;
-            });
-
+    pedir("/categorias")
+        .then(categorias => {
+            lista.innerHTML = categorias.map(cat => `
+                <div class="categoria-item">
+                    <span>
+                        ${escaparHTML(cat.nombre)}
+                        (${escaparHTML(cat.tipoCategoria?.nombre || "Sin tipo")})
+                    </span>
+                    <button
+                        class="btn-tabla btn-eliminar"
+                        onclick="eliminarCategoria(${cat.id})">
+                        Eliminar
+                    </button>
+                </div>
+            `).join("");
         })
-        .catch(error => {
-
-            console.error(error);
-        });
+        .catch(error => mostrarAviso("No se pudieron cargar las categorías: " + error.message, "error"));
 }
-
 
 async function eliminarCategoria(id) {
 

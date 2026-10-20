@@ -1,33 +1,14 @@
 // =========================================================
 // VITALTACC · BASE COMPARTIDA DE LA TIENDA
 // Encabezado, carrito, pie de página, avisos y utilidades.
-// Todas las páginas de la tienda cargan este archivo primero.
+// Todas las páginas de la tienda lo cargan, después de js/comun.js.
 // =========================================================
-
-const API = "http://localhost:8080";
 
 // ---------------------------------------------------------
 // UTILIDADES
 // ---------------------------------------------------------
 
-const formatoPesos = new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency: "ARS"
-});
-
-function pesos(valor) {
-    return formatoPesos.format(Number(valor) || 0);
-}
-
-// Evita que un nombre con comillas o etiquetas rompa el HTML
-function escaparHTML(texto) {
-    return String(texto ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-}
+// API, pesos(), escaparHTML() y los nombres de pago vienen de js/comun.js
 
 function soloNumeros(texto) {
     return String(texto ?? "").replace(/\D/g, "");
@@ -470,7 +451,6 @@ function renderCarrito() {
             <strong>${pesos(Carrito.total())}</strong>
         </div>
         <a class="boton boton-primario boton-ancho" href="checkout.html">Finalizar compra</a>
-        <p class="carrito-nota">Los precios ya incluyen las promociones vigentes.</p>
     `;
 }
 
@@ -722,6 +702,20 @@ function aplicarConfigEnPagina() {
 
     document.querySelectorAll('[data-config="mapa"]').forEach(el => {
         el.href = c.ubicacionMaps;
+    });
+
+    document.querySelectorAll('[data-config="instagram"]').forEach(el => {
+        el.href = c.instagram;
+    });
+
+    document.querySelectorAll('[data-config="whatsapp"]').forEach(el => {
+        el.href = c.whatsapp;
+    });
+
+    // "https://www.instagram.com/megustavitaltacc/" → "@megustavitaltacc"
+    const usuarioInstagram = (c.instagram || "").split("?")[0].replace(/\/+$/, "").split("/").pop();
+    document.querySelectorAll('[data-config="instagram-usuario"]').forEach(el => {
+        el.textContent = usuarioInstagram ? `@${usuarioInstagram}` : "Instagram";
     });
 
     document.querySelectorAll('[data-config="horarios"]').forEach(el => {

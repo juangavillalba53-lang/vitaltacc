@@ -4,14 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel · VitalTacc</title>
+    <link rel="icon" type="image/png" href="img/logo-vitaltacc.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
-
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap"
         rel="stylesheet">
-    <title>Admin - VitalTacc</title>
-    <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/admin.css">
     <link rel="stylesheet" href="css/sidebar.css">
 </head>
@@ -26,7 +24,7 @@
         <aside class="sidebar" aria-label="Menú del panel">
 
             <div class="sidebar-logo">
-                <img src="http://localhost:8080/images/vitaltacc-logo.png" alt="VitalTacc">
+                <img src="img/logo-vitaltacc.png" alt="VitalTacc">
             </div>
 
             <div class="sidebar-title">
@@ -63,6 +61,12 @@
                     onclick="mostrarSeccion('adminHistorialVentas')">
                     <span class="menu-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></span>
                     <span>Historial de ventas</span>
+                </button>
+
+                <button class="menu-principal" data-seccion="adminPedidos" onclick="mostrarSeccion('adminPedidos')">
+                    <span class="menu-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="m3 7.5 9 4.5 9-4.5"/><path d="M12 12v9"/><path d="m7.5 5.2 9 4.6"/></svg></span>
+                    <span>Pedidos online</span>
+                    <span class="menu-contador" id="contadorPedidos" hidden aria-label="pedidos por atender"></span>
                 </button>
 
 
@@ -155,7 +159,6 @@
                                 <h2>Vencidos para retirar</h2>
                                 <span class="contador-alerta" id="totalVencidos">0</span>
                             </div>
-                            <p class="alerta-ayuda">Ya vencieron y siguen en el local. Al sacarlos, tocá Retirar.</p>
                             <ul id="dashboardVencidos" class="lista-proximos">
                                 <li class="esqueleto-item"><span></span><span></span></li>
                             </ul>
@@ -166,7 +169,6 @@
                                 <h2>Stock bajo</h2>
                                 <span class="contador-alerta" id="totalStockBajo">0</span>
                             </div>
-                            <p class="alerta-ayuda" id="ayudaStockBajo">Productos con pocas unidades.</p>
                             <ul id="dashboardStockBajo" class="lista-proximos">
                                 <li class="esqueleto-item"><span></span><span></span></li>
                             </ul>
@@ -262,7 +264,7 @@
 
                     </div>
 
-                    <!-- 🔥 AGREGAR PRODUCTO -->
+                    <!-- Agregar producto -->
                     <div id="panel-producto" class="panel-admin">
 
                         <h2>Agregar producto</h2>
@@ -273,7 +275,7 @@
 
                         <textarea id="descripcionProducto" rows="4" placeholder="Descripción"></textarea>
 
-                        <label class="label-admin">
+                        <label for="tipoCategoriaProducto" class="label-admin">
                             Tipo de categoría
                         </label>
 
@@ -285,7 +287,7 @@
 
                         </select>
 
-                        <label class="label-admin">
+                        <label for="categoriaProducto" class="label-admin">
                             Categoría
                         </label>
 
@@ -297,29 +299,32 @@
 
                         </select>
 
-                        <label class="label-admin">
+                        <label for="imagenesProducto" class="label-admin">
                             Imágenes del producto
                         </label>
 
                         <p class="ayuda-imagen">
                             <strong>Tamaño recomendado: 1000 × 1000 px</strong> (cuadradas, mínimo 800 × 800 px).
-                            JPG, PNG o WEBP de hasta 10 MB cada una. La primera imagen es la que se ve en la tienda.
+                            JPG, PNG o WEBP de hasta 10 MB, hasta 8 por producto. La primera es la que se ve
+                            en la tienda: arrastralas o usá las flechas para cambiar el orden.
                         </p>
 
-                        <input type="file" id="imagenesProducto" multiple accept="image/jpeg,image/png,image/webp">
+                        <div class="galeria-fotos" id="galeriaProducto">
+                            <input type="file" id="imagenesProducto" class="solo-lectores" multiple
+                                accept="image/jpeg,image/png,image/webp">
+                        </div>
 
-                        <div class="preview-subida" id="previewImagenesProducto" aria-live="polite"></div>
-
-                        <button onclick="crearProducto()">
+                        <button id="btnCrearProducto" onclick="crearProducto()">
                             Guardar producto
                         </button>
 
                     </div>
 
-                    <!-- 🔥 AGREGAR LOTE -->
+                    <!-- Agregar lote -->
                     <div id="panel-lote" class="panel-admin">
                         <h2>Agregar lote</h2>
 
+                        <label for="productoLote" class="label-admin">Producto</label>
                         <select id="productoLote"></select>
 
                         <input type="text" id="precioLote" placeholder="Precio" readonly>
@@ -339,7 +344,7 @@
 
                 </section>
 
-                <!-- 🔥 LOTES -->
+                <!-- Lotes -->
                 <section class="admin-section vista-admin" id="adminInventario">
 
                     <div class="section-header">
@@ -378,7 +383,7 @@
 
                     </div>
 
-                    <!-- 🔥 GESTIÓN STOCK -->
+                    <!-- Gestión stock -->
                     <div class="card-admin full">
 
                         <h2>Gestión de stock</h2>
@@ -445,7 +450,7 @@
 
                     </table>
 
-                    <p class="tabla-vacia">Buscá un producto arriba para empezar la venta.</p>
+                    <p class="tabla-vacia">Todavía no agregaste productos.</p>
 
                     </div>
 
@@ -461,7 +466,7 @@
 
                                 <div class="campo-venta">
 
-                                    <label>Cliente</label>
+                                    <label for="tipoClienteVenta">Cliente</label>
 
                                     <select id="tipoClienteVenta">
                                         <option value="CONSUMIDOR_FINAL">Consumidor Final</option>
@@ -475,17 +480,17 @@
                                         <div id="nuevoClienteVenta" class="oculto">
 
                                             <div class="campo-venta">
-                                                <label>Nombre</label>
+                                                <label for="nombreClienteVenta">Nombre</label>
                                                 <input type="text" id="nombreClienteVenta">
                                             </div>
 
                                             <div class="campo-venta">
-                                                <label>Apellido</label>
+                                                <label for="apellidoClienteVenta">Apellido</label>
                                                 <input type="text" id="apellidoClienteVenta">
                                             </div>
 
                                             <div class="campo-venta">
-                                                <label>Teléfono (opcional)</label>
+                                                <label for="telefonoClienteVenta">Teléfono (opcional)</label>
                                                 <input type="text" id="telefonoClienteVenta">
                                             </div>
 
@@ -496,7 +501,7 @@
 
                                 <div class="campo-venta">
 
-                                    <label>Método de pago</label>
+                                    <label for="metodoPagoVenta">Método de pago</label>
 
                                     <select id="metodoPagoVenta">
                                         <option value="EFECTIVO">Efectivo</option>
@@ -590,12 +595,38 @@
                                     <th>Realizada por</th>
                                     <th>Pago</th>
                                     <th>Total</th>
-                                    <th>Comprobante</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
 
                             <tbody id="tablaHistorialVentas"></tbody>
                         </table>
+
+                    </div>
+
+                </section>
+
+
+                <section class="admin-section vista-admin" id="adminPedidos">
+
+                    <div class="section-header">
+                        <span>Comercial</span>
+                        <h2>Pedidos online</h2>
+                    </div>
+
+                    <div class="card-admin full">
+
+                        <div class="filtros-pedidos" id="filtrosPedidos" role="group" aria-label="Filtrar pedidos"></div>
+
+                        <label for="buscarPedidos" class="solo-lectores">Buscar pedidos</label>
+                        <input type="search" id="buscarPedidos" placeholder="Buscar por número de pedido o cliente"
+                            oninput="filtrarPedidos()">
+
+                        <p id="estadoPedidos" role="status"></p>
+
+                        <div class="lista-pedidos" id="listaPedidos"></div>
+
+                        <div class="paginacion-stock" id="paginacionPedidos"></div>
 
                     </div>
 
@@ -628,6 +659,7 @@
                                 <h3>Ingresos totales del día</h3>
                                 <p id="totalCierreCaja" class="numero-grande">$0</p>
                                 <p id="cantidadVentasCierre">0 ventas</p>
+                                <p id="devolucionesCierre" class="cierre-devoluciones" hidden></p>
                             </div>
 
                             <div class="card-admin">
@@ -721,7 +753,7 @@
 
                     </div>
 
-                    <!-- 🔥 RESULTADOS (SOLO ADMIN) -->
+                    <!-- Resultados (solo admin) -->
                     <div id="seccion-reportes" class="grid-admin">
 
                         <div class="card-admin">
@@ -765,7 +797,7 @@
 
                     </div>
 
-                    <!-- 🔥 PROMOCIONES -->
+                    <!-- Promociones -->
                     <div id="seccion-promociones" class="card-admin full">
 
                         <h3>Crear promoción</h3>
@@ -827,7 +859,7 @@
 
                         </table>
 
-                        <p class="tabla-vacia">No hay promociones vigentes. Creá la primera con el formulario de arriba.</p>
+                        <p class="tabla-vacia">No hay promociones vigentes.</p>
 
                         <div id="paginacionPromociones" class="paginacion-stock"></div>
 
@@ -845,12 +877,12 @@
 
                     </div>
 
-                    <!-- 🔥 GESTIÓN USUARIOS -->
+                    <!-- Gestión usuarios -->
                     <div id="seccion-usuarios" class="card-admin full">
 
                         <h2>Nuevo usuario del equipo</h2>
 
-                        <!-- 🔥 CREAR USUARIO -->
+                        <!-- Crear usuario -->
                         <div class="crear-usuario">
 
                             <div class="campo">
@@ -892,7 +924,7 @@
 
                         </div>
 
-                        <!-- 🔥 TABLA -->
+                        <!-- Tabla -->
                         <table class="tabla-usuarios">
 
                             <thead>
@@ -913,7 +945,7 @@
 
                         </table>
 
-                        <p class="tabla-vacia">Todavía no hay usuarios del personal. Creá el primero con el formulario de arriba.</p>
+                        <p class="tabla-vacia">Todavía no hay usuarios del personal.</p>
 
                         <div id="paginacionUsuarios" class="paginacion-stock"></div>
 
@@ -927,7 +959,6 @@
                     <div class="section-header">
                         <span>Administración</span>
                         <h2>Configuración</h2>
-                        <p>Administrá tu cuenta y la información del negocio.</p>
                     </div>
 
                     <!-- MENÚ INTERNO DE CONFIGURACIÓN -->
@@ -955,7 +986,6 @@
 
                         <div class="section-header">
                             <h3>Datos del negocio</h3>
-                            <p>Esta información se muestra en la tienda pública.</p>
                         </div>
 
                         <form id="formConfiguracionNegocio">
@@ -1031,7 +1061,6 @@
                                     <input type="number" id="configStockBajo" min="0" max="999" step="1" inputmode="numeric" placeholder="5">
                                     <span>unidades o menos</span>
                                 </div>
-                                <p class="ayuda-campo">Esos productos aparecen en el Dashboard, en "Stock bajo".</p>
                             </div>
 
                             <button type="submit">Guardar configuración</button>
@@ -1050,7 +1079,6 @@
 
                             <div class="card-admin full">
                                 <h3>Mi cuenta</h3>
-                                <p>Actualizá tus datos personales.</p>
 
                                 <label for="cuentaNombre">Nombre</label>
                                 <input type="text" id="cuentaNombre" maxlength="100" required>
@@ -1087,7 +1115,6 @@
 
                             <div class="card-admin full">
                                 <h3>Cambiar contraseña</h3>
-                                <p>Ingresá tu contraseña actual y elegí una nueva.</p>
 
                                 <label for="contrasenaActual">Contraseña actual</label>
                                 <input type="password" id="contrasenaActual" autocomplete="current-password" required>
@@ -1116,7 +1143,25 @@
         </main>
     </div>
 
-    <!-- 🔥 MODAL LOTES -->
+    <!-- Modal devolución -->
+
+    <div id="modalDevolucion" class="modal-lotes">
+
+        <div class="contenido-modal-lotes contenido-devolucion" role="dialog" aria-modal="true" aria-labelledby="tituloDevolucion">
+
+            <span class="cerrar-modal" role="button" tabindex="0" aria-label="Cerrar" onclick="cerrarDevolucion()">
+                ✖
+            </span>
+
+            <h2 id="tituloDevolucion">Devolución</h2>
+
+            <div id="contenidoDevolucion"></div>
+
+        </div>
+
+    </div>
+
+    <!-- Modal lotes -->
 
     <div id="modalLotes" class="modal-lotes">
 
@@ -1134,7 +1179,7 @@
 
     </div>
 
-    <!-- 🔥 MODAL EDITAR PRODUCTO -->
+    <!-- Modal editar producto -->
 
     <div id="modalEditarProducto" class="modal-lotes">
 
@@ -1170,22 +1215,22 @@
 
             <textarea id="editarDescripcion" placeholder="Descripción" rows="4"></textarea>
 
-            <div id="imagenesActuales" class="preview-imagenes"></div>
-
-            <label class="label-admin">
-                Nuevas imágenes
+            <label for="editarImagenes" class="label-admin">
+                Imágenes
             </label>
 
             <p class="ayuda-imagen">
                 <strong>Tamaño recomendado: 1000 × 1000 px</strong> (cuadradas, mínimo 800 × 800 px).
-                JPG, PNG o WEBP de hasta 10 MB cada una. La primera imagen es la que se ve en la tienda.
+                JPG, PNG o WEBP de hasta 10 MB, hasta 8 por producto. La primera es la que se ve
+                en la tienda: arrastralas o usá las flechas para cambiar el orden.
             </p>
 
-            <input type="file" id="editarImagenes" multiple accept="image/jpeg,image/png,image/webp">
+            <div class="galeria-fotos" id="galeriaEditar">
+                <input type="file" id="editarImagenes" class="solo-lectores" multiple
+                    accept="image/jpeg,image/png,image/webp">
+            </div>
 
-            <div class="preview-subida" id="previewEditarImagenes" aria-live="polite"></div>
-
-            <button onclick="guardarEdicionProducto()">
+            <button id="btnGuardarEdicionProducto" onclick="guardarEdicionProducto()">
                 Guardar cambios
             </button>
 
@@ -1227,17 +1272,21 @@
 
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Versión fija de Chart.js: si sale una nueva, el gráfico no cambia de golpe -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 
-    <script src="js/global.js"></script>
+    <script src="js/comun.js"></script>
     <script src="js/admin/ui-admin.js"></script>
-    <script src="js/auth.js"></script>
 
+    <script src="js/admin/galeria-imagenes.js"></script>
+    <script src="js/admin/buscador-select.js"></script>
     <script src="js/admin/productos-admin.js"></script>
     <script src="js/admin/lotes-admin.js"></script>
     <script src="js/admin/usuarios-admin.js"></script>
     <script src="js/admin/promociones-admin.js"></script>
     <script src="js/admin/ventas-admin.js"></script>
+    <script src="js/admin/devoluciones-admin.js"></script>
+    <script src="js/admin/pedidos-admin.js"></script>
     <script src="js/admin/estadisticas.js"></script>
     <script src="js/admin/configuracion-admin.js"></script>
 

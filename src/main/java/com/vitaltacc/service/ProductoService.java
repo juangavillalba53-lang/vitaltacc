@@ -7,19 +7,24 @@ import com.vitaltacc.model.ProductoImagen;
 import com.vitaltacc.model.Promocion;
 import com.vitaltacc.repository.CategoriaRepository;
 import com.vitaltacc.repository.LoteRepository;
-import com.vitaltacc.repository.ProductoImagenRepository;
 import com.vitaltacc.repository.ProductoRepository;
 import com.vitaltacc.repository.PromocionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class ProductoService {
@@ -38,14 +43,14 @@ public class ProductoService {
     private LoteRepository loteRepository;
 
     @Autowired
-    private ProductoImagenRepository productoImagenRepository;
-
-    @Autowired
     private CategoriaRepository categoriaRepository;
 
     // =========================================================
     // ALTA Y EDICIÓN
     // =========================================================
+
+    // Máximo de fotos por producto
+    public static final int MAXIMO_IMAGENES = 8;
 
     public Producto guardarProducto(Producto producto) {
         return productoRepository.save(producto);
@@ -59,18 +64,30 @@ public class ProductoService {
 
         validarDatos(producto.getNombre(), producto.getPrecio());
 
+        List<MultipartFile> archivos = soloConContenido(imagenes);
+        validarArchivos(archivos, archivos.size());
+
         producto.setCategoria(buscarCategoria(categoriaId));
         producto.setActivo(true);
+        producto.setImagenes(new ArrayList<>());
 
-        Producto productoGuardado = productoRepository.save(producto);
-
-        if (imagenes != null && !imagenes.isEmpty()) {
-            productoGuardado.setImagenes(guardarImagenes(productoGuardado, imagenes));
+        // Se guardan en el orden en que llegan: la primera es la principal
+        for (MultipartFile archivo : archivos) {
+            agregarImagen(producto, archivo, producto.getImagenes().size());
         }
 
-        return productoGuardado;
+        return productoRepository.save(producto);
     }
 
+    /**
+     * Edita los datos del producto y su galería.
+     *
+     * "orden" dice cómo queda la galería, separado por comas:
+     *   e15 = la imagen ya guardada con id 15
+     *   n0  = la primera imagen nueva que viene en "imagenes", n1 la segunda...
+     * Las imágenes guardadas que no aparecen en "orden" se borran.
+     * Si "orden" no viene, las imágenes no se tocan.
+     */
     @Transactional
     public Producto editarProducto(
             Long id,
@@ -78,7 +95,8 @@ public class ProductoService {
             Double precio,
             String descripcion,
             Long categoriaId,
-            List<MultipartFile> imagenes) {
+            List<MultipartFile> imagenes,
+            String orden) {
 
         validarDatos(nombre, precio);
 
@@ -89,9 +107,8 @@ public class ProductoService {
         producto.setDescripcion(descripcion);
         producto.setCategoria(buscarCategoria(categoriaId));
 
-        if (imagenes != null && !imagenes.isEmpty()) {
-            eliminarImagenesProducto(producto);
-            guardarImagenes(producto, imagenes);
+        if (orden != null) {
+            acomodarImagenes(producto, orden, soloConContenido(imagenes));
         }
 
         return productoRepository.save(producto);
@@ -126,10 +143,91 @@ public class ProductoService {
     // IMÁGENES
     // =========================================================
 
-    // Guarda los archivos en la carpeta de uploads y registra cada imagen
-    private List<ProductoImagen> guardarImagenes(
-            Producto producto,
-            List<MultipartFile> imagenes) {
+    private void acomodarImagenes(Producto producto, String orden, List<MultipartFile> nuevas) {
+
+        if (producto.getImagenes() == null) {
+            producto.setImagenes(new ArrayList<>());
+        }
+
+        List<ProductoImagen> actuales = producto.getImagenes();
+        Map<Long, ProductoImagen> guardadas = new HashMap<>();
+        actuales.forEach(imagen -> guardadas.put(imagen.getId(), imagen));
+
+        // 1. Leer el orden pedido y validar antes de tocar nada
+        List<String> pasos = Arrays.stream(orden.split(","))
+                .map(String::trim)
+                .filter(paso -> !paso.isEmpty())
+                .distinct()
+                .toList();
+
+        if (pasos.size() > MAXIMO_IMAGENES) {
+            throw new RuntimeException("Se pueden cargar hasta " + MAXIMO_IMAGENES + " imágenes por producto.");
+        }
+
+        for (String paso : pasos) {
+            int numero = numeroDePaso(paso);
+            boolean valido = paso.startsWith("e")
+                    ? guardadas.containsKey((long) numero)
+                    : paso.startsWith("n") && numero < nuevas.size();
+            if (!valido) {
+                throw new RuntimeException("El orden de las imágenes no es válido. Volvé a abrir el producto.");
+            }
+        }
+
+        validarArchivos(nuevas, pasos.size());
+
+        // 2. Sacar las que ya no están (el archivo se borra cuando se confirma el cambio)
+        List<ProductoImagen> quitadas = actuales.stream()
+                .filter(imagen -> !pasos.contains("e" + imagen.getId()))
+                .toList();
+
+        actuales.removeAll(quitadas);
+        borrarArchivosAlConfirmar(quitadas);
+
+        // 3. Numerar las que quedan y sumar las nuevas en su lugar
+        for (int posicion = 0; posicion < pasos.size(); posicion++) {
+            String paso = pasos.get(posicion);
+            int numero = numeroDePaso(paso);
+
+            if (paso.startsWith("e")) {
+                guardadas.get((long) numero).setOrden(posicion);
+            } else {
+                agregarImagen(producto, nuevas.get(numero), posicion);
+            }
+        }
+    }
+
+    private int numeroDePaso(String paso) {
+        try {
+            return Integer.parseInt(paso.substring(1));
+        } catch (NumberFormatException | IndexOutOfBoundsException e) {
+            throw new RuntimeException("El orden de las imágenes no es válido. Volvé a abrir el producto.");
+        }
+    }
+
+    private List<MultipartFile> soloConContenido(List<MultipartFile> imagenes) {
+        if (imagenes == null) {
+            return List.of();
+        }
+        return imagenes.stream().filter(imagen -> imagen != null && !imagen.isEmpty()).toList();
+    }
+
+    private void validarArchivos(List<MultipartFile> archivos, int totalFinal) {
+
+        if (totalFinal > MAXIMO_IMAGENES) {
+            throw new RuntimeException("Se pueden cargar hasta " + MAXIMO_IMAGENES + " imágenes por producto.");
+        }
+
+        for (MultipartFile archivo : archivos) {
+            String tipo = archivo.getContentType();
+            if (tipo == null || !tipo.startsWith("image/")) {
+                throw new RuntimeException("«" + archivo.getOriginalFilename() + "» no es una imagen.");
+            }
+        }
+    }
+
+    // Guarda el archivo en la carpeta de uploads y lo suma a la galería del producto
+    private void agregarImagen(Producto producto, MultipartFile archivo, int orden) {
 
         File carpeta = new File(CARPETA_UPLOADS);
 
@@ -137,28 +235,22 @@ public class ProductoService {
             carpeta.mkdirs();
         }
 
-        List<ProductoImagen> listaImagenes = new ArrayList<>();
+        String nombreArchivo = System.currentTimeMillis()
+                + "_" + UUID.randomUUID().toString().substring(0, 8)
+                + "_" + nombreSeguro(archivo.getOriginalFilename());
 
-        for (MultipartFile imagen : imagenes) {
-
-            String nombreArchivo = System.currentTimeMillis()
-                    + "_"
-                    + nombreSeguro(imagen.getOriginalFilename());
-
-            try {
-                imagen.transferTo(new File(CARPETA_UPLOADS + nombreArchivo));
-            } catch (IOException | IllegalStateException e) {
-                throw new RuntimeException("No se pudo guardar la imagen: " + e.getMessage());
-            }
-
-            ProductoImagen productoImagen = new ProductoImagen();
-            productoImagen.setUrl("/uploads/" + nombreArchivo);
-            productoImagen.setProducto(producto);
-
-            listaImagenes.add(productoImagen);
+        try {
+            archivo.transferTo(new File(CARPETA_UPLOADS + nombreArchivo));
+        } catch (IOException | IllegalStateException e) {
+            throw new RuntimeException("No se pudo guardar la imagen: " + e.getMessage());
         }
 
-        return productoImagenRepository.saveAll(listaImagenes);
+        ProductoImagen imagen = new ProductoImagen();
+        imagen.setUrl("/uploads/" + nombreArchivo);
+        imagen.setProducto(producto);
+        imagen.setOrden(orden);
+
+        producto.getImagenes().add(imagen);
     }
 
     // Deja solo letras, números, punto, guion y guion bajo en el nombre del archivo
@@ -168,23 +260,33 @@ public class ProductoService {
         return nombre.isBlank() ? "imagen" : nombre;
     }
 
-    // Borra las imágenes anteriores (archivo y registro)
-    private void eliminarImagenesProducto(Producto producto) {
-
-        List<ProductoImagen> imagenes = productoImagenRepository.findByProductoId(producto.getId());
+    // Los archivos se borran recién cuando el cambio quedó guardado en la base
+    private void borrarArchivosAlConfirmar(List<ProductoImagen> imagenes) {
 
         if (imagenes.isEmpty()) {
             return;
         }
 
-        for (ProductoImagen imagen : imagenes) {
-            File archivo = new File(System.getProperty("user.dir") + "/vitaltacc" + imagen.getUrl());
+        List<File> archivos = imagenes.stream()
+                .map(imagen -> new File(System.getProperty("user.dir") + "/vitaltacc" + imagen.getUrl()))
+                .toList();
+
+        Runnable borrar = () -> archivos.forEach(archivo -> {
             if (archivo.exists()) {
                 archivo.delete();
             }
-        }
+        });
 
-        productoImagenRepository.deleteAll(imagenes);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    borrar.run();
+                }
+            });
+        } else {
+            borrar.run();
+        }
     }
 
     // =========================================================

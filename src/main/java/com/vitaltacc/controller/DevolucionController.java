@@ -1,14 +1,15 @@
 package com.vitaltacc.controller;
 
 import com.vitaltacc.dto.DevolucionRequest;
-import com.vitaltacc.model.Devolucion;
-import com.vitaltacc.repository.DevolucionRepository;
 import com.vitaltacc.service.DevolucionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
+// Si algo no corresponde, el servicio lanza un error y
+// GlobalExceptionHandler responde 400 con {"error": "mensaje"}
 @RestController
 @RequestMapping("/devoluciones")
 @CrossOrigin(origins = "*")
@@ -17,32 +18,26 @@ public class DevolucionController {
     @Autowired
     private DevolucionService devolucionService;
 
-    @Autowired
-    private DevolucionRepository devolucionRepository;
+    // Todas las devoluciones, de la más nueva a la más vieja
+    @GetMapping
+    public List<Map<String, Object>> listarDevoluciones() {
+        return devolucionService.listar();
+    }
+
+    // Motivos con sus reglas (si se devuelve la plata y si vuelve al stock)
+    @GetMapping("/motivos")
+    public List<Map<String, Object>> motivos() {
+        return devolucionService.motivos();
+    }
+
+    // Lo que se puede devolver de una venta: productos, unidades y plazo
+    @GetMapping("/venta/{ventaId}")
+    public Map<String, Object> prepararDevolucion(@PathVariable Long ventaId) {
+        return devolucionService.prepararDevolucion(ventaId);
+    }
 
     @PostMapping
-    public Object registrarDevolucion(
-            @RequestBody DevolucionRequest request) {
-
-        try {
-
-            return devolucionService.registrarDevolucion(request);
-
-        } catch (RuntimeException e) {
-
-            return e.getMessage();
-        }
-    }
-
-    @GetMapping
-    public List<Devolucion> listarDevoluciones() {
-
-        return devolucionRepository.findAll();
-    }
-
-    @GetMapping("/ventas-disponibles")
-    public List<com.vitaltacc.model.Venta> ventasDisponibles() {
-
-        return devolucionService.obtenerVentasDevolvibles();
+    public Map<String, Object> registrarDevolucion(@RequestBody DevolucionRequest request) {
+        return devolucionService.registrarDevolucion(request);
     }
 }

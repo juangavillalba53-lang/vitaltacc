@@ -2,14 +2,18 @@
 // CHECKOUT: compra online del cliente
 // =========================================================
 
-const METODOS_PAGO = [
-    ["MERCADO_PAGO", "Mercado Pago"],
-    ["TRANSFERENCIA", "Transferencia"],
-    ["TARJETA_DEBITO", "Tarjeta de débito"],
-    ["TARJETA_CREDITO", "Tarjeta de crédito"],
-    ["MODO", "MODO"],
-    ["EFECTIVO", "Efectivo"]
-];
+// Orden en que se ofrecen los métodos de pago online (los nombres están en js/comun.js)
+const METODOS_PAGO = ["MERCADO_PAGO", "TRANSFERENCIA", "TARJETA_DEBITO", "TARJETA_CREDITO", "MODO", "EFECTIVO"]
+    .map(valor => [valor, NOMBRES_PAGO[valor]]);
+
+// Cómo recibe el pedido: se guarda acá para no perderlo si el resumen se vuelve a dibujar
+const entrega = {
+    forma: "RETIRO",
+    direccion: "",
+    localidad: "Posadas",
+    telefono: "",
+    indicaciones: ""
+};
 
 function contenedorCheckout() {
     return document.getElementById("checkout");
@@ -69,8 +73,13 @@ function renderCheckout(cambios = []) {
 
     const usuario = obtenerUsuario();
 
+    if (!entrega.telefono && usuario.telefono) {
+        entrega.telefono = usuario.telefono;
+    }
+
     contenedorCheckout().innerHTML = `
         <div class="checkout">
+            <div class="checkout-columna">
             <section class="caja" aria-labelledby="tituloPedido">
                 <h2 id="tituloPedido">Tu pedido</h2>
                 ${cambios.length ? `<p class="mensaje-formulario error">${cambios.map(escaparHTML).join(" ")}</p>` : ""}
@@ -93,10 +102,61 @@ function renderCheckout(cambios = []) {
                 <button type="button" class="boton-texto" id="editarPedido">Editar el pedido</button>
             </section>
 
+            <section class="caja" aria-labelledby="tituloEntrega">
+                <h2 id="tituloEntrega">¿Cómo lo recibís?</h2>
+
+                <fieldset class="formas-entrega">
+                    <legend class="solo-lectores">Forma de entrega</legend>
+                    <label class="forma-entrega">
+                        <input type="radio" name="formaEntrega" value="RETIRO" ${entrega.forma === "RETIRO" ? "checked" : ""}>
+                        <span>
+                            ${icono("ubicacion")}
+                            <strong>Retiro en el local</strong>
+                            <small>Sin costo · <span data-config="direccion">${escaparHTML(configuracionNegocio.direccion)}</span></small>
+                        </span>
+                    </label>
+                    <label class="forma-entrega">
+                        <input type="radio" name="formaEntrega" value="ENVIO" ${entrega.forma === "ENVIO" ? "checked" : ""}>
+                        <span>
+                            ${icono("bolsa")}
+                            <strong>Envío a domicilio</strong>
+                            <small>Costo y horario a coordinar por WhatsApp</small>
+                        </span>
+                    </label>
+                </fieldset>
+
+                <div class="datos-envio" id="datosEnvio" ${entrega.forma === "ENVIO" ? "" : "hidden"}>
+                    <div class="campo">
+                        <label for="envioDireccion">Dirección</label>
+                        <input type="text" id="envioDireccion" autocomplete="street-address" maxlength="150"
+                            placeholder="Calle y número" value="${escaparHTML(entrega.direccion)}">
+                    </div>
+                    <div class="fila-campos">
+                        <div class="campo">
+                            <label for="envioLocalidad">Localidad</label>
+                            <input type="text" id="envioLocalidad" autocomplete="address-level2" maxlength="80"
+                                value="${escaparHTML(entrega.localidad)}">
+                        </div>
+                        <div class="campo">
+                            <label for="envioTelefono">Teléfono</label>
+                            <input type="tel" id="envioTelefono" autocomplete="tel" maxlength="40"
+                                placeholder="Para coordinar la entrega" value="${escaparHTML(entrega.telefono)}">
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="envioIndicaciones">Indicaciones <small>(opcional)</small></label>
+                        <input type="text" id="envioIndicaciones" maxlength="250"
+                            placeholder="Piso, timbre, entre calles…" value="${escaparHTML(entrega.indicaciones)}">
+                    </div>
+                </div>
+            </section>
+            </div>
+
             <aside class="caja resumen-pago" aria-labelledby="tituloResumen">
                 <h2 id="tituloResumen">Resumen</h2>
                 <div class="resumen-fila"><span>Comprás como</span><span>${escaparHTML(usuario.nombre)} ${escaparHTML(usuario.apellido || "")}</span></div>
                 <div class="resumen-fila"><span>Productos</span><span>${Carrito.cantidadTotal()}</span></div>
+                <div class="resumen-fila"><span>Entrega</span><span id="resumenEntrega">${entrega.forma === "ENVIO" ? "A coordinar" : "Sin costo"}</span></div>
 
                 <fieldset class="metodos-pago">
                     <legend>¿Cómo vas a pagar?</legend>
@@ -116,12 +176,35 @@ function renderCheckout(cambios = []) {
                 <p class="mensaje-formulario" id="mensajeCheckout" role="alert"></p>
 
                 <button type="button" class="boton boton-primario boton-ancho" id="confirmarCompra">Confirmar compra</button>
-                <p class="nota">Los precios ya incluyen las promociones vigentes. La compra queda guardada en tu cuenta.</p>
             </aside>
         </div>
     `;
 
     document.getElementById("editarPedido").addEventListener("click", abrirCarrito);
+
+    document.querySelectorAll('input[name="formaEntrega"]').forEach(opcion => {
+        opcion.addEventListener("change", () => {
+            entrega.forma = opcion.value;
+            document.getElementById("datosEnvio").hidden = entrega.forma !== "ENVIO";
+            document.getElementById("resumenEntrega").textContent = entrega.forma === "ENVIO" ? "A coordinar" : "Sin costo";
+            if (entrega.forma === "ENVIO") document.getElementById("envioDireccion").focus();
+        });
+    });
+
+    [["envioDireccion", "direccion"], ["envioLocalidad", "localidad"],
+     ["envioTelefono", "telefono"], ["envioIndicaciones", "indicaciones"]].forEach(([id, clave]) => {
+        const campo = document.getElementById(id);
+        campo.addEventListener("input", () => {
+            entrega[clave] = campo.value;
+            campo.removeAttribute("aria-invalid");
+            // Si había un aviso por datos faltantes, se borra al completarlos
+            const aviso = document.getElementById("mensajeCheckout");
+            if (aviso.classList.contains("error") && !document.querySelector('#datosEnvio [aria-invalid="true"]')) {
+                aviso.textContent = "";
+                aviso.className = "mensaje-formulario";
+            }
+        });
+    });
     document.getElementById("confirmarCompra").addEventListener("click", confirmarCompra);
 }
 
@@ -140,6 +223,21 @@ async function confirmarCompra(evento) {
         return;
     }
 
+    // Para el envío hacen falta dirección, localidad y teléfono
+    if (entrega.forma === "ENVIO") {
+        const faltantes = [["envioDireccion", "direccion"], ["envioLocalidad", "localidad"], ["envioTelefono", "telefono"]]
+            .filter(([, clave]) => !entrega[clave].trim());
+
+        faltantes.forEach(([id]) => document.getElementById(id).setAttribute("aria-invalid", "true"));
+
+        if (faltantes.length) {
+            aviso.textContent = "Para el envío completá la dirección, la localidad y un teléfono.";
+            aviso.classList.add("error");
+            document.getElementById(faltantes[0][0]).focus();
+            return;
+        }
+    }
+
     boton.disabled = true;
     boton.textContent = "Confirmando…";
 
@@ -156,6 +254,13 @@ async function confirmarCompra(evento) {
             tipoVenta: "ONLINE",
             metodoPago: metodo,
             clienteId: Number(usuario.id),
+            formaEntrega: entrega.forma,
+            ...(entrega.forma === "ENVIO" ? {
+                envioDireccion: entrega.direccion.trim(),
+                envioLocalidad: entrega.localidad.trim(),
+                envioTelefono: entrega.telefono.trim(),
+                envioIndicaciones: entrega.indicaciones.trim()
+            } : {}),
             detalles: Carrito.items().map(item => ({
                 productoId: Number(item.id),
                 cantidad: Number(item.cantidad)
@@ -174,7 +279,7 @@ async function confirmarCompra(evento) {
 
         const compra = await respuesta.json();
         Carrito.vaciar();
-        mostrarCompraLista(compra);
+        mostrarCompraLista(compra, { ...entrega });
 
     } catch (error) {
         aviso.textContent = error.message === "Failed to fetch"
@@ -186,8 +291,35 @@ async function confirmarCompra(evento) {
     }
 }
 
-function mostrarCompraLista(compra) {
+// Link de WhatsApp del local con el mensaje ya escrito
+function linkWhatsapp(texto) {
+    const base = configuracionNegocio.whatsapp || CONFIG_POR_DEFECTO.whatsapp;
+    return `${base}${base.includes("?") ? "&" : "?"}text=${encodeURIComponent(texto)}`;
+}
+
+function mostrarCompraLista(compra, datosEntrega) {
     document.querySelector(".cabecera-pagina").hidden = true;
+
+    const usuario = obtenerUsuario();
+    const conEnvio = datosEntrega.forma === "ENVIO";
+
+    // Con envío, el siguiente paso es coordinarlo por WhatsApp
+    const mensajeWhatsapp =
+        `Hola! Soy ${usuario.nombre} ${usuario.apellido || ""}. Hice el pedido N.º ${compra.id} ` +
+        `con envío a ${datosEntrega.direccion.trim()}, ${datosEntrega.localidad.trim()}. ¿Coordinamos el envío?`;
+
+    const entregaHTML = conEnvio ? `
+        <div class="compra-lista-envio">
+            <h2>Coordiná el envío</h2>
+            <p>Escribinos por WhatsApp y acordamos el costo y el horario. El mensaje ya va con tu pedido y tu dirección.</p>
+            <a class="boton boton-whatsapp" href="${escaparHTML(linkWhatsapp(mensajeWhatsapp))}" target="_blank" rel="noopener noreferrer">
+                ${icono("whatsapp")}<span>Coordinar por WhatsApp</span>
+            </a>
+        </div>` : `
+        <p class="compra-lista-retiro">
+            ${icono("ubicacion")}
+            <span>Te avisamos por mail cuando esté <strong>listo para retirar</strong> en ${escaparHTML(configuracionNegocio.direccion)}.</span>
+        </p>`;
 
     // Las cuentas creadas en el local tienen un mail interno: a esas no se les escribe
     const email = String(obtenerUsuario()?.email || "");
@@ -198,6 +330,7 @@ function mostrarCompraLista(compra) {
             <span class="compra-lista-sello"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>
             <h1>Gracias por tu compra</h1>
             <p>Registramos tu pedido N.º ${escaparHTML(compra.id)} por ${pesos(compra.total)}. Lo vas a encontrar siempre en Mis compras.</p>
+            ${entregaHTML}
             ${tieneMail ? `<p class="compra-lista-mail">Te enviamos el comprobante a <strong>${escaparHTML(email)}</strong>. Si no lo ves, revisá la carpeta de spam.</p>` : ""}
             <div class="compra-lista-botones">
                 <a class="boton boton-primario" href="mis-compras.html">Ver mis compras</a>

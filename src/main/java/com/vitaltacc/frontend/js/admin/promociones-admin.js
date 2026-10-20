@@ -1,4 +1,6 @@
-// 🔥 PROMOCIONES
+// =========================================================
+// PROMOCIONES
+// =========================================================
 
 function crearPromocion() {
 
@@ -16,19 +18,14 @@ function crearPromocion() {
 
     const fin = document.getElementById("finPromo").value;
 
-    if (!descripcion || isNaN(descuento) || !inicio || !fin) {
-        alert("Completar todos los campos");
-        return;
-    }
-
-    if (descuento <= 0 || descuento > 100) {
-        alert("El descuento tiene que ser entre 1 y 100 %.");
-        return;
-    }
-
     // Las fechas vienen como AAAA-MM-DD, así que se pueden comparar como texto
-    if (fin < inicio) {
-        alert("La fecha de fin no puede ser anterior a la de inicio.");
+    const error =
+        (!descripcion.trim() || isNaN(descuento) || !inicio || !fin) ? "Completá todos los campos." :
+        (descuento <= 0 || descuento > 100) ? "El descuento tiene que ser entre 1 y 100 %." :
+        fin < inicio ? "La fecha de fin no puede ser anterior a la de inicio." : "";
+
+    if (error) {
+        mostrarAviso(error, "error");
         return;
     }
 
@@ -39,7 +36,7 @@ function crearPromocion() {
         fechaFin: fin
     };
 
-    // 🔥 si eligió producto
+    // Sin producto elegido, la promoción es para toda la tienda
     if (productoId) {
         body.producto = {
             id: productoId
@@ -57,6 +54,8 @@ function crearPromocion() {
             document.getElementById("finPromo").value = "";
 
             cargarPromociones();
+            cargarProductos(); // los precios con descuento cambian
+            cargarDashboard();
         })
         .catch(error => {
             mostrarAviso("No se pudo crear la promoción: " + error.message, "error");
@@ -76,9 +75,7 @@ function cargarPromociones() {
             promocionesVigentes = Array.isArray(data) ? data : [];
             renderPromociones();
         })
-        .catch(error => {
-            console.error("Error cargando promociones:", error);
-        });
+        .catch(error => mostrarAviso("No se pudieron cargar las promociones: " + error.message, "error"));
 }
 
 function renderPromociones() {
@@ -147,7 +144,7 @@ async function eliminarPromocion(id) {
         await pedir(`/promociones/${id}`, { method: "DELETE" });
         mostrarAviso("Promoción eliminada.", "ok");
         cargarPromociones();
-        cargarProductosVenta();
+        cargarProductos();
         cargarDashboard();
     } catch (error) {
         mostrarAviso("No se pudo eliminar: " + error.message, "error");

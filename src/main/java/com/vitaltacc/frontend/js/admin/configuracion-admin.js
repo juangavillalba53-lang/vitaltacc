@@ -1,6 +1,6 @@
-
-const API_CONFIGURACION = "http://localhost:8080/configuracion";
-const API_USUARIOS = "http://localhost:8080/usuarios";
+// =========================================================
+// CONFIGURACIÓN: datos del negocio, mi cuenta y contraseña
+// =========================================================
 
 const camposConfiguracion = {
     nombreNegocio: "configNombre",
@@ -100,13 +100,7 @@ async function cargarConfiguracionNegocio() {
     mostrarEstadoConfiguracion("Cargando configuración...");
 
     try {
-        const respuesta = await fetch(API_CONFIGURACION);
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo obtener la configuración.");
-        }
-
-        const datos = await respuesta.json();
+        const datos = await pedir("/configuracion");
 
         Object.entries(camposConfiguracion).forEach(([campo, id]) => {
             const elemento = document.getElementById(id);
@@ -115,11 +109,7 @@ async function cargarConfiguracionNegocio() {
 
         mostrarEstadoConfiguracion("Configuración cargada.");
     } catch (error) {
-        console.error("Error al cargar la configuración:", error);
-        mostrarEstadoConfiguracion(
-            "No se pudo cargar la configuración. Verificá que el backend esté iniciado.",
-            true
-        );
+        mostrarEstadoConfiguracion("No se pudo cargar la configuración: " + error.message, true);
     }
 }
 
@@ -154,23 +144,10 @@ async function guardarConfiguracionNegocio(evento) {
     mostrarEstadoConfiguracion("Guardando configuración...");
 
     try {
-        const respuesta = await fetch(API_CONFIGURACION, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(datos)
-        });
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo guardar la configuración.");
-        }
-
+        await pedir("/configuracion", { method: "PUT", json: datos });
         mostrarEstadoConfiguracion("Configuración guardada correctamente.");
     } catch (error) {
-        console.error("Error al guardar la configuración:", error);
-        mostrarEstadoConfiguracion(
-            "No se pudo guardar. Revisá el backend y la conexión.",
-            true
-        );
+        mostrarEstadoConfiguracion("No se pudo guardar: " + error.message, true);
     } finally {
         if (boton) boton.disabled = false;
     }
@@ -191,13 +168,7 @@ async function cargarMiCuenta() {
     mostrarEstadoMiCuenta("Cargando datos...");
 
     try {
-        const respuesta = await fetch(`${API_USUARIOS}/${usuarioGuardado.id}`);
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudieron cargar los datos de la cuenta.");
-        }
-
-        const usuario = await respuesta.json();
+        const usuario = await pedir(`/usuarios/${usuarioGuardado.id}`);
 
         const camposCuenta = {
             cuentaNombre: usuario.nombre,
@@ -205,7 +176,7 @@ async function cargarMiCuenta() {
             cuentaEmail: usuario.email,
             cuentaDni: usuario.dni,
             cuentaTelefono: usuario.telefono,
-            cuentaRol: usuario.rol
+            cuentaRol: ({ ADMIN: "Administrador", EMPLEADO: "Empleado", CLIENTE: "Cliente" })[usuario.rol] || usuario.rol
         };
 
         Object.entries(camposCuenta).forEach(([id, valor]) => {
@@ -217,8 +188,7 @@ async function cargarMiCuenta() {
 
         mostrarEstadoMiCuenta("");
     } catch (error) {
-        console.error("Error al cargar la cuenta:", error);
-        mostrarEstadoMiCuenta("No se pudieron cargar los datos de la cuenta.", true);
+        mostrarEstadoMiCuenta("No se pudieron cargar los datos de la cuenta: " + error.message, true);
     }
 }
 
@@ -253,23 +223,7 @@ async function guardarMiCuenta(evento) {
     mostrarEstadoMiCuenta("Guardando cambios...");
 
     try {
-        const respuesta = await fetch(`${API_USUARIOS}/${usuarioActual.id}/datos`, {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(datos)
-        });
-
-        const resultado = await respuesta.json().catch(() => ({}));
-
-        if (!respuesta.ok) {
-            throw new Error(
-                resultado.message ||
-                resultado.mensaje ||
-                "No se pudieron guardar los cambios."
-            );
-        }
+        const resultado = await pedir(`/usuarios/${usuarioActual.id}/datos`, { method: "PUT", json: datos }) || {};
 
         // Mantener actualizados los datos básicos de la sesión local.
         const sesionActualizada = {
@@ -285,7 +239,6 @@ async function guardarMiCuenta(evento) {
         await cargarMiCuenta();
         mostrarEstadoMiCuenta("Datos actualizados correctamente.");
     } catch (error) {
-        console.error("Error al guardar los datos de la cuenta:", error);
         mostrarEstadoMiCuenta(error.message, true);
     } finally {
         if (boton) boton.disabled = false;
@@ -342,31 +295,14 @@ async function cambiarContrasena(evento) {
     mostrarEstado("Actualizando contraseña...");
 
     try {
-        const respuesta = await fetch(
-            `${API_USUARIOS}/${usuario.id}/contrasena`,
-            {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    contrasenaActual,
-                    contrasenaNueva
-                })
-            }
-        );
-
-        const datos = await respuesta.json().catch(() => ({}));
-
-        if (!respuesta.ok) {
-            throw new Error(
-                datos.message || datos.mensaje ||
-                "No se pudo cambiar la contraseña."
-            );
-        }
+        await pedir(`/usuarios/${usuario.id}/contrasena`, {
+            method: "PUT",
+            json: { contrasenaActual, contrasenaNueva }
+        });
 
         formulario.reset();
         mostrarEstado("Contraseña actualizada correctamente.");
     } catch (error) {
-        console.error("Error al cambiar la contraseña:", error);
         mostrarEstado(error.message, true);
     } finally {
         if (boton) boton.disabled = false;

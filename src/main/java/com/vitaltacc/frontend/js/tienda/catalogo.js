@@ -10,13 +10,6 @@ let categoriaElegida = "";
 let filtradosCatalogo = [];
 let mostradosCatalogo = 0;
 
-function normalizar(texto) {
-    return String(texto || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[̀-ͯ]/g, "");
-}
-
 function renderCategorias() {
     const contenedor = document.getElementById("categorias");
 
@@ -49,11 +42,11 @@ function renderCategorias() {
 function renderCatalogo() {
     const contenedor = document.getElementById("catalogo");
     const resultado = document.getElementById("resultado");
-    const texto = normalizar(document.getElementById("buscador").value.trim());
+    const texto = normalizarTexto(document.getElementById("buscador").value.trim());
 
     const filtrados = productosCatalogo.filter(p =>
         (!categoriaElegida || p.categoria === categoriaElegida) &&
-        (!texto || normalizar(p.nombre).includes(texto) || normalizar(p.descripcion).includes(texto))
+        (!texto || normalizarTexto(p.nombre).includes(texto) || normalizarTexto(p.descripcion).includes(texto))
     );
 
     resultado.textContent = filtrados.length === 1
@@ -117,6 +110,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Permite llegar filtrado desde otro lado: productos.html?buscar=pan
     const parametros = new URLSearchParams(location.search);
     if (parametros.get("buscar")) buscador.value = parametros.get("buscar");
+    // ...o con una categoría elegida desde el inicio: productos.html?categoria=Pastas
+    const categoriaPedida = parametros.get("categoria") || "";
 
     document.getElementById("botonVerMas").addEventListener("click", () => {
         const primeraNueva = mostradosCatalogo;
@@ -137,6 +132,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         productosCatalogo = (await obtenerProductos())
             .filter(p => Number(p.stock) > 0)
             .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"));
+
+        if (productosCatalogo.some(p => p.categoria === categoriaPedida)) {
+            categoriaElegida = categoriaPedida;
+        }
 
         renderCategorias();
         renderCatalogo();

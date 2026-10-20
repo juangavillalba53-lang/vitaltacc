@@ -1,13 +1,12 @@
 // =========================================================
 // VITALTACC · DETALLES DE INTERFAZ DEL PANEL
-// - Dirección del servidor y pedidos con manejo de errores
-// - Avisos (toasts) en lugar de las ventanas alert()
+// - Pedidos al servidor con manejo de errores
+// - Avisos (toasts): mostrarAviso(texto, "ok" | "error" | "alerta")
 // - Indicador animado de la sección activa en el menú
 // - Estados de carga con esqueletos
 // =========================================================
 
-// Dirección del servidor: si cambia (por ejemplo al subirlo a internet), se cambia acá
-const API = "http://localhost:8080";
+// API, pesos(), escaparHTML(), fechaCorta() y los nombres de pago vienen de js/comun.js
 
 /**
  * Hace un pedido al servidor y, si falla, lanza un Error con el mensaje
@@ -82,28 +81,6 @@ function textoDias(dias) {
     return `Vence en ${dias} días`;
 }
 
-// "2026-10-20" → "20/10/2026"
-function fechaCorta(fecha) {
-    const [anio, mes, dia] = String(fecha || "").substring(0, 10).split("-");
-    return anio ? `${dia}/${mes}/${anio}` : "";
-}
-
-const FORMATO_PESOS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
-
-function pesos(valor) {
-    return FORMATO_PESOS.format(Number(valor) || 0);
-}
-
-// Evita que un texto con < o > se interprete como HTML
-function escaparHTML(texto) {
-    return String(texto ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-}
-
 (function () {
 
     // -----------------------------------------------------
@@ -147,8 +124,7 @@ function escaparHTML(texto) {
             <span class="aviso-texto"></span>
             <button type="button" class="aviso-cerrar" aria-label="Cerrar aviso">×</button>
         `;
-        aviso.querySelector(".aviso-texto").textContent =
-            String(mensaje).replace(/^[\s✅⚠❌🔥]+/u, "");
+        aviso.querySelector(".aviso-texto").textContent = String(mensaje);
 
         const cerrar = () => {
             if (aviso.dataset.saliendo) return;
@@ -160,7 +136,8 @@ function escaparHTML(texto) {
         aviso.querySelector(".aviso-cerrar").addEventListener("click", cerrar);
 
         // Pausa el temporizador mientras el mouse está encima
-        let restante = clase === "error" ? 6000 : 3500;
+        // Los errores y advertencias quedan más tiempo a la vista
+        let restante = clase === "ok" ? 3500 : 6000;
         let inicio = Date.now();
         let timer = setTimeout(cerrar, restante);
 
@@ -180,11 +157,6 @@ function escaparHTML(texto) {
         while (cont.children.length > 3) {
             cont.firstElementChild.remove();
         }
-    };
-
-    // Todas las llamadas a alert() del panel pasan a ser avisos
-    window.alert = function (mensaje) {
-        window.mostrarAviso(mensaje);
     };
 
     // -----------------------------------------------------
@@ -492,72 +464,6 @@ function escaparHTML(texto) {
     }
 
     // -----------------------------------------------------
-    // IMÁGENES DE PRODUCTO: vista previa y control de tamaño
-    // -----------------------------------------------------
-
-    const LADO_RECOMENDADO = 1000;
-    const LADO_MINIMO = 800;
-    const PESO_MAXIMO = 10 * 1024 * 1024;
-
-    function leerDimensiones(archivo) {
-        return new Promise(resolver => {
-            const url = URL.createObjectURL(archivo);
-            const img = new Image();
-            img.onload = () => resolver({ url, ancho: img.naturalWidth, alto: img.naturalHeight });
-            img.onerror = () => resolver({ url, ancho: 0, alto: 0 });
-            img.src = url;
-        });
-    }
-
-    function revisarImagen(archivo, ancho, alto) {
-        if (archivo.size > PESO_MAXIMO) {
-            return { tipo: "error", texto: "Pesa más de 10 MB y no se va a poder subir." };
-        }
-        if (!ancho) {
-            return { tipo: "error", texto: "No se pudo leer la imagen." };
-        }
-        if (Math.min(ancho, alto) < LADO_MINIMO) {
-            return { tipo: "alerta", texto: `Es chica: se puede ver borrosa. Mínimo ${LADO_MINIMO} × ${LADO_MINIMO} px.` };
-        }
-        if (Math.abs(ancho - alto) / Math.max(ancho, alto) > 0.05) {
-            return { tipo: "alerta", texto: "No es cuadrada: en la tienda se van a recortar los bordes." };
-        }
-        return { tipo: "ok", texto: ancho >= LADO_RECOMENDADO ? "Perfecta." : "Bien." };
-    }
-
-    async function mostrarVistaPrevia(input, destino) {
-        destino.innerHTML = "";
-        const archivos = [...input.files];
-        if (!archivos.length) return;
-
-        for (const [i, archivo] of archivos.entries()) {
-            const { url, ancho, alto } = await leerDimensiones(archivo);
-            const estado = revisarImagen(archivo, ancho, alto);
-
-            const tarjeta = document.createElement("figure");
-            tarjeta.className = `subida subida-${estado.tipo}`;
-            tarjeta.innerHTML = `
-                <img src="${url}" alt="">
-                <figcaption>
-                    <strong>${ancho && alto ? `${ancho} × ${alto} px` : "Sin datos"}</strong>
-                    <span></span>
-                    ${i === 0 ? '<em>Principal</em>' : ""}
-                </figcaption>
-            `;
-            tarjeta.querySelector("figcaption span").textContent = estado.texto;
-            destino.appendChild(tarjeta);
-        }
-    }
-
-    function conectarVistaPrevia(idInput, idDestino) {
-        const input = document.getElementById(idInput);
-        const destino = document.getElementById(idDestino);
-        if (!input || !destino) return;
-
-        input.addEventListener("change", () => mostrarVistaPrevia(input, destino));
-    }
-
-    // -----------------------------------------------------
     // OJITO PARA VER U OCULTAR LA CONTRASEÑA
     // -----------------------------------------------------
 
@@ -622,16 +528,16 @@ function escaparHTML(texto) {
         observarNumeros();
         observarTotalVenta();
         agregarOjitosContrasena();
-        conectarVistaPrevia("imagenesProducto", "previewImagenesProducto");
-        conectarVistaPrevia("editarImagenes", "previewEditarImagenes");
         setTimeout(() => document.body.classList.remove("inicio"), 900);
 
         // Si una tabla sigue mostrando el esqueleto, avisar que no cargó
         setTimeout(() => {
-            document.querySelectorAll("tr.fila-esqueleto").forEach(fila => {
-                const tbody = fila.parentElement;
+            const tablas = new Set([...document.querySelectorAll("tr.fila-esqueleto")].map(fila => fila.parentElement));
+
+            tablas.forEach(tbody => {
+                if (!tbody) return;
                 const columnas =
-                    tbody.closest("table").querySelectorAll("thead th").length || 1;
+                    tbody.closest("table")?.querySelectorAll("thead th").length || 1;
 
                 tbody.innerHTML = `
                     <tr class="fila-sin-datos">

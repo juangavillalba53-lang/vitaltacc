@@ -42,9 +42,13 @@
     overflow-x: hidden;
     overflow-y: auto;
     color: var(--vt-on-dark);
+    /* Grano sutil + brillo turquesa arriba. "local" hace que cubran todo
+       el menú aunque sea más alto que la pantalla y haya que bajar */
     background:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.063 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
         radial-gradient(120% 60% at 0% 0%, rgba(2, 189, 178, 0.16), transparent 60%),
         var(--vt-petroleo);
+    background-attachment: local, scroll, scroll;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
 }
@@ -93,6 +97,7 @@
 ========================================================= */
 
 .sidebar-menu {
+    position: relative;
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -117,7 +122,11 @@
     line-height: 1.3;
     font-family: inherit;
     cursor: pointer;
-    transition: color 0.18s ease, background 0.18s ease;
+    z-index: 1;
+    transition:
+        color 200ms ease,
+        background-color 200ms ease,
+        transform 160ms var(--vt-ease-out);
 }
 
 .menu-icono {
@@ -125,6 +134,7 @@
     flex-shrink: 0;
     width: 20px;
     height: 20px;
+    transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .menu-icono svg {
@@ -187,33 +197,6 @@
 }
 
 /* Submenús (si se usan) */
-.submenu {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin: 2px 0 8px 22px;
-    padding-left: 10px;
-    border-left: 1px solid var(--vt-on-dark-line);
-}
-
-.submenu button {
-    min-height: 34px;
-    padding: 7px 10px;
-    color: var(--vt-on-dark-muted);
-    background: transparent;
-    border: 0;
-    border-radius: 8px;
-    text-align: left;
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.submenu button:hover,
-.submenu button.activo {
-    color: #FFFFFF;
-    background: rgba(255, 255, 255, 0.08);
-}
 
 /* =========================================================
    TABLETS
@@ -304,27 +287,8 @@
    TEXTURA E INDICADOR ANIMADO
 ========================================================= */
 
-/* Grano sutil para que el petróleo no se vea plano */
-.sidebar::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    opacity: 0.07;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
 .sidebar > * {
     position: relative;
-    z-index: 1;
-}
-
-.sidebar-menu {
-    position: relative;
-}
-
-.sidebar-menu .menu-principal {
     z-index: 1;
 }
 
@@ -380,13 +344,6 @@
     transform: scale(0.97);
 }
 
-.sidebar-menu .menu-principal {
-    transition:
-        color 200ms ease,
-        background-color 200ms ease,
-        transform 160ms var(--vt-ease-out);
-}
-
 @media (max-width: 650px) {
     .menu-indicador::after {
         display: none;
@@ -404,12 +361,38 @@
 }
 
 /* Íconos del menú: un empujoncito al pasar el mouse */
-.menu-icono {
-    transition: transform 260ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
 
 @media (hover: hover) and (pointer: fine) {
     .sidebar-menu .menu-principal:hover .menu-icono {
         transform: translateX(3px) scale(1.08);
     }
 }
+
+/* Pantallas bajas (notebooks): el menú se compacta para entrar sin tener que bajar */
+@media (min-width: 1001px) and (max-height: 860px) {
+    .sidebar {
+        padding-top: 16px;
+    }
+
+    .sidebar-logo {
+        padding-bottom: 12px;
+    }
+
+    .sidebar-menu {
+        gap: 1px;
+    }
+
+    .sidebar-menu .menu-principal {
+        min-height: 38px;
+        padding: 8px 12px;
+    }
+
+    .sidebar-menu .menu-secundario {
+        min-height: 36px;
+    }
+
+    .sidebar-divider {
+        margin: 8px 0;
+    }
+}
+

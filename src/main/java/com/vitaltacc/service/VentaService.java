@@ -1,6 +1,10 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.CambioEstadoPedido;
 import com.vitaltacc.model.DetalleVenta;
+import com.vitaltacc.model.Devolucion;
+import com.vitaltacc.model.EstadoPedido;
+import com.vitaltacc.model.FormaEntrega;
 import com.vitaltacc.model.Lote;
 import com.vitaltacc.model.Venta;
 import com.vitaltacc.repository.LoteRepository;
@@ -16,7 +20,6 @@ import com.vitaltacc.repository.UsuarioRepository;
 import com.vitaltacc.dto.VentaHistorialDTO;
 import com.vitaltacc.dto.VentaItemRequest;
 import org.springframework.transaction.annotation.Transactional;
-import com.vitaltacc.service.ProductoService;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -41,6 +44,12 @@ public class VentaService {
 
     @Autowired
     private UsuarioService usuarioService;
+
+    @Autowired
+    private DevolucionService devolucionService;
+
+    @Autowired
+    private PedidoService pedidoService;
 
     @Transactional
     public Venta crearVenta(VentaRequest ventaRequest) {
@@ -99,6 +108,8 @@ public class VentaService {
 
             venta.setCliente(cliente);
             venta.setEmpleado(null);
+
+            prepararEntrega(venta, ventaRequest);
         }
 
         if (ventaRequest.getTipoVenta() == com.vitaltacc.model.TipoVenta.LOCAL) {
@@ -204,12 +215,51 @@ public class VentaService {
 
         venta.setTotal(totalVenta);
 
+        if (venta.esOnline()) {
+            venta.setEstadoPedido(EstadoPedido.RECIBIDO);
+            venta.getCambiosEstado().add(
+                    new CambioEstadoPedido(venta, EstadoPedido.RECIBIDO, venta.getCliente(), null));
+        }
+
         return ventaRepository.save(venta);
+    }
+
+    // Retiro en el local (por defecto) o envío: para el envío hacen falta dirección,
+    // localidad y un teléfono para coordinar
+    private void prepararEntrega(Venta venta, VentaRequest pedido) {
+
+        FormaEntrega forma = pedido.getFormaEntrega() != null ? pedido.getFormaEntrega() : FormaEntrega.RETIRO;
+        venta.setFormaEntrega(forma);
+
+        if (forma != FormaEntrega.ENVIO) {
+            return;
+        }
+
+        String direccion = recortar(pedido.getEnvioDireccion(), 150);
+        String localidad = recortar(pedido.getEnvioLocalidad(), 80);
+        String telefono = recortar(pedido.getEnvioTelefono(), 40);
+
+        if (direccion == null || localidad == null || telefono == null) {
+            throw new RuntimeException("Para el envío completá la dirección, la localidad y un teléfono.");
+        }
+
+        venta.setEnvioDireccion(direccion);
+        venta.setEnvioLocalidad(localidad);
+        venta.setEnvioTelefono(telefono);
+        venta.setEnvioIndicaciones(recortar(pedido.getEnvioIndicaciones(), 250));
+    }
+
+    private static String recortar(String texto, int largo) {
+        if (texto == null || texto.isBlank()) return null;
+        String limpio = texto.trim();
+        return limpio.length() > largo ? limpio.substring(0, largo) : limpio;
     }
 
     // Compras de un cliente, sin importar si fueron en el local u online
     @Transactional(readOnly = true)
     public List<Map<String, Object>> obtenerComprasDeCliente(Long clienteId) {
+
+        Map<Long, Double> reintegros = devolucionService.reintegradoPorVenta();
 
         return ventaRepository.findByClienteIdOrderByIdDesc(clienteId)
                 .stream()
@@ -245,6 +295,16 @@ public class VentaService {
                     compra.put("tipoVenta", venta.getTipoVenta() != null ? venta.getTipoVenta().name() : "");
                     compra.put("metodoPago", venta.getMetodoPago() != null ? venta.getMetodoPago().name() : "");
                     compra.put("total", venta.getTotal());
+                    compra.put("devuelto", reintegros.getOrDefault(venta.getId(), 0.0));
+
+                    // Compras online: estado, entrega y los pasos del pedido
+                    if (venta.esOnline()) {
+                        Map<String, Object> pedido = pedidoService.datosPedido(venta);
+                        for (String clave : List.of("estado", "estadoNombre", "estadoMensaje", "formaEntrega",
+                                "formaEntregaNombre", "envioDireccion", "envioLocalidad", "recorrido", "historial")) {
+                            compra.put(clave, pedido.get(clave));
+                        }
+                    }
                     compra.put("items", new ArrayList<>(items.values()));
 
                     return compra;
@@ -281,6 +341,7 @@ public class VentaService {
     public List<VentaHistorialDTO> obtenerHistorialDTO(String busqueda) {
 
         List<Venta> ventas = buscarHistorial(busqueda);
+        Map<Long, Double> reintegros = devolucionService.reintegradoPorVenta();
 
         return ventas.stream()
                 .map(venta -> {
@@ -311,148 +372,136 @@ public class VentaService {
                             venta.getMetodoPago() != null
                                     ? venta.getMetodoPago().name()
                                     : "",
-                            venta.getTotal());
+                            venta.getTotal(),
+                            reintegros.getOrDefault(venta.getId(), 0.0),
+                            DevolucionService.estaEnPlazo(venta),
+                            venta.esOnline() ? venta.estadoActual().name() : null);
                 })
                 .toList();
+    }
+
+    // =========================================================
+    // REPORTES
+    // - La plata (totales y cierre de caja) se cuenta por día: una devolución
+    //   resta el día en que se hizo, como pasa con la caja real.
+    // - Más vendidos y mejores clientes miran cada venta ya neta: lo devuelto
+    //   con reintegro no cuenta como vendido.
+    // =========================================================
+
+    private static double total(Venta venta) {
+        return venta.getTotal() != null ? venta.getTotal() : 0.0;
+    }
+
+    private double reintegradoEntre(LocalDate desde, LocalDate hasta) {
+        return devolucionService.conReintegroEntre(desde, hasta).stream()
+                .mapToDouble(Devolucion::getMontoReintegradoSeguro)
+                .sum();
+    }
+
+    // Para los reportes y la caja: los pedidos cancelados no cuentan
+    private List<Venta> ventasQueCuentan() {
+        return ventaRepository.findAll().stream().filter(v -> !v.estaCancelada()).toList();
     }
 
     public Double obtenerTotalFacturado() {
 
-        return ventaRepository.findAll().stream()
-                .mapToDouble(v -> v.getTotal() != null ? v.getTotal() : 0)
-                .sum();
-    }
+        double vendido = ventasQueCuentan().stream().mapToDouble(VentaService::total).sum();
+        double devuelto = devolucionService.reintegradoPorVenta().values().stream()
+                .mapToDouble(Double::doubleValue).sum();
 
-    public List<Map<String, Object>> obtenerProductosMasVendidosPorMes(int mes, int anio) {
-
-        Map<String, Integer> conteo = new HashMap<>();
-
-        List<Venta> ventas = ventaRepository.findAll();
-
-        for (Venta venta : ventas) {
-
-            if (venta.getFecha() == null)
-                continue;
-
-            if (venta.getFecha().getMonthValue() == mes &&
-                    venta.getFecha().getYear() == anio) {
-
-                if (venta.getDetalles() != null) {
-                    for (DetalleVenta detalle : venta.getDetalles()) {
-
-                        if (detalle.getProducto() == null)
-                            continue;
-
-                        String nombre = detalle.getProducto().getNombre();
-                        int cantidad = detalle.getCantidad();
-
-                        conteo.put(nombre,
-                                conteo.getOrDefault(nombre, 0) + cantidad);
-                    }
-                }
-            }
-        }
-
-        return ordenarResultados(conteo);
+        return vendido - devuelto;
     }
 
     public Double obtenerTotalPorMes(int mes, int anio) {
 
-        return ventaRepository.findAll().stream()
-                .filter(v -> v.getFecha() != null &&
-                        v.getFecha().getMonthValue() == mes &&
-                        v.getFecha().getYear() == anio)
-                .mapToDouble(v -> v.getTotal() != null ? v.getTotal() : 0)
+        LocalDate desde = LocalDate.of(anio, mes, 1);
+        LocalDate hasta = desde.plusMonths(1).minusDays(1);
+
+        double vendido = ventasQueCuentan().stream()
+                .filter(v -> v.getFecha() != null && !v.getFecha().isBefore(desde) && !v.getFecha().isAfter(hasta))
+                .mapToDouble(VentaService::total)
                 .sum();
+
+        return vendido - reintegradoEntre(desde, hasta);
     }
 
     public List<Map<String, Object>> obtenerTotalPorAnio(int anio) {
 
-        Map<Integer, Double> totalesPorMes = new HashMap<>();
+        double[] totalesPorMes = new double[13];
 
-        for (int i = 1; i <= 12; i++) {
-            totalesPorMes.put(i, 0.0);
-        }
-
-        List<Venta> ventas = ventaRepository.findAll();
-
-        for (Venta venta : ventas) {
-
-            if (venta.getFecha() == null)
-                continue;
-
-            if (venta.getFecha().getYear() == anio) {
-
-                int mes = venta.getFecha().getMonthValue();
-
-                totalesPorMes.put(mes,
-                        totalesPorMes.get(mes) + (venta.getTotal() != null ? venta.getTotal() : 0));
+        for (Venta venta : ventasQueCuentan()) {
+            if (venta.getFecha() != null && venta.getFecha().getYear() == anio) {
+                totalesPorMes[venta.getFecha().getMonthValue()] += total(venta);
             }
         }
 
-        return totalesPorMes.entrySet().stream()
-                .map(entry -> {
-                    Map<String, Object> data = new HashMap<>();
-                    data.put("mes", entry.getKey());
-                    data.put("total", entry.getValue());
-                    return data;
-                })
-                .sorted((a, b) -> ((Integer) a.get("mes"))
-                        .compareTo((Integer) b.get("mes")))
-                .toList();
+        for (Devolucion devolucion : devolucionService.conReintegroEntre(
+                LocalDate.of(anio, 1, 1), LocalDate.of(anio, 12, 31))) {
+            totalesPorMes[devolucion.getFecha().getMonthValue()] -= devolucion.getMontoReintegradoSeguro();
+        }
+
+        List<Map<String, Object>> resultado = new ArrayList<>();
+
+        for (int mes = 1; mes <= 12; mes++) {
+            Map<String, Object> data = new HashMap<>();
+            data.put("mes", mes);
+            data.put("total", totalesPorMes[mes]);
+            resultado.add(data);
+        }
+
+        return resultado;
     }
 
-    public List<Map<String, Object>> obtenerTopClientesPorMes(int mes, int anio) {
-
-        Map<Long, Map<String, Object>> clientes = new HashMap<>();
-
-        for (Venta venta : ventaRepository.findAll()) {
-
-            if (venta.getFecha() == null || venta.getCliente() == null) {
-                continue;
-            }
-
-            if (venta.getFecha().getMonthValue() != mes
-                    || venta.getFecha().getYear() != anio) {
-                continue;
-            }
-
-            acumularCliente(clientes, venta);
-        }
-
-        return ordenarClientes(clientes);
-    }
+    // ---------------------------------------------------------
+    // Más vendidos (las cuatro variantes usan la misma cuenta)
+    // ---------------------------------------------------------
 
     public List<Map<String, Object>> obtenerProductosMasVendidos() {
-
-        Map<String, Integer> conteo = new HashMap<>();
-
-        List<Venta> ventas = ventaRepository.findAll();
-
-        for (Venta venta : ventas) {
-
-            if (venta.getDetalles() != null) {
-
-                for (DetalleVenta detalle : venta.getDetalles()) {
-
-                    if (detalle.getProducto() == null)
-                        continue;
-
-                    String nombre = detalle.getProducto().getNombre();
-                    int cantidad = detalle.getCantidad();
-
-                    conteo.put(nombre,
-                            conteo.getOrDefault(nombre, 0) + cantidad);
-                }
-            }
-        }
-
-        return ordenarResultados(conteo);
+        return contarVendidos(venta -> true);
     }
 
-    private List<Map<String, Object>> ordenarResultados(Map<String, Integer> conteo) {
+    public List<Map<String, Object>> obtenerProductosMasVendidosPorMes(int mes, int anio) {
+        return contarVendidos(venta -> venta.getFecha().getMonthValue() == mes
+                && venta.getFecha().getYear() == anio);
+    }
+
+    public List<Map<String, Object>> obtenerProductosMasVendidosPorDia(LocalDate fecha) {
+        if (fecha == null) {
+            return new ArrayList<>();
+        }
+        return contarVendidos(venta -> venta.getFecha().equals(fecha));
+    }
+
+    public List<Map<String, Object>> obtenerProductosMasVendidosPorAnio(int anio) {
+        return contarVendidos(venta -> venta.getFecha().getYear() == anio);
+    }
+
+    private List<Map<String, Object>> contarVendidos(java.util.function.Predicate<Venta> filtro) {
+
+        Map<String, Integer> conteo = new HashMap<>();
+        Map<Long, Map<String, Integer>> devueltas = devolucionService.unidadesDevueltasPorVenta();
+
+        for (Venta venta : ventasQueCuentan()) {
+
+            if (venta.getFecha() == null || venta.getDetalles() == null || !filtro.test(venta)) {
+                continue;
+            }
+
+            for (DetalleVenta detalle : venta.getDetalles()) {
+                if (detalle == null || detalle.getProducto() == null) continue;
+
+                String nombre = detalle.getProducto().getNombre();
+                if (nombre == null || nombre.isBlank()) continue;
+
+                conteo.merge(nombre, detalle.getCantidad(), Integer::sum);
+            }
+
+            devueltas.getOrDefault(venta.getId(), Map.of())
+                    .forEach((nombre, cantidad) -> conteo.merge(nombre, -cantidad, Integer::sum));
+        }
 
         return conteo.entrySet().stream()
+                .filter(entry -> entry.getValue() > 0)
                 .map(entry -> {
                     Map<String, Object> data = new HashMap<>();
                     data.put("producto", entry.getKey());
@@ -464,103 +513,157 @@ public class VentaService {
                 .toList();
     }
 
+    // ---------------------------------------------------------
+    // Mejores clientes (las tres variantes usan la misma cuenta)
+    // ---------------------------------------------------------
+
+    public List<Map<String, Object>> obtenerTopClientesPorMes(int mes, int anio) {
+        return topClientes(venta -> venta.getFecha().getMonthValue() == mes
+                && venta.getFecha().getYear() == anio);
+    }
+
+    public List<Map<String, Object>> obtenerTopClientesPorDia(LocalDate fecha) {
+        if (fecha == null) {
+            return new ArrayList<>();
+        }
+        return topClientes(venta -> venta.getFecha().equals(fecha));
+    }
+
+    public List<Map<String, Object>> obtenerTopClientesPorAnio(int anio) {
+        return topClientes(venta -> venta.getFecha().getYear() == anio);
+    }
+
+    private List<Map<String, Object>> topClientes(java.util.function.Predicate<Venta> filtro) {
+
+        Map<Long, Map<String, Object>> clientes = new HashMap<>();
+        Map<Long, Double> reintegros = devolucionService.reintegradoPorVenta();
+
+        for (Venta venta : ventasQueCuentan()) {
+
+            Usuario cliente = venta.getCliente();
+
+            if (venta.getFecha() == null || cliente == null || cliente.getId() == null || !filtro.test(venta)) {
+                continue;
+            }
+
+            Map<String, Object> datos = clientes.computeIfAbsent(cliente.getId(), id -> {
+                Map<String, Object> nuevo = new HashMap<>();
+                nuevo.put("clienteId", id);
+
+                String nombreCompleto = ((cliente.getNombre() == null ? "" : cliente.getNombre().trim()) + " "
+                        + (cliente.getApellido() == null ? "" : cliente.getApellido().trim())).trim();
+
+                nuevo.put("cliente", nombreCompleto.isEmpty() ? "Cliente #" + id : nombreCompleto);
+                nuevo.put("totalGastado", 0.0);
+                return nuevo;
+            });
+
+            double neto = total(venta) - reintegros.getOrDefault(venta.getId(), 0.0);
+            datos.put("totalGastado", ((Number) datos.get("totalGastado")).doubleValue() + neto);
+        }
+
+        return clientes.values()
+                .stream()
+                .filter(c -> ((Number) c.get("totalGastado")).doubleValue() > 0)
+                .sorted((a, b) -> Double.compare(
+                        ((Number) b.get("totalGastado")).doubleValue(),
+                        ((Number) a.get("totalGastado")).doubleValue()))
+                .toList();
+    }
+
+    // ---------------------------------------------------------
+    // Cierre de caja y reporte por día
+    // ---------------------------------------------------------
+
     public Map<String, Object> obtenerCierreCajaHoy() {
-
         return obtenerReportePorDia(LocalDate.now());
-
     }
 
     public Map<String, Object> obtenerReportePorDia(LocalDate fecha) {
-
-        Map<String, Object> data = new HashMap<>();
 
         if (fecha == null) {
             throw new IllegalArgumentException("La fecha del reporte es obligatoria.");
         }
 
-        double efectivo = 0.0;
-        double transferencia = 0.0;
-        double tarjeta = 0.0;
+        Map<String, Double> porMedio = new HashMap<>(Map.of("efectivo", 0.0, "transferencia", 0.0, "tarjeta", 0.0));
+        Map<String, Double> porCanal = new HashMap<>(Map.of("LOCAL", 0.0, "ONLINE", 0.0));
 
-        double totalLocal = 0.0;
-        double totalOnline = 0.0;
-        double totalGeneral = 0.0;
-
+        double vendido = 0.0;
         int cantidadVentas = 0;
         int ventasLocales = 0;
         int ventasOnline = 0;
 
-        for (Venta venta : ventaRepository.findAll()) {
+        for (Venta venta : ventasQueCuentan()) {
 
             if (venta.getFecha() == null || !venta.getFecha().equals(fecha)) {
                 continue;
             }
 
-            double total = venta.getTotal() != null
-                    ? venta.getTotal()
-                    : 0.0;
+            double monto = total(venta);
 
             cantidadVentas++;
-            totalGeneral += total;
+            vendido += monto;
 
-            if (venta.getTipoVenta() != null) {
-                switch (venta.getTipoVenta()) {
-                    case LOCAL:
-                        totalLocal += total;
-                        ventasLocales++;
-                        break;
+            if (venta.getTipoVenta() == com.vitaltacc.model.TipoVenta.LOCAL) ventasLocales++;
+            if (venta.getTipoVenta() == com.vitaltacc.model.TipoVenta.ONLINE) ventasOnline++;
 
-                    case ONLINE:
-                        totalOnline += total;
-                        ventasOnline++;
-                        break;
-                }
-            }
-
-            if (venta.getMetodoPago() == null) {
-                continue;
-            }
-
-            switch (venta.getMetodoPago()) {
-
-                case EFECTIVO:
-                    efectivo += total;
-                    break;
-
-                case TRANSFERENCIA:
-                case MERCADO_PAGO:
-                case MODO:
-                    transferencia += total;
-                    break;
-
-                case TARJETA_DEBITO:
-                case TARJETA_CREDITO:
-                    tarjeta += total;
-                    break;
-            }
+            sumar(porCanal, porMedio, venta, monto);
         }
+
+        // Lo que se devolvió hoy sale de la caja de hoy, por el medio de pago de la venta
+        List<Devolucion> devoluciones = devolucionService.conReintegroEntre(fecha, fecha);
+        double devuelto = 0.0;
+
+        for (Devolucion devolucion : devoluciones) {
+            double monto = devolucion.getMontoReintegradoSeguro();
+            devuelto += monto;
+            sumar(porCanal, porMedio, devolucion.getVenta(), -monto);
+        }
+
+        Map<String, Object> data = new HashMap<>();
 
         data.put("fecha", fecha.toString());
         data.put("ventas", cantidadVentas);
-
         data.put("ventasLocales", ventasLocales);
         data.put("ventasOnline", ventasOnline);
 
-        data.put("totalLocal", totalLocal);
-        data.put("totalOnline", totalOnline);
+        data.put("totalLocal", porCanal.get("LOCAL"));
+        data.put("totalOnline", porCanal.get("ONLINE"));
 
-        data.put("efectivo", efectivo);
-        data.put("transferencia", transferencia);
-        data.put("tarjeta", tarjeta);
+        data.put("efectivo", porMedio.get("efectivo"));
+        data.put("transferencia", porMedio.get("transferencia"));
+        data.put("tarjeta", porMedio.get("tarjeta"));
 
-        data.put("total", totalGeneral);
+        data.put("totalVendido", vendido);
+        data.put("devoluciones", devoluciones.size());
+        data.put("totalDevuelto", devuelto);
+        data.put("total", vendido - devuelto);
 
         return data;
     }
 
+    private static void sumar(Map<String, Double> porCanal, Map<String, Double> porMedio, Venta venta, double monto) {
+
+        if (venta.getTipoVenta() != null) {
+            porCanal.merge(venta.getTipoVenta().name(), monto, Double::sum);
+        }
+
+        if (venta.getMetodoPago() == null) {
+            return;
+        }
+
+        String medio = switch (venta.getMetodoPago()) {
+            case EFECTIVO -> "efectivo";
+            case TRANSFERENCIA, MERCADO_PAGO, MODO -> "transferencia";
+            case TARJETA_DEBITO, TARJETA_CREDITO -> "tarjeta";
+        };
+
+        porMedio.merge(medio, monto, Double::sum);
+    }
+
     public int obtenerCantidadVentasPorMes(int mes, int anio) {
 
-        return (int) ventaRepository.findAll().stream()
+        return (int) ventasQueCuentan().stream()
                 .filter(v -> v.getFecha() != null
                         && v.getFecha().getMonthValue() == mes
                         && v.getFecha().getYear() == anio)
@@ -569,187 +672,9 @@ public class VentaService {
 
     public int obtenerCantidadVentasPorAnio(int anio) {
 
-        return (int) ventaRepository.findAll().stream()
+        return (int) ventasQueCuentan().stream()
                 .filter(v -> v.getFecha() != null
                         && v.getFecha().getYear() == anio)
                 .count();
     }
-
-    public List<Map<String, Object>> obtenerProductosMasVendidosPorDia(LocalDate fecha) {
-
-        Map<String, Integer> conteo = new HashMap<>();
-
-        if (fecha == null) {
-            return new ArrayList<>();
-        }
-
-        for (Venta venta : ventaRepository.findAll()) {
-
-            if (venta.getFecha() == null || !venta.getFecha().equals(fecha)) {
-                continue;
-            }
-
-            if (venta.getDetalles() == null) {
-                continue;
-            }
-
-            for (DetalleVenta detalle : venta.getDetalles()) {
-
-                if (detalle == null || detalle.getProducto() == null) {
-                    continue;
-                }
-
-                String nombre = detalle.getProducto().getNombre();
-
-                if (nombre == null || nombre.isBlank()) {
-                    continue;
-                }
-
-                int cantidad = detalle.getCantidad();
-
-                conteo.put(nombre, conteo.getOrDefault(nombre, 0) + cantidad);
-            }
-        }
-
-        return ordenarResultados(conteo);
-    }
-
-    public List<Map<String, Object>> obtenerProductosMasVendidosPorAnio(int anio) {
-
-        Map<String, Integer> conteo = new HashMap<>();
-
-        for (Venta venta : ventaRepository.findAll()) {
-
-            if (venta.getFecha() == null || venta.getFecha().getYear() != anio) {
-                continue;
-            }
-
-            if (venta.getDetalles() == null) {
-                continue;
-            }
-
-            for (DetalleVenta detalle : venta.getDetalles()) {
-
-                if (detalle == null || detalle.getProducto() == null) {
-                    continue;
-                }
-
-                String nombre = detalle.getProducto().getNombre();
-
-                if (nombre == null || nombre.isBlank()) {
-                    continue;
-                }
-
-                int cantidad = detalle.getCantidad();
-
-                conteo.put(nombre, conteo.getOrDefault(nombre, 0) + cantidad);
-            }
-        }
-
-        return ordenarResultados(conteo);
-    }
-
-    public List<Map<String, Object>> obtenerTopClientesPorDia(LocalDate fecha) {
-
-        Map<Long, Map<String, Object>> clientes = new HashMap<>();
-
-        if (fecha == null) {
-            return new ArrayList<>();
-        }
-
-        for (Venta venta : ventaRepository.findAll()) {
-
-            if (venta.getFecha() == null || !venta.getFecha().equals(fecha)) {
-                continue;
-            }
-
-            if (venta.getCliente() == null) {
-                continue;
-            }
-
-            acumularCliente(clientes, venta);
-        }
-
-        return ordenarClientes(clientes);
-    }
-
-    public List<Map<String, Object>> obtenerTopClientesPorAnio(int anio) {
-
-        Map<Long, Map<String, Object>> clientes = new HashMap<>();
-
-        for (Venta venta : ventaRepository.findAll()) {
-
-            if (venta.getFecha() == null
-                    || venta.getFecha().getYear() != anio) {
-                continue;
-            }
-
-            if (venta.getCliente() == null) {
-                continue;
-            }
-
-            acumularCliente(clientes, venta);
-        }
-
-        return ordenarClientes(clientes);
-    }
-
-    private void acumularCliente(
-            Map<Long, Map<String, Object>> clientes,
-            Venta venta) {
-
-        Usuario cliente = venta.getCliente();
-        Long clienteId = cliente.getId();
-
-        if (clienteId == null) {
-            return;
-        }
-
-        Map<String, Object> datos = clientes.computeIfAbsent(
-                clienteId,
-                id -> {
-                    Map<String, Object> nuevo = new HashMap<>();
-                    nuevo.put("clienteId", id);
-
-                    String nombre = cliente.getNombre() == null
-                            ? ""
-                            : cliente.getNombre().trim();
-
-                    String apellido = cliente.getApellido() == null
-                            ? ""
-                            : cliente.getApellido().trim();
-
-                    String nombreCompleto = (nombre + " " + apellido).trim();
-
-                    nuevo.put(
-                            "cliente",
-                            nombreCompleto.isEmpty()
-                                    ? "Cliente #" + id
-                                    : nombreCompleto);
-
-                    nuevo.put("totalGastado", 0.0);
-
-                    return nuevo;
-                });
-
-        double totalVenta = venta.getTotal() != null
-                ? venta.getTotal()
-                : 0.0;
-
-        double totalActual = ((Number) datos.get("totalGastado")).doubleValue();
-
-        datos.put("totalGastado", totalActual + totalVenta);
-    }
-
-    private List<Map<String, Object>> ordenarClientes(
-            Map<Long, Map<String, Object>> clientes) {
-
-        return clientes.values()
-                .stream()
-                .sorted((a, b) -> Double.compare(
-                        ((Number) b.get("totalGastado")).doubleValue(),
-                        ((Number) a.get("totalGastado")).doubleValue()))
-                .toList();
-    }
-
-}
+}

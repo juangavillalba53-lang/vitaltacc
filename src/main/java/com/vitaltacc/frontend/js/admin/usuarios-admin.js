@@ -1,3 +1,6 @@
+// =========================================================
+// USUARIOS DEL PANEL Y PERMISOS POR ROL
+// =========================================================
 
 function aplicarPermisos() {
     const usuarioActual = JSON.parse(
@@ -36,14 +39,12 @@ let paginaUsuarios = 1;
 
 function cargarUsuarios() {
 
-    fetch("http://localhost:8080/usuarios")
-        .then(res => res.json())
+    pedir("/usuarios")
         .then(data => {
-
             usuariosPersonal = data.filter(user => user.rol !== "CLIENTE");
-
             renderUsuarios();
-        });
+        })
+        .catch(error => mostrarAviso("No se pudieron cargar los usuarios: " + error.message, "error"));
 }
 
 function renderUsuarios() {
@@ -101,10 +102,10 @@ function renderUsuarios() {
 
 function crearUsuario() {
 
-    const nombre = document.getElementById("nombreUsuario").value;
-    const apellido = document.getElementById("apellidoUsuario").value;
-    const dni = document.getElementById("dniUsuario").value;
-    const email = document.getElementById("emailUsuario").value;
+    const nombre = document.getElementById("nombreUsuario").value.trim();
+    const apellido = document.getElementById("apellidoUsuario").value.trim();
+    const dni = document.getElementById("dniUsuario").value.trim();
+    const email = document.getElementById("emailUsuario").value.trim();
     const contrasena = document.getElementById("contrasenaUsuario").value;
     const rol = document.getElementById("rolUsuario").value;
 
@@ -115,7 +116,7 @@ function crearUsuario() {
         !email ||
         !contrasena
     ) {
-        alert("Completar todos los campos");
+        mostrarAviso("Completá todos los datos del usuario.", "error");
         return;
     }
 
@@ -178,29 +179,7 @@ async function eliminarUsuario(id) {
     }
 }
 
-function mostrarUsuario() {
-
-    const usuario = JSON.parse(localStorage.getItem("usuario"));
-
-    const navUser = document.getElementById("nav-user");
-
-    if (!navUser) return;
-
-    navUser.innerHTML = `
-        <span>
-            Hola, ${usuario.nombre}
-        </span>
-
-        <button class="btn-nav" onclick="irTienda()">
-            Tienda
-        </button>
-
-        <button class="btn-nav" onclick="logout()">
-            Cerrar sesión
-        </button>
-    `;
-}
-
+// Cerrar sesión
 function logout() {
 
     localStorage.removeItem("usuario");
@@ -208,6 +187,7 @@ function logout() {
     window.location.href = "login.html";
 }
 
+// Botón "Ver tienda" del menú
 function irTienda() {
     window.location.href = "index.html";
 }

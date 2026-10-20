@@ -157,10 +157,12 @@ public class VentaPdfService {
 
                         agregarDato(datos, "FECHA", fecha, etiqueta, valor);
                         agregarDato(datos, "TIPO DE VENTA",
-                                        textoSeguro(venta.getTipoVenta()), etiqueta, valor);
+                                        venta.getTipoVenta() != null ? venta.getTipoVenta().getNombre() : "-",
+                                        etiqueta, valor);
                         agregarDato(datos, "CLIENTE", cliente.trim(), etiqueta, valor);
                         agregarDato(datos, "MÉTODO DE PAGO",
-                                        textoSeguro(venta.getMetodoPago()), etiqueta, valor);
+                                        venta.getMetodoPago() != null ? venta.getMetodoPago().getNombre() : "-",
+                                        etiqueta, valor);
 
                         if (venta.getCliente() != null
                                         && venta.getCliente().getDni() != null

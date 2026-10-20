@@ -1,6 +1,9 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.CambioEstadoPedido;
 import com.vitaltacc.model.DetalleVenta;
+import com.vitaltacc.model.EstadoPedido;
+import com.vitaltacc.model.FormaEntrega;
 import com.vitaltacc.model.TipoVenta;
 import com.vitaltacc.model.Usuario;
 import com.vitaltacc.model.Venta;
@@ -21,11 +24,13 @@ import org.springframework.web.util.HtmlUtils;
 import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
 /**
- * Manda por mail el comprobante en PDF de una compra.
+ * Manda por mail el comprobante en PDF de una compra y, en las compras
+ * online, un aviso cada vez que el pedido cambia de estado.
  *
  * - Compras web: siempre, al email de la cuenta.
  * - Compras en el local: si el cliente dio un email en la caja o ya tiene
@@ -49,6 +54,7 @@ public class CompraEmailService {
     private final ObjectProvider<JavaMailSender> mailSender;
     private final VentaRepository ventaRepository;
     private final VentaPdfService ventaPdfService;
+    private final ConfiguracionNegocioService configuracionService;
 
     @Value("${spring.mail.username:}")
     private String usuarioMail;
@@ -62,11 +68,13 @@ public class CompraEmailService {
     public CompraEmailService(
             ObjectProvider<JavaMailSender> mailSender,
             VentaRepository ventaRepository,
-            VentaPdfService ventaPdfService) {
+            VentaPdfService ventaPdfService,
+            ConfiguracionNegocioService configuracionService) {
 
         this.mailSender = mailSender;
         this.ventaRepository = ventaRepository;
         this.ventaPdfService = ventaPdfService;
+        this.configuracionService = configuracionService;
     }
 
     /**
@@ -118,6 +126,54 @@ public class CompraEmailService {
         } catch (Exception e) {
             // Nunca rompe la compra: solo queda el aviso en la consola
             log.warn("No se pudo enviar el mail de la compra {}: {}", ventaId, e.getMessage());
+        }
+    }
+
+    /**
+     * Aviso al cliente de que su pedido online cambió de estado
+     * (en preparación, listo para retirar, enviado, entregado o cancelado).
+     */
+    @Async
+    @Transactional(readOnly = true)
+    public void enviarCambioEstado(Long ventaId) {
+
+        JavaMailSender sender = mailSender.getIfAvailable();
+
+        if (sender == null || usuarioMail == null || usuarioMail.isBlank()) {
+            log.info("Aviso de estado del pedido {} no enviado: el correo no está configurado (mail.properties).",
+                    ventaId);
+            return;
+        }
+
+        try {
+            Venta venta = ventaRepository.findById(ventaId).orElse(null);
+
+            if (venta == null || !venta.esOnline()) {
+                return;
+            }
+
+            String destino = elegirDestino(venta, null);
+
+            if (destino == null) {
+                return;
+            }
+
+            EstadoPedido estado = venta.estadoActual();
+
+            MimeMessage mensaje = sender.createMimeMessage();
+            MimeMessageHelper ayudante = new MimeMessageHelper(mensaje, true, "UTF-8");
+
+            ayudante.setFrom(usuarioMail, nombreRemitente);
+            ayudante.setTo(destino);
+            ayudante.setSubject("Tu pedido N.º " + venta.getId() + ": " + estado.getNombre().toLowerCase() + " · VitalTacc");
+            ayudante.setText(textoCambioEstado(venta), htmlCambioEstado(venta));
+
+            sender.send(mensaje);
+
+            log.info("Aviso de estado ({}) del pedido {} enviado a {}", estado, ventaId, destino);
+
+        } catch (Exception e) {
+            log.warn("No se pudo enviar el aviso de estado del pedido {}: {}", ventaId, e.getMessage());
         }
     }
 
@@ -182,7 +238,8 @@ public class CompraEmailService {
 
         String intro = enLocal
                 ? "Gracias por pasar por el local. Te adjuntamos el comprobante en PDF para que lo tengas a mano."
-                : "Recibimos tu pedido. Te adjuntamos el comprobante en PDF para que lo tengas a mano.";
+                : "Recibimos tu pedido. Te adjuntamos el comprobante en PDF para que lo tengas a mano."
+                        + " Te vamos a avisar por mail cada vez que avance.";
 
         // Con cuenta activa: ver sus compras. Con DNI pero sin cuenta: invitarlo a crearla.
         // Consumidor final (sin DNI): solo el link a la tienda.
@@ -194,21 +251,11 @@ public class CompraEmailService {
                         + "Creá tu cuenta con tu DNI y vas a ver todas tus compras, en el local y online.</p>"
                         + botonMail(base + "/login.html#registro", "Crear mi cuenta");
 
-        return "<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\">"
-                + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>"
-                + "<body style=\"margin:0;padding:0;background:" + FONDO + ";font-family:Arial,Helvetica,sans-serif\">"
-                + "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:" + FONDO + ";padding:28px 12px\"><tr><td align=\"center\">"
-                + "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:560px;background:#FFFFFF;border-radius:18px;overflow:hidden\">"
-
-                // Cabecera
-                + "<tr><td style=\"background:" + PETROLEO + ";padding:26px 32px\">"
-                + "<span style=\"font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:.2px\">Vital<span style=\"color:" + TURQUESA + "\">Tacc</span></span>"
-                + "<div style=\"font-size:13px;color:rgba(255,255,255,.72);margin-top:4px\">Alimentos libres de gluten</div>"
-                + "</td></tr>"
+        return envolver(
 
                 // Saludo
-                + "<tr><td style=\"padding:32px 32px 8px\">"
-                + "<div style=\"display:inline-block;background:#DDF5F2;color:#03807A;font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px\">Compra confirmada</div>"
+                "<tr><td style=\"padding:32px 32px 8px\">"
+                + chip("Compra confirmada", "#DDF5F2", "#03807A")
                 + "<h1 style=\"margin:16px 0 8px;font-size:24px;line-height:1.25;color:" + PETROLEO + "\">¡Gracias por tu compra" + (nombre.isBlank() ? "" : ", " + esc(nombre)) + "!</h1>"
                 + "<p style=\"margin:0;font-size:15px;line-height:1.6;color:" + TINTA_2 + "\">" + intro + "</p>"
                 + "</td></tr>"
@@ -220,6 +267,9 @@ public class CompraEmailService {
                 + dato("Fecha", fecha)
                 + dato("Pago", nombreMetodo(venta))
                 + "</tr></table></td></tr>"
+
+                // Cómo lo recibe (solo online)
+                + (enLocal ? "" : bloqueEntrega(venta))
 
                 // Productos
                 + "<tr><td style=\"padding:16px 32px 0\">"
@@ -236,15 +286,172 @@ public class CompraEmailService {
                 // Botón
                 + "<tr><td style=\"padding:20px 32px 34px\">"
                 + boton
+                + "</td></tr>",
+
+                "El comprobante es interno y no reemplaza a una factura.");
+    }
+
+    // ---------------------------------------------------------
+    // MAIL DE CAMBIO DE ESTADO
+    // ---------------------------------------------------------
+
+    private String htmlCambioEstado(Venta venta) {
+
+        EstadoPedido estado = venta.estadoActual();
+        String nombre = venta.getCliente() != null && venta.getCliente().getNombre() != null
+                ? venta.getCliente().getNombre()
+                : "";
+
+        String[] colores = switch (estado) {
+            case CANCELADO -> new String[] { "#FDF0F1", "#C8414F" };
+            case ENTREGADO -> new String[] { "#DDF5F2", "#03807A" };
+            case LISTO_PARA_RETIRAR, ENVIADO -> new String[] { "#FDF4E2", "#8F5E0E" };
+            default -> new String[] { "#F8F3EC", "#86704F" };
+        };
+
+        StringBuilder detalle = new StringBuilder(esc(estado.getMensaje()));
+        String direccionLocal = direccionDelLocal();
+
+        if (estado == EstadoPedido.LISTO_PARA_RETIRAR && direccionLocal != null) {
+            detalle.append(" Te esperamos en <strong>").append(esc(direccionLocal)).append("</strong>.");
+        }
+
+        if (estado == EstadoPedido.ENVIADO && venta.getEnvioDireccion() != null) {
+            detalle.append(" Va a <strong>").append(esc(venta.getEnvioDireccion()))
+                    .append(venta.getEnvioLocalidad() != null ? ", " + esc(venta.getEnvioLocalidad()) : "")
+                    .append("</strong>.");
+        }
+
+        if (estado == EstadoPedido.CANCELADO) {
+            String motivo = venta.getCambiosEstado().stream()
+                    .filter(c -> c.getEstado() == EstadoPedido.CANCELADO && c.getNota() != null)
+                    .map(CambioEstadoPedido::getNota)
+                    .reduce((a, b) -> b)
+                    .orElse(null);
+
+            if (motivo != null) {
+                detalle.append(" Motivo: ").append(esc(motivo)).append(".");
+            }
+            detalle.append(" Si ya pagaste, te devolvemos el dinero por el mismo medio de pago.");
+        }
+
+        String base = urlTienda.replaceAll("/+$", "");
+        boolean cuentaActiva = venta.getCliente() != null && !UsuarioService.esCuentaPendiente(venta.getCliente());
+
+        return envolver(
+                "<tr><td style=\"padding:32px 32px 8px\">"
+                + chip(estado.getNombre(), colores[0], colores[1])
+                + "<h1 style=\"margin:16px 0 8px;font-size:24px;line-height:1.25;color:" + PETROLEO + "\">"
+                + (nombre.isBlank() ? "Novedades de tu pedido" : "Hola, " + esc(nombre)) + "</h1>"
+                + "<p style=\"margin:0;font-size:15px;line-height:1.6;color:" + TINTA_2 + "\">" + detalle + "</p>"
                 + "</td></tr>"
+
+                + "<tr><td style=\"padding:20px 32px 4px\">"
+                + "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:" + FONDO + ";border-radius:12px\"><tr>"
+                + dato("Pedido", "N.º " + venta.getId())
+                + dato("Entrega", venta.formaEntregaActual().getNombre())
+                + dato("Total", NumberFormat.getCurrencyInstance(Locale.forLanguageTag("es-AR"))
+                        .format(venta.getTotal() != null ? venta.getTotal() : 0))
+                + "</tr></table></td></tr>"
+
+                + (estado == EstadoPedido.CANCELADO ? "" : pasos(venta))
+
+                + "<tr><td style=\"padding:20px 32px 34px\">"
+                + (cuentaActiva
+                        ? botonMail(base + "/mis-compras.html", "Ver mi pedido")
+                        : botonMail(base + "/productos.html", "Ir a la tienda"))
+                + "</td></tr>",
+
+                null);
+    }
+
+    private String textoCambioEstado(Venta venta) {
+        EstadoPedido estado = venta.estadoActual();
+        return "Tu pedido N.º " + venta.getId() + " en VitalTacc: " + estado.getNombre() + ".\n\n"
+                + estado.getMensaje();
+    }
+
+    // Los pasos del pedido con el actual marcado
+    private String pasos(Venta venta) {
+
+        EstadoPedido actual = venta.estadoActual();
+        List<EstadoPedido> recorrido = EstadoPedido.recorrido(venta.formaEntregaActual());
+        int posicion = recorrido.indexOf(actual);
+
+        StringBuilder celdas = new StringBuilder();
+
+        for (int i = 0; i < recorrido.size(); i++) {
+            boolean hecho = i <= posicion;
+            celdas.append("<td align=\"center\" style=\"padding:6px 4px;font-size:12px;line-height:1.35;color:")
+                    .append(hecho ? PETROLEO : "#9AA9A8").append(";font-weight:").append(i == posicion ? "700" : "400")
+                    .append("\"><div style=\"width:26px;height:26px;margin:0 auto 6px;border-radius:50%;line-height:26px;font-size:13px;")
+                    .append(hecho ? "background:" + TURQUESA + ";color:" + PETROLEO : "background:" + LINEA + ";color:#9AA9A8")
+                    .append("\">").append(hecho ? "&#10003;" : String.valueOf(i + 1)).append("</div>")
+                    .append(esc(recorrido.get(i).getNombre())).append("</td>");
+        }
+
+        return "<tr><td style=\"padding:18px 32px 0\">"
+                + "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr>"
+                + celdas + "</tr></table></td></tr>";
+    }
+
+    // Cómo recibe el pedido: retiro (con la dirección del local) o envío (a coordinar)
+    private String bloqueEntrega(Venta venta) {
+
+        String texto;
+
+        if (venta.formaEntregaActual() == FormaEntrega.ENVIO) {
+            texto = "<strong>Envío a domicilio:</strong> " + esc(venta.getEnvioDireccion())
+                    + (venta.getEnvioLocalidad() != null ? ", " + esc(venta.getEnvioLocalidad()) : "")
+                    + ". El costo y el horario los coordinamos por WhatsApp.";
+        } else {
+            String direccion = direccionDelLocal();
+            texto = "<strong>Retiro en el local</strong>" + (direccion != null ? " (" + esc(direccion) + ")" : "")
+                    + ". Te avisamos por mail cuando esté listo.";
+        }
+
+        return "<tr><td style=\"padding:14px 32px 0\">"
+                + "<p style=\"margin:0;padding:12px 14px;background:#FDF4E2;border-radius:12px;font-size:14px;line-height:1.55;color:" + PETROLEO + "\">"
+                + texto + "</p></td></tr>";
+    }
+
+    private String direccionDelLocal() {
+        try {
+            String direccion = configuracionService.obtenerConfiguracion().getDireccion();
+            return direccion == null || direccion.isBlank() ? null : direccion.trim();
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // Cabecera y pie comunes a todos los mails
+    private String envolver(String filas, String notaPie) {
+        return "<!doctype html><html lang=\"es\"><head><meta charset=\"utf-8\">"
+                + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"></head>"
+                + "<body style=\"margin:0;padding:0;background:" + FONDO + ";font-family:Arial,Helvetica,sans-serif\">"
+                + "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:" + FONDO + ";padding:28px 12px\"><tr><td align=\"center\">"
+                + "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:560px;background:#FFFFFF;border-radius:18px;overflow:hidden\">"
+
+                // Cabecera
+                + "<tr><td style=\"background:" + PETROLEO + ";padding:26px 32px\">"
+                + "<span style=\"font-size:22px;font-weight:700;color:#FFFFFF;letter-spacing:.2px\">Vital<span style=\"color:" + TURQUESA + "\">Tacc</span></span>"
+                + "<div style=\"font-size:13px;color:rgba(255,255,255,.72);margin-top:4px\">Alimentos libres de gluten</div>"
+                + "</td></tr>"
+
+                + filas
 
                 // Pie
                 + "<tr><td style=\"padding:20px 32px;border-top:1px solid " + LINEA + ";font-size:12px;line-height:1.6;color:" + TINTA_2 + "\">"
                 + "Si tenés alguna duda sobre tu pedido, respondé este mail o escribinos por WhatsApp."
-                + "<br>El comprobante es interno y no reemplaza a una factura."
+                + (notaPie != null ? "<br>" + esc(notaPie) : "")
                 + "</td></tr>"
 
                 + "</table></td></tr></table></body></html>";
+    }
+
+    private String chip(String texto, String fondo, String color) {
+        return "<div style=\"display:inline-block;background:" + fondo + ";color:" + color
+                + ";font-size:12px;font-weight:700;padding:6px 12px;border-radius:999px\">" + esc(texto) + "</div>";
     }
 
     private String botonMail(String url, String texto) {
@@ -291,17 +498,7 @@ public class CompraEmailService {
     }
 
     private String nombreMetodo(Venta venta) {
-        if (venta.getMetodoPago() == null) {
-            return "-";
-        }
-        return switch (venta.getMetodoPago()) {
-            case EFECTIVO -> "Efectivo";
-            case TRANSFERENCIA -> "Transferencia";
-            case TARJETA_DEBITO -> "Tarjeta de débito";
-            case TARJETA_CREDITO -> "Tarjeta de crédito";
-            case MERCADO_PAGO -> "Mercado Pago";
-            case MODO -> "MODO";
-        };
+        return venta.getMetodoPago() != null ? venta.getMetodoPago().getNombre() : "-";
     }
 
     private String esc(String texto) {

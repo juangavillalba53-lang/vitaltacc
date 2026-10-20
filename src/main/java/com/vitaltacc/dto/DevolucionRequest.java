@@ -1,43 +1,29 @@
 package com.vitaltacc.dto;
 
+import com.vitaltacc.model.EstadoProductoDevuelto;
 import com.vitaltacc.model.MotivoDevolucion;
+import lombok.Getter;
+import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
 public class DevolucionRequest {
 
     private Long ventaId;
     private Long empleadoId;
     private MotivoDevolucion motivo;
     private String observacion;
+    private List<Item> items = new ArrayList<>();
 
-    public Long getVentaId() {
-        return ventaId;
-    }
-
-    public void setVentaId(Long ventaId) {
-        this.ventaId = ventaId;
-    }
-
-    public Long getEmpleadoId() {
-        return empleadoId;
-    }
-
-    public void setEmpleadoId(Long empleadoId) {
-        this.empleadoId = empleadoId;
-    }
-
-    public MotivoDevolucion getMotivo() {
-        return motivo;
-    }
-
-    public void setMotivo(MotivoDevolucion motivo) {
-        this.motivo = motivo;
-    }
-
-    public String getObservacion() {
-        return observacion;
-    }
-
-    public void setObservacion(String observacion) {
-        this.observacion = observacion;
+    // Cuántas unidades de un producto se devuelven y en qué estado
+    @Getter
+    @Setter
+    public static class Item {
+        private Long productoId;
+        private Integer cantidad;
+        private EstadoProductoDevuelto estado;
     }
 }

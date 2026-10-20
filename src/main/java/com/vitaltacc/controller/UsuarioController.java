@@ -35,7 +35,7 @@ public class UsuarioController {
         return usuarioService.obtenerPorId(id);
     }
 
-    // 🔥 Buscar por DNI
+    // Buscar por DNI
     @GetMapping("/dni/{dni}")
     public Usuario buscarPorDni(@PathVariable String dni) {
         return usuarioService.buscarPorDni(dni);
@@ -54,7 +54,7 @@ public class UsuarioController {
                 loginData.getContrasena());
     }
 
-    // 🔥 ACTUALIZAR ROL
+    // Actualizar rol
     @PutMapping("/{id}/rol")
     public Usuario actualizarRol(@PathVariable Long id, @RequestBody Usuario datos) {
         return usuarioService.cambiarRol(id, datos.getRol());

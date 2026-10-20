@@ -25,14 +25,26 @@
                 <div class="hero-interior">
                     <div class="hero-texto">
                         <span class="cinta">Alimentos libres de gluten</span>
-                        <h1>Pan, pastas y dulces sin TACC para comer tranquilo</h1>
+                        <h1>Pan, pastas y dulces <span class="resaltado">sin TACC</span> para comer tranquilo</h1>
                         <p>Productos libres de gluten hechos con pasión, calidad y compromiso. Pedilos online o pasá por el local.</p>
                         <div class="hero-botones">
                             <a class="boton boton-primario" href="productos.html">Ver productos</a>
                             <a class="boton boton-claro" href="#visitanos">Visitá el local</a>
                         </div>
+                        <ul class="hero-confianza">
+                            <li><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Apto celíacos</span></li>
+                            <li><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Hecho en Posadas</span></li>
+                            <li><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg><span>Retiro en el local</span></li>
+                        </ul>
                     </div>
                     <div class="hero-foto">
+                        <div class="sello-giratorio" aria-hidden="true">
+                            <svg class="sello-texto" viewBox="0 0 120 120">
+                                <defs><path id="circuloSello" d="M60 60m-46 0a46 46 0 1 1 92 0a46 46 0 1 1-92 0"/></defs>
+                                <text><textPath href="#circuloSello">LIBRE DE GLUTEN · 100% SIN TACC · </textPath></text>
+                            </svg>
+                            <svg class="sello-centro" viewBox="0 0 24 24"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg>
+                        </div>
                         <img src="img/local-interior.webp" alt="Mostrador del local de VitalTacc con panificados sin TACC" width="1800" height="1199" fetchpriority="high">
                         <p class="hero-dato"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg><span data-config="direccion">Roque Pérez 1660, Posadas, Misiones</span></p>
                     </div>
@@ -40,6 +52,63 @@
             </div>
         </section>
 
+        <section class="seccion seccion-destacados" aria-labelledby="tituloDestacados">
+            <div class="contenedor">
+                <div class="seccion-titulo-fila revelar">
+                    <div class="seccion-titulo">
+                        <span class="cinta">Lo más elegido</span>
+                        <h2 id="tituloDestacados">Destacados</h2>
+                    </div>
+                    <a class="boton boton-secundario" href="productos.html">Ver todo el catálogo</a>
+                </div>
+                <div class="grilla-productos" id="destacados" aria-live="polite"></div>
+            </div>
+        </section>
+
+        <section class="beneficios" aria-label="Por qué elegirnos">
+            <div class="contenedor">
+                <ul class="beneficios-lista">
+                    <li class="revelar">
+                        <span class="beneficio-icono tono-turquesa"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6z"/><path d="m8.8 12.2 2.2 2.2 4.3-4.6"/></svg></span>
+                        <div><h3>100% libre de gluten</h3><p>Todo lo que vendemos es apto para celíacos.</p></div>
+                    </li>
+                    <li class="revelar" style="--retraso: 80ms">
+                        <span class="beneficio-icono tono-trigo"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/></svg></span>
+                        <div><h3>Hecho en Posadas</h3><p>Productos frescos, de elaboración local.</p></div>
+                    </li>
+                    <li class="revelar" style="--retraso: 160ms">
+                        <span class="beneficio-icono tono-rosa"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l-1.2 11.1a2 2 0 0 1-2 1.9H8.2a2 2 0 0 1-2-1.9z"/><path d="M9 8V6.5a3 3 0 0 1 6 0V8"/></svg></span>
+                        <div><h3>Comprá online</h3><p>Armá tu pedido y retiralo en el local.</p></div>
+                    </li>
+                    <li class="revelar" style="--retraso: 240ms">
+                        <span class="beneficio-icono tono-petroleo"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.3-4A8.5 8.5 0 1 1 8 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-1.8-1.8l.8-1-1-2z"/></svg></span>
+                        <div><h3>Atención cercana</h3><p>Te asesoramos por WhatsApp o en el mostrador.</p></div>
+                    </li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="seccion seccion-categorias" id="seccionCategorias" aria-labelledby="tituloCategorias" hidden>
+            <div class="contenedor">
+                <div class="seccion-titulo revelar">
+                    <span class="cinta">Explorá</span>
+                    <h2 id="tituloCategorias">Comprá por categoría</h2>
+                </div>
+                <div class="grilla-categorias" id="categoriasInicio"></div>
+            </div>
+        </section>
+
+        <section class="seccion seccion-ofertas" id="seccionOfertas" aria-labelledby="tituloOfertas" hidden>
+            <div class="contenedor">
+                <div class="seccion-titulo-fila revelar">
+                    <div class="seccion-titulo">
+                        <span class="cinta cinta-rosa">Promo</span>
+                        <h2 id="tituloOfertas">Ofertas de la semana</h2>
+                    </div>
+                </div>
+                <div class="grilla-productos" id="ofertas" aria-live="polite"></div>
+            </div>
+        </section>
 
         <div class="franja" aria-hidden="true">
             <div class="franja-pista">
@@ -48,20 +117,7 @@
             </div>
         </div>
 
-        <section class="seccion seccion-suave" aria-labelledby="tituloDestacados">
-            <div class="contenedor">
-                <div class="seccion-titulo-fila revelar">
-                    <div class="seccion-titulo">
-                        <h2 id="tituloDestacados">Para empezar</h2>
-                        <p>Algunos productos que tenemos disponibles hoy.</p>
-                    </div>
-                    <a class="boton boton-secundario" href="productos.html">Ver todo el catálogo</a>
-                </div>
-                <div class="grilla-productos" id="destacados" aria-live="polite"></div>
-            </div>
-        </section>
-
-        <section class="seccion" id="visitanos" aria-labelledby="tituloVisita">
+        <section class="seccion seccion-visita" id="visitanos" aria-labelledby="tituloVisita">
             <div class="contenedor">
                 <div class="visita revelar">
                     <img src="img/local-frente.webp" alt="Frente del local de VitalTacc en Roque Pérez 1660" width="1000" height="1172" loading="lazy">
@@ -80,10 +136,26 @@
                 </div>
             </div>
         </section>
+
+        <section class="seccion seccion-instagram" aria-labelledby="tituloInstagram">
+            <div class="contenedor">
+                <div class="instagram-banda revelar">
+                    <div class="instagram-texto">
+                        <span class="cinta cinta-blanca">Seguinos</span>
+                        <h2 id="tituloInstagram">Novedades, recetas y lanzamientos</h2>
+                    </div>
+                    <div class="instagram-botones">
+                        <a class="boton boton-blanco" data-config="instagram" href="https://www.instagram.com/megustavitaltacc/" target="_blank" rel="noopener noreferrer"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor"/></svg><span data-config="instagram-usuario">@megustavitaltacc</span></a>
+                        <a class="boton boton-secundario" data-config="whatsapp" href="https://wa.me/5493764695417" target="_blank" rel="noopener noreferrer"><svg class="icono" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1.3-4A8.5 8.5 0 1 1 8 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-1.8-1.8l.8-1-1-2z"/></svg><span>Escribinos</span></a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
 
     <footer id="pie"></footer>
 
+    <script src="js/comun.js"></script>
     <script src="js/tienda/tienda.js"></script>
     <script src="js/tienda/inicio.js"></script>
 </body>

@@ -1,15 +1,23 @@
-function cargarProductosVenta() {
+// =========================================================
+// VENTA EN EL LOCAL E HISTORIAL DE VENTAS
+// Los productos (productosVenta) los carga cargarProductos()
+// =========================================================
 
-    fetch("http://localhost:8080/productos")
-        .then(res => res.json())
-        .then(data => {
+const NOMBRES_ESTADO_PEDIDO = {
+    RECIBIDO: "Recibido",
+    PREPARANDO: "En preparación",
+    LISTO_PARA_RETIRAR: "Listo para retirar",
+    ENVIADO: "Enviado",
+    ENTREGADO: "Entregado",
+    CANCELADO: "Cancelado"
+};
 
-            productosVenta = data;
-
-        });
-
-}
-
+// El select de métodos de pago se arma con los mismos nombres que usa toda la app
+document.addEventListener("DOMContentLoaded", () => {
+    const select = document.getElementById("metodoPagoVenta");
+    if (!select) return;
+    select.replaceChildren(...Object.entries(NOMBRES_PAGO).map(([valor, texto]) => new Option(texto, valor)));
+});
 
 function buscarProductosVenta() {
     const texto = document
@@ -26,22 +34,17 @@ function buscarProductosVenta() {
         return;
     }
 
-    const resultados = productosVenta.filter(p =>
-        p.nombre.toLowerCase().includes(texto)
-    );
+    const buscado = normalizarTexto(texto);
 
-    resultados.forEach(prod => {
-        const precio = Number(prod.precioFinal ?? prod.precio) || 0;
-
-        contenedor.innerHTML += `
+    contenedor.innerHTML = productosVenta
+        .filter(p => normalizarTexto(p.nombre).includes(buscado))
+        .map(prod => `
             <div class="resultado-producto"
                  onclick="agregarProductoVenta(${prod.id})">
-                ${prod.nombre} - ${pesosVenta(precio)}
+                ${escaparHTML(prod.nombre)} - ${pesos(prod.precioFinal ?? prod.precio)}
             </div>
-        `;
-    });
+        `).join("");
 }
-
 
 function agregarProductoVenta(id) {
 
@@ -74,8 +77,6 @@ function agregarProductoVenta(id) {
 
 }
 
-
-
 function renderCarrito() {
     const tbody = document.getElementById("carritoVenta");
 
@@ -98,33 +99,33 @@ function renderCarrito() {
         const precioHTML = tieneDescuento
             ? `
                 <span class="precio-tachado">
-                    ${pesosVenta(precioOriginal)}
+                    ${pesos(precioOriginal)}
                 </span>
                 <br>
                 <strong class="precio-oferta">
-                    ${pesosVenta(precio)}
+                    ${pesos(precio)}
                 </strong>
                 <br>
                 <small class="etiqueta-off">
                     ${Math.round((1 - precio / precioOriginal) * 100)}% OFF
                 </small>
             `
-            : `${pesosVenta(precio)}`;
+            : `${pesos(precio)}`;
 
         const subtotalHTML = tieneDescuento
             ? `
                 <span class="precio-tachado">
-                    ${pesosVenta((precioOriginal * item.cantidad))}
+                    ${pesos((precioOriginal * item.cantidad))}
                 </span>
                 <br>
                 <strong class="precio-oferta">
-                    ${pesosVenta(subtotal)}
+                    ${pesos(subtotal)}
                 </strong>
             `
-            : `${pesosVenta(subtotal)}`;
+            : `${pesos(subtotal)}`;
 
         tr.innerHTML = `
-            <td>${item.nombre}</td>
+            <td>${escaparHTML(item.nombre)}</td>
 
             <td>
                 <div class="control-cantidad">
@@ -166,11 +167,8 @@ function renderCarrito() {
         tbody.appendChild(tr);
     });
 
-    document.getElementById("totalVenta").innerText =
-        "Total: " + pesosVenta(total);
+    document.getElementById("totalVenta").textContent = "Total: " + pesos(total);
 }
-
-
 
 function eliminarProductoCarrito(id) {
 
@@ -179,7 +177,6 @@ function eliminarProductoCarrito(id) {
     renderCarrito();
 
 }
-
 
 function cambiarCantidad(id, cambio) {
 
@@ -195,7 +192,7 @@ function cambiarCantidad(id, cambio) {
     }
 
     if (nuevaCantidad > Number(producto.stock)) {
-        alert("No hay stock suficiente para esa cantidad.");
+        mostrarAviso("No hay stock suficiente para esa cantidad.", "error");
         return;
     }
 
@@ -203,7 +200,6 @@ function cambiarCantidad(id, cambio) {
 
     renderCarrito();
 }
-
 
 // ---------------------------------------------------------
 // EMAIL PARA EL COMPROBANTE
@@ -296,7 +292,7 @@ function buscarClientePorDni() {
 
     clienteVenta = null;
 
-    estado.innerText = "";
+    estado.textContent = "";
 
     formularioNuevo.classList.add("oculto");
 
@@ -308,24 +304,14 @@ function buscarClientePorDni() {
 
     if (!dni) return;
 
-    fetch(`http://localhost:8080/usuarios/dni/${dni}`)
-        .then(res => {
-
-            if (!res.ok) {
-                throw new Error();
-            }
-
-            return res.json();
-
-        })
-
+    pedir(`/usuarios/dni/${encodeURIComponent(dni)}`)
         .then(usuario => {
 
             clienteVenta = usuario;
 
             formularioNuevo.classList.add("oculto");
 
-            estado.innerText = "Cliente encontrado: " + usuario.nombre;
+            estado.textContent = "Cliente encontrado: " + usuario.nombre;
 
             estado.dataset.tipo = "ok";
 
@@ -342,7 +328,7 @@ function buscarClientePorDni() {
 
         .catch(() => {
 
-            estado.innerText = "No encontramos ese DNI. Completá los datos para registrar al cliente.";
+            estado.textContent = "No encontramos ese DNI. Completá los datos para registrar al cliente.";
 
             estado.dataset.tipo = "alerta";
 
@@ -352,11 +338,10 @@ function buscarClientePorDni() {
 
 }
 
-
 async function confirmarVenta() {
 
     if (carrito.length === 0) {
-        alert("Agregar al menos un producto.");
+        mostrarAviso("Agregá al menos un producto.", "error");
         return;
     }
 
@@ -384,7 +369,7 @@ async function confirmarVenta() {
         if (!esEmailValido(emailCliente)) {
             campoEmail.setAttribute("aria-invalid", "true");
             campoEmail.focus();
-            alert("El email del cliente no es válido. Revisalo o dejalo vacío.");
+            mostrarAviso("El email del cliente no es válido. Revisalo o dejalo vacío.", "error");
             return;
         }
 
@@ -397,7 +382,7 @@ async function confirmarVenta() {
             document.getElementById("dniClienteVenta").value.trim();
 
         if (!dni) {
-            alert("Ingresar DNI.");
+            mostrarAviso("Ingresá el DNI del cliente.", "error");
             return;
         }
 
@@ -417,7 +402,7 @@ async function confirmarVenta() {
                 document.getElementById("telefonoClienteVenta").value.trim();
 
             if (!venta.nombreCliente || !venta.apellidoCliente) {
-                alert("Completar nombre y apellido.");
+                mostrarAviso("Completá el nombre y el apellido del cliente.", "error");
                 return;
             }
         }
@@ -434,48 +419,12 @@ async function confirmarVenta() {
             );
         }
 
-        // 2. Descargar el PDF usando el ID real
-        let pdfDescargado = false;
-
-        try {
-
-            const respuestaPdf = await fetch(`${API}/ventas/${ventaGuardada.id}/pdf`);
-
-            if (!respuestaPdf.ok) {
-                throw new Error("No se pudo generar el comprobante PDF.");
-            }
-
-            const archivo = await respuestaPdf.blob();
-
-            if (!archivo.size) {
-                throw new Error("El PDF recibido está vacío.");
-            }
-
-            const url = URL.createObjectURL(archivo);
-            const enlace = document.createElement("a");
-
-            enlace.href = url;
-            enlace.download =
-                `comprobante-venta-${ventaGuardada.id}.pdf`;
-
-            document.body.appendChild(enlace);
-            enlace.click();
-            enlace.remove();
-
-            URL.revokeObjectURL(url);
-
-            pdfDescargado = true;
-
-        } catch (errorPdf) {
-            console.error("Error al descargar el comprobante:", errorPdf);
-        }
+        // 2. Descargar el comprobante
+        const pdfDescargado = await descargarComprobante(ventaGuardada.id);
 
         // 3. Limpiar el formulario y actualizar los datos
         limpiarVenta();
-
-        cargarProductosVenta();
         cargarProductos();
-        cargarStock();
         cargarDashboard();
 
         const avisoMail = emailCliente
@@ -483,15 +432,11 @@ async function confirmarVenta() {
             : "";
 
         if (pdfDescargado) {
-            alert(
-                `Venta N.º ${ventaGuardada.id} registrada correctamente. ` +
-                "Se descargó el comprobante PDF." + avisoMail
-            );
+            mostrarAviso(`Venta N.º ${ventaGuardada.id} registrada. Se descargó el comprobante.${avisoMail}`, "ok");
         } else {
-            alert(
-                `Venta N.º ${ventaGuardada.id} registrada correctamente, ` +
-                "pero no se pudo descargar el PDF. Podrás volver a intentarlo." + avisoMail
-            );
+            mostrarAviso(
+                `Venta N.º ${ventaGuardada.id} registrada, pero no se pudo descargar el comprobante. ` +
+                `Lo podés bajar desde el historial.${avisoMail}`, "alerta");
         }
 
     } catch (error) {
@@ -508,7 +453,7 @@ function limpiarVenta() {
     document.getElementById("buscarProductoVenta").value = "";
     document.getElementById("resultadosBusquedaVenta").innerHTML = "";
     document.getElementById("dniClienteVenta").value = "";
-    document.getElementById("estadoClienteVenta").innerText = "";
+    document.getElementById("estadoClienteVenta").textContent = "";
     document.getElementById("nombreClienteVenta").value = "";
     document.getElementById("apellidoClienteVenta").value = "";
     document.getElementById("telefonoClienteVenta").value = "";
@@ -543,7 +488,6 @@ async function cancelarVenta() {
     document.getElementById("buscarProductoVenta").focus();
     mostrarAviso("Venta cancelada.", "ok");
 }
-
 
 let temporizadorHistorialVentas = null;
 
@@ -583,15 +527,7 @@ async function cargarHistorialVentas() {
     estado.textContent = "Cargando ventas...";
 
     try {
-        const respuesta = await fetch(
-            `http://localhost:8080/ventas/historial?busqueda=${encodeURIComponent(busqueda)}`
-        );
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo consultar el historial.");
-        }
-
-        const ventas = await respuesta.json();
+        const ventas = await pedir(`/ventas/historial?busqueda=${encodeURIComponent(busqueda)}`);
 
         const ventasFiltradas = ventas.filter(venta => {
             const fecha = venta.fecha ? String(venta.fecha).substring(0, 10) : "";
@@ -622,24 +558,33 @@ async function cargarHistorialVentas() {
 
             [
                 venta.id ?? "-",
-                venta.fecha ?? "-",
+                fechaCorta(venta.fecha) || "-",
                 venta.cliente || "Consumidor final",
                 ({ LOCAL: "Local", ONLINE: "Online" })[venta.tipoVenta] || venta.tipoVenta || "-",
                 venta.tipoVenta === "ONLINE" ? "Web" : (venta.empleado || "No informado"),
-                ({
-                    EFECTIVO: "Efectivo",
-                    TRANSFERENCIA: "Transferencia",
-                    TARJETA_DEBITO: "Tarjeta de débito",
-                    TARJETA_CREDITO: "Tarjeta de crédito",
-                    MERCADO_PAGO: "Mercado Pago",
-                    MODO: "MODO"
-                })[venta.metodoPago] || venta.metodoPago || "-",
-                formatearImporteHistorial(venta.total)
+                nombrePago(venta.metodoPago),
+                pesos(venta.total)
             ].forEach(texto => {
                 const celda = document.createElement("td");
                 celda.textContent = texto;
                 fila.appendChild(celda);
             });
+
+            // Pedidos online que todavía no se entregaron o se cancelaron
+            if (venta.estadoPedido && venta.estadoPedido !== "ENTREGADO") {
+                const estado = document.createElement("small");
+                estado.className = `historial-estado estado-${venta.estadoPedido.toLowerCase()}`;
+                estado.textContent = NOMBRES_ESTADO_PEDIDO[venta.estadoPedido] || venta.estadoPedido;
+                fila.children[3].appendChild(estado);
+            }
+
+                        // Si hubo devoluciones, debajo del total se ve lo que se devolvió
+            if (Number(venta.devuelto) > 0) {
+                const devuelto = document.createElement("small");
+                devuelto.className = "historial-devuelto";
+                devuelto.textContent = `Devuelto ${pesos(venta.devuelto)}`;
+                fila.lastElementChild.appendChild(devuelto);
+            }
 
             const celdaPDF = document.createElement("td");
             const botonPDF = document.createElement("button");
@@ -647,9 +592,29 @@ async function cargarHistorialVentas() {
             botonPDF.type = "button";
             botonPDF.className = "btn-tabla btn-lotes";
             botonPDF.textContent = "Descargar PDF";
-            botonPDF.addEventListener("click", () => descargarPDFHistorial(venta.id));
+            botonPDF.addEventListener("click", async () => {
+                botonPDF.disabled = true;
+                if (!await descargarComprobante(venta.id)) {
+                    mostrarAviso(`No se pudo descargar el comprobante de la venta N.º ${venta.id}.`, "error");
+                }
+                botonPDF.disabled = false;
+            });
 
-            celdaPDF.appendChild(botonPDF);
+            const acciones = document.createElement("div");
+            acciones.className = "acciones-producto";
+            acciones.appendChild(botonPDF);
+
+            // Dentro del plazo (2 días) y si no se devolvió todo, se puede registrar una devolución
+            if (venta.devolvible && Number(venta.devuelto) < Number(venta.total)) {
+                const botonDevolver = document.createElement("button");
+                botonDevolver.type = "button";
+                botonDevolver.className = "btn-tabla btn-editar";
+                botonDevolver.textContent = "Devolver";
+                botonDevolver.addEventListener("click", () => abrirDevolucion(venta.id));
+                acciones.appendChild(botonDevolver);
+            }
+
+            celdaPDF.appendChild(acciones);
             fila.appendChild(celdaPDF);
             tabla.appendChild(fila);
         });
@@ -659,8 +624,7 @@ async function cargarHistorialVentas() {
         mostrarControlesPaginacion(total, totalPaginas);
 
     } catch (error) {
-        console.error("Error al cargar el historial:", error);
-        estado.textContent = "Error al cargar el historial. Verificá que el backend esté iniciado.";
+        estado.textContent = "No se pudo cargar el historial: " + error.message;
     }
 }
 
@@ -701,24 +665,15 @@ function mostrarControlesPaginacion(total, totalPaginas) {
     controles.append(anterior, texto, siguiente);
 }
 
-function formatearImporteHistorial(total) {
-    return new Intl.NumberFormat("es-AR", {
-        style: "currency",
-        currency: "ARS"
-    }).format(Number(total) || 0);
-}
-
-async function descargarPDFHistorial(id) {
+// Baja el PDF de una venta. Devuelve true si se pudo.
+async function descargarComprobante(id) {
     try {
-        const respuesta = await fetch(
-            `http://localhost:8080/ventas/${id}/pdf`
-        );
-
-        if (!respuesta.ok) {
-            throw new Error("No se pudo generar el comprobante.");
-        }
+        const respuesta = await fetch(`${API}/ventas/${id}/pdf`);
+        if (!respuesta.ok) return false;
 
         const archivo = await respuesta.blob();
+        if (!archivo.size) return false;
+
         const url = URL.createObjectURL(archivo);
         const enlace = document.createElement("a");
 
@@ -730,18 +685,9 @@ async function descargarPDFHistorial(id) {
         enlace.remove();
 
         setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return true;
 
-    } catch (error) {
-        console.error("Error al descargar el PDF:", error);
-        alert("No se pudo descargar el comprobante de la venta N.º " + id);
+    } catch {
+        return false;
     }
-}
-
-
-// Precios con formato argentino ($ 3.200,00)
-function pesosVenta(valor) {
-    return new Intl.NumberFormat("es-AR", {
-        style: "currency",
-        currency: "ARS"
-    }).format(Number(valor) || 0);
 }

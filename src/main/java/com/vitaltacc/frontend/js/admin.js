@@ -1,17 +1,18 @@
+// =========================================================
+// PANEL: arranque, navegación entre secciones y dashboard
+// =========================================================
+
 const usuario = JSON.parse(localStorage.getItem("usuario"));
-
-
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // 🔒 VALIDAR LOGIN
+    // Solo entra el personal con sesión iniciada
     if (!usuario) {
         window.location.href = "login.html";
         return;
     }
 
     if (usuario.rol !== "ADMIN" && usuario.rol !== "EMPLEADO") {
-        alert("No tenés permisos para entrar acá");
         window.location.href = "index.html";
         return;
     }
@@ -22,35 +23,19 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".solo-admin").forEach(el => el.remove());
     }
 
-    // 🔥 CARGAS INICIALES
-    cargarDashboard();
+    // Cargas iniciales (el dashboard se carga al mostrar su sección)
     programarActualizacionDashboard();
     cargarProductos();
-    cargarLotesPorVencer();
-    cargarUsuarios();
-    cargarStock();
-    mostrarUsuario();
-    cargarPromociones();
-    cargarProductosVenta();
     cargarTiposCategoria();
 
-    // 🔥 Mostrar Dashboard al iniciar
+    if (usuario.rol === "ADMIN") {
+        cargarUsuarios();
+        cargarPromociones();
+    }
+
     mostrarSeccion("adminDashboard");
 
-    const select = document.getElementById("productoLote");
-
-    if (select) {
-
-        select.addEventListener("change", function () {
-
-            const selected = this.options[this.selectedIndex];
-            const precio = selected.getAttribute("data-precio");
-
-            document.getElementById("precioLote").value = "$" + precio;
-
-        });
-
-    }
+    document.getElementById("productoLote").addEventListener("change", mostrarPrecioLote);
 
     mostrarPanel("producto");
 
@@ -112,7 +97,7 @@ function mostrarSeccion(id) {
         usuarioActual.rol !== "ADMIN" &&
         seccionesSoloAdmin.includes(id)
     ) {
-        alert("No tenés permisos para acceder a esta sección.");
+        mostrarAviso("No tenés permisos para acceder a esta sección.", "error");
         mostrarSeccion("adminDashboard");
         return;
     }
@@ -123,10 +108,7 @@ function mostrarSeccion(id) {
 
     const seccionActiva = document.getElementById(id);
 
-    if (!seccionActiva) {
-        console.error("No se encontró la sección:", id);
-        return;
-    }
+    if (!seccionActiva) return;
 
     seccionActiva.style.display = "block";
 
@@ -141,14 +123,12 @@ function mostrarSeccion(id) {
     if (botonActivo) {
         botonActivo.classList.add("activo");
 
-        if (typeof moverIndicadorMenu === "function") {
-            moverIndicadorMenu(botonActivo);
-        }
+        moverIndicadorMenu(botonActivo);
     }
 
     window.scrollTo({ top: 0 });
 
-    if (id === "adminDashboard" && typeof cargarDashboard === "function") {
+    if (id === "adminDashboard") {
         cargarDashboard();
     }
 
@@ -156,14 +136,13 @@ function mostrarSeccion(id) {
         cargarHistorialVentas();
     }
 
-    if (id === "adminReportes") {
-        if (typeof cargarGeneral === "function") {
-            cargarGeneral();
-        }
+    if (id === "adminPedidos") {
+        cargarPedidos();
+    }
 
-        if (typeof cargarCierreCaja === "function") {
-            cargarCierreCaja();
-        }
+    if (id === "adminReportes") {
+        cargarGeneral();
+        cargarCierreCaja();
     }
 }
 
@@ -182,8 +161,13 @@ function cargarDashboard() {
         seguro(pedir("/lotes")),
         seguro(pedir("/lotes/por-vencer")),
         seguro(pedir("/lotes/vencidos")),
-        seguro(pedir("/configuracion"))
-    ]).then(([productos, usuarios, promociones, lotes, porVencer, vencidos, config]) => {
+        seguro(pedir("/configuracion")),
+        seguro(pedir("/pedidos/resumen"))
+    ]).then(([productos, usuarios, promociones, lotes, porVencer, vencidos, config, pedidos]) => {
+
+        if (pedidos) {
+            mostrarContadorPedidos(pedidos.activos);
+        }
 
         if (productos) {
             ponerTexto(document.getElementById("dashboardProductos"), productos.length);
@@ -204,13 +188,21 @@ function cargarDashboard() {
             ponerTexto(document.getElementById("totalMonitoreados"), lotesActivos.length);
         }
 
+        // Los contadores de vencimientos se muestran en el Dashboard y en Inventario
         if (porVencer) {
-            ponerTexto(document.getElementById("totalUrgentes"), porVencer.filter(l => l.alerta === "URGENTE").length);
-            ponerTexto(document.getElementById("totalAtencion"), porVencer.filter(l => l.alerta === "ATENCION").length);
+            const urgentes = porVencer.filter(l => l.alerta === "URGENTE").length;
+            const atencion = porVencer.filter(l => l.alerta === "ATENCION").length;
+
+            ponerTexto(document.getElementById("totalUrgentes"), urgentes);
+            ponerTexto(document.getElementById("totalAtencion"), atencion);
+            ponerTexto(document.getElementById("cantidadUrgentes"), urgentes);
+            ponerTexto(document.getElementById("cantidadAtencion"), atencion);
+            ponerTexto(document.getElementById("cantidadMonitoreados"), porVencer.length);
             renderProximosVencimientos(porVencer);
         }
 
         if (vencidos) {
+            ponerTexto(document.getElementById("cantidadVencidos"), vencidos.length);
             renderVencidosDashboard(vencidos);
         }
 
@@ -307,8 +299,6 @@ function renderStockBajo(productos, limite) {
         .sort((a, b) => (Number(a.stock) || 0) - (Number(b.stock) || 0));
 
     ponerTexto(document.getElementById("totalStockBajo"), bajos.length);
-    ponerTexto(document.getElementById("ayudaStockBajo"),
-        `Productos con ${limite} ${limite === 1 ? "unidad" : "unidades"} o menos.`);
     document.getElementById("panelStockBajo")?.classList.toggle("con-alerta", bajos.length > 0);
 
     const visibles = bajos.slice(0, 6);

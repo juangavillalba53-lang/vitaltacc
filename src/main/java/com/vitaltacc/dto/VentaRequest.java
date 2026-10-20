@@ -1,5 +1,6 @@
 package com.vitaltacc.dto;
 
+import com.vitaltacc.model.FormaEntrega;
 import com.vitaltacc.model.MetodoPago;
 import com.vitaltacc.model.TipoVenta;
 
@@ -17,6 +18,53 @@ public class VentaRequest {
     private MetodoPago metodoPago;
     private TipoVenta tipoVenta;
     private List<VentaItemRequest> detalles;
+
+    // Solo compras online: retiro en el local o envío (con sus datos)
+    private FormaEntrega formaEntrega;
+    private String envioDireccion;
+    private String envioLocalidad;
+    private String envioTelefono;
+    private String envioIndicaciones;
+
+    public FormaEntrega getFormaEntrega() {
+        return formaEntrega;
+    }
+
+    public void setFormaEntrega(FormaEntrega formaEntrega) {
+        this.formaEntrega = formaEntrega;
+    }
+
+    public String getEnvioDireccion() {
+        return envioDireccion;
+    }
+
+    public void setEnvioDireccion(String envioDireccion) {
+        this.envioDireccion = envioDireccion;
+    }
+
+    public String getEnvioLocalidad() {
+        return envioLocalidad;
+    }
+
+    public void setEnvioLocalidad(String envioLocalidad) {
+        this.envioLocalidad = envioLocalidad;
+    }
+
+    public String getEnvioTelefono() {
+        return envioTelefono;
+    }
+
+    public void setEnvioTelefono(String envioTelefono) {
+        this.envioTelefono = envioTelefono;
+    }
+
+    public String getEnvioIndicaciones() {
+        return envioIndicaciones;
+    }
+
+    public void setEnvioIndicaciones(String envioIndicaciones) {
+        this.envioIndicaciones = envioIndicaciones;
+    }
 
     public Long getClienteId() {
         return clienteId;

@@ -18,7 +18,7 @@ public class ProductoController {
     @Autowired
     private ProductoService productoService;
 
-    // 🔥 Crear producto
+    // Crear producto
     @PostMapping(consumes = "multipart/form-data")
     public Producto crearProducto(
 
@@ -50,7 +50,7 @@ public class ProductoController {
                 imagenes);
     }
 
-    // 🔥 Listar productos (con precio final + stock)
+    // Listar productos (con precio final + stock)
     @GetMapping
     public List<Map<String, Object>> listarProductos() {
 
@@ -84,7 +84,7 @@ public class ProductoController {
         }).toList();
     }
 
-    // 🔥 Obtener producto por ID
+    // Obtener producto por ID
     @GetMapping("/{id}")
     public Map<String, Object> obtenerProducto(@PathVariable Long id) {
 
@@ -107,7 +107,7 @@ public class ProductoController {
         return data;
     }
 
-    // 🔥 ACTUALIZAR PRECIO
+    // Actualizar precio
     @PutMapping("/{id}")
     public Producto actualizarPrecio(
 
@@ -123,7 +123,7 @@ public class ProductoController {
                 nuevoPrecio);
     }
 
-    // 🔥 EDITAR PRODUCTO
+    // Editar producto
     @PutMapping(value = "/{id}/editar", consumes = "multipart/form-data")
     public Producto editarProducto(
 
@@ -137,7 +137,10 @@ public class ProductoController {
 
             @RequestParam("categoriaId") Long categoriaId,
 
-            @RequestPart(value = "imagenes", required = false) List<MultipartFile> imagenes) {
+            @RequestPart(value = "imagenes", required = false) List<MultipartFile> imagenes,
+
+            // Cómo queda la galería, por ejemplo "e12,n0,e9" (ver ProductoService)
+            @RequestParam(value = "orden", required = false) String orden) {
 
         return productoService.editarProducto(
                 id,
@@ -145,7 +148,8 @@ public class ProductoController {
                 precio,
                 descripcion,
                 categoriaId,
-                imagenes);
+                imagenes,
+                orden);
     }
 
     // Dar de baja un producto (deja de verse, pero sus ventas quedan guardadas)

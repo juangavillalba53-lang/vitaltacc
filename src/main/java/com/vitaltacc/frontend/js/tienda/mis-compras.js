@@ -2,15 +2,6 @@
 // MIS COMPRAS: todo lo comprado en el local y online
 // =========================================================
 
-const NOMBRES_PAGO = {
-    EFECTIVO: "Efectivo",
-    TRANSFERENCIA: "Transferencia",
-    TARJETA_DEBITO: "Tarjeta de débito",
-    TARJETA_CREDITO: "Tarjeta de crédito",
-    MERCADO_PAGO: "Mercado Pago",
-    MODO: "MODO"
-};
-
 function formatearFecha(fecha) {
     if (!fecha) return "";
     const [anio, mes, dia] = String(fecha).substring(0, 10).split("-").map(Number);
@@ -51,6 +42,37 @@ const COMPRAS_POR_PAGINA = 10;
 let comprasCliente = [];
 let paginaCompras = 1;
 
+// Compras online: en qué estado está el pedido y los pasos que faltan
+function estadoPedido(c) {
+    if (!c.estado) return "";
+
+    const cancelado = c.estado === "CANCELADO";
+    const pasos = c.recorrido || [];
+    const motivo = cancelado ? [...(c.historial || [])].reverse().find(h => h.estado === "CANCELADO")?.nota : null;
+    const actual = pasos.findIndex(p => p.estado === c.estado);
+
+    const entrega = c.formaEntrega === "ENVIO"
+        ? `Envío a ${escaparHTML(c.envioDireccion || "")}${c.envioLocalidad ? `, ${escaparHTML(c.envioLocalidad)}` : ""}`
+        : `Retiro en el local · ${escaparHTML(configuracionNegocio.direccion)}`;
+
+    return `
+        <div class="compra-estado ${cancelado ? "cancelado" : ""}">
+            <p class="compra-estado-titulo">
+                <span class="estado-pedido estado-${c.estado.toLowerCase()}">${escaparHTML(c.estadoNombre)}</span>
+                <span>${escaparHTML(c.estadoMensaje)}${motivo ? ` Motivo: ${escaparHTML(motivo)}.` : ""}</span>
+            </p>
+            ${cancelado ? "" : `
+            <ol class="pasos-pedido" aria-label="Pasos del pedido">
+                ${pasos.map((p, i) => `
+                    <li class="${i < actual ? "hecho" : i === actual ? "actual" : ""}" ${i === actual ? 'aria-current="step"' : ""}>
+                        <span class="paso-punto">${i <= actual ? icono("check") : i + 1}</span>
+                        <span>${escaparHTML(p.nombre)}</span>
+                    </li>`).join("")}
+            </ol>`}
+            <p class="compra-entrega">${entrega}</p>
+        </div>`;
+}
+
 function tarjetaCompra(c) {
     const local = c.tipoVenta === "LOCAL";
     return `
@@ -61,6 +83,7 @@ function tarjetaCompra(c) {
                 <time datetime="${escaparHTML(c.fecha)}">${formatearFecha(c.fecha)}</time>
                 <span class="compra-total">${pesos(c.total)}</span>
             </header>
+            ${estadoPedido(c)}
             <ul class="compra-items">
                 ${(c.items || []).map(i => `
                     <li>
@@ -69,8 +92,12 @@ function tarjetaCompra(c) {
                     </li>
                 `).join("")}
             </ul>
+            ${Number(c.devuelto) > 0 ? `
+            <p class="compra-devolucion">
+                Devolución: se te reintegraron <strong>${pesos(c.devuelto)}</strong> por ${escaparHTML(nombrePago(c.metodoPago))}.
+            </p>` : ""}
             <footer class="compra-pie">
-                <span>Pago: ${escaparHTML(NOMBRES_PAGO[c.metodoPago] || c.metodoPago || "-")}</span>
+                <span>Pago: ${escaparHTML(nombrePago(c.metodoPago))}</span>
                 <button type="button" class="boton boton-secundario" data-comprobante="${escaparHTML(c.id)}">Descargar comprobante</button>
             </footer>
         </article>`;
@@ -133,16 +160,16 @@ function renderCompras(compras) {
         return;
     }
 
-    const enLocal = compras.filter(c => c.tipoVenta === "LOCAL").length;
-    const online = compras.length - enLocal;
-    const totalGastado = compras.reduce((s, c) => s + (Number(c.total) || 0), 0);
+    // Los pedidos cancelados no cuentan
+    const validas = compras.filter(c => c.estado !== "CANCELADO");
+    const enLocal = validas.filter(c => c.tipoVenta === "LOCAL").length;
+    const online = validas.length - enLocal;
 
     destino.innerHTML = `
         <div class="resumen-cuenta">
-            <div><strong>${compras.length}</strong><span>${compras.length === 1 ? "compra" : "compras"} en total</span></div>
+            <div><strong>${validas.length}</strong><span>${validas.length === 1 ? "compra" : "compras"} en total</span></div>
             <div><strong>${enLocal}</strong><span>en el local</span></div>
             <div><strong>${online}</strong><span>online</span></div>
-            <div><strong>${pesos(totalGastado)}</strong><span>en productos sin TACC</span></div>
         </div>
 
         <div class="lista-compras" id="listaCompras"></div>

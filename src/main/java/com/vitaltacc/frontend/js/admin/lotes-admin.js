@@ -1,5 +1,6 @@
 // =========================================================
-// LOTES: alta, alertas de vencimiento, retiro y baja
+// LOTES: alta, detalle por producto, retiro y baja
+// (los contadores de vencimiento los actualiza cargarDashboard)
 // =========================================================
 
 // Fecha de hoy en formato AAAA-MM-DD según la hora local (no la de Londres)
@@ -8,7 +9,6 @@ function hoyLocal() {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-// CREAR LOTE
 function crearLote() {
 
     const productoId = document.getElementById("productoLote").value;
@@ -17,23 +17,14 @@ function crearLote() {
 
     const hoy = hoyLocal();
 
-    if (!productoId) {
-        alert("Seleccionar producto");
-        return;
-    }
+    const error =
+        !productoId ? "Elegí un producto." :
+        (isNaN(cantidad) || cantidad <= 0) ? "La cantidad tiene que ser mayor a 0." :
+        !fecha ? "Elegí la fecha de vencimiento." :
+        fecha <= hoy ? "La fecha de vencimiento tiene que ser posterior a hoy." : "";
 
-    if (isNaN(cantidad) || cantidad <= 0) {
-        alert("La cantidad debe ser mayor a 0");
-        return;
-    }
-
-    if (!fecha) {
-        alert("Seleccionar fecha de vencimiento");
-        return;
-    }
-
-    if (fecha <= hoy) {
-        alert("La fecha de vencimiento debe ser futura");
+    if (error) {
+        mostrarAviso(error, "error");
         return;
     }
 
@@ -49,47 +40,20 @@ function crearLote() {
 
             const p = document.getElementById("loteCreado");
             if (p) {
-                p.innerText = "Lote creado · N.º " + data.numeroLote;
+                p.textContent = "Lote creado · N.º " + data.numeroLote;
                 p.className = "mensaje-exito";
             }
 
             document.getElementById("cantidadLote").value = "";
             document.getElementById("vencimientoLote").value = "";
 
-            cargarLotesPorVencer();
-            cargarStock();
+            actualizarDespuesDeLote();
         })
         .catch(error => {
             mostrarAviso("No se pudo crear el lote: " + error.message, "error");
         });
 }
 
-
-function cargarLotesPorVencer() {
-
-    Promise.all([
-        pedir("/lotes/por-vencer"),
-        pedir("/lotes/vencidos").catch(() => [])
-    ])
-        .then(([porVencer, vencidos]) => {
-
-            window.lotesStock = porVencer;
-
-            const contar = nivel => porVencer.filter(l => l.alerta === nivel).length;
-
-            ponerTexto(document.getElementById("cantidadUrgentes"), contar("URGENTE"));
-            ponerTexto(document.getElementById("cantidadAtencion"), contar("ATENCION"));
-            ponerTexto(document.getElementById("cantidadVencidos"), vencidos.length);
-            ponerTexto(document.getElementById("cantidadMonitoreados"), porVencer.length);
-
-            if (productosStock.length > 0) {
-                renderStock(productosStock);
-            }
-        })
-        .catch(error => {
-            console.error("Error al cargar lotes:", error);
-        });
-}
 
 function abrirModalLotes(productoId) {
 
@@ -288,12 +252,7 @@ function abrirModalLotes(productoId) {
             renderTabla();
         })
         .catch(error => {
-
-            console.error(error);
-
-            lista.innerHTML = `
-                <p>Error cargando lotes</p>
-            `;
+            lista.innerHTML = `<p>No se pudieron cargar los lotes: ${escaparHTML(error.message)}</p>`;
         });
 }
 
@@ -352,8 +311,6 @@ function actualizarDespuesDeLote(productoId) {
     if (productoId && document.getElementById("modalLotes")?.style.display === "flex") {
         abrirModalLotes(productoId);
     }
-    cargarStock();
-    cargarLotesPorVencer();
-    cargarProductosVenta();
+    cargarProductos();
     cargarDashboard();
 }

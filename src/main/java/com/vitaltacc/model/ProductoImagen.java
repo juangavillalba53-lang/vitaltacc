@@ -25,6 +25,9 @@ public class ProductoImagen {
     @JsonIgnore
     private Producto producto;
 
+    // Posición en la galería: la 0 es la que se ve en la tienda
+    private Integer orden;
+
     public ProductoImagen(Long id, String url, Producto producto) {
         this.id = id;
         this.url = url;
