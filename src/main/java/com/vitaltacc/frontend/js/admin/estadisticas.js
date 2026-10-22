@@ -2,8 +2,8 @@
 // REPORTES: por día, por mes y por año, gráfico y cierre de caja
 // =========================================================
 
-// Los reportes de más vendidos y mejores clientes muestran solo el top 10
-const TOP_REPORTES = 10;
+// Los reportes de más vendidos y mejores clientes muestran solo el top 3
+const TOP_REPORTES = 3;
 
 // La primera vez que se abre Reportes, arranca en el mes y el año actuales
 let reportesIniciados = false;

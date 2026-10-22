@@ -335,6 +335,15 @@ body {
     margin-bottom: 16px;
 }
 
+/* Título + contador a la izquierda y el enlace a la derecha */
+.card-encabezado:has(> .btn-link):has(> .contador-alerta) {
+    justify-content: flex-start;
+}
+
+.card-encabezado:has(> .contador-alerta) > .btn-link {
+    margin-left: auto;
+}
+
 .card-encabezado h2 {
     margin: 0;
 }
@@ -860,8 +869,22 @@ body {
 .alerta-card.atencion .alerta-titulo::before { box-shadow: 0 0 0 4px var(--vt-alerta-50); }
 .alerta-card.total .alerta-titulo::before { box-shadow: 0 0 0 4px var(--vt-turquesa-100); }
 
-#buscarStock {
+/* Buscador y filtro de Inventario en una fila */
+.filtros-stock {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.filtros-stock #buscarStock {
+    flex: 1 1 240px;
     max-width: 360px;
+}
+
+.filtros-stock #filtroStock {
+    flex: 0 1 220px;
+    width: auto;
 }
 
 /* Estados de stock y lotes */
@@ -2579,6 +2602,163 @@ table:has(tbody:empty) {
 }
 
 /* =========================================================
+   TARJETAS QUE SE PUEDEN TOCAR
+   (vencimientos, contadores del Panel General)
+========================================================= */
+
+.tarjeta-clic {
+    position: relative;
+    cursor: pointer;
+    transition: transform 160ms var(--vt-ease-out), box-shadow 160ms var(--vt-ease-out), border-color 160ms var(--vt-ease-out);
+}
+
+.tarjeta-clic:focus-visible {
+    outline: 2px solid var(--vt-turquesa-700);
+    outline-offset: 3px;
+}
+
+/* Flechita que aparece al pasar el mouse */
+.tarjeta-clic::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 16px;
+    width: 8px;
+    height: 8px;
+    margin-top: -4px;
+    border-top: 2px solid currentColor;
+    border-right: 2px solid currentColor;
+    opacity: 0;
+    transform: translateX(-4px) rotate(45deg);
+    transition: opacity 160ms var(--vt-ease-out), transform 160ms var(--vt-ease-out);
+    pointer-events: none;
+}
+
+@media (hover: hover) {
+    .tarjeta-clic:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 4px rgba(15, 59, 60, 0.06), 0 16px 32px -16px rgba(15, 59, 60, 0.35);
+    }
+
+    .tarjeta-clic:hover::after {
+        opacity: 0.7;
+        transform: translateX(0) rotate(45deg);
+    }
+}
+
+.tarjeta-clic:active {
+    transform: translateY(0) scale(0.99);
+}
+
+.alerta-card.tarjeta-clic { border-color: var(--vt-linea); }
+.alerta-card.tarjeta-clic:hover { border-color: currentColor; }
+
+.venc-chip.tarjeta-clic { padding-right: 34px; }
+.venc-chip.tarjeta-clic::after { right: 14px; }
+
+#adminDashboard .grid-admin > .card-admin.tarjeta-clic::after { color: var(--vt-tinta-3); }
+#adminDashboard .grid-admin > .card-admin.tarjeta-clic:first-child::after { color: #FFFFFF; }
+
+/* =========================================================
+   VENTANA DE VENCIMIENTOS
+========================================================= */
+
+.contenido-vencimientos {
+    width: min(820px, 100%);
+}
+
+.tabs-vencimientos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.modal-lotes .tabs-vencimientos .tab-vencimiento {
+    min-height: 36px;
+    padding: 7px 14px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-fondo);
+    border: 1px solid var(--vt-linea);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: none;
+}
+
+.modal-lotes .tabs-vencimientos .tab-vencimiento span {
+    min-width: 22px;
+    padding: 1px 7px;
+    background: var(--vt-superficie);
+    border-radius: 999px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+}
+
+.modal-lotes .tabs-vencimientos .tab-vencimiento:hover {
+    color: var(--vt-tinta);
+    border-color: var(--vt-linea-fuerte);
+}
+
+.modal-lotes .tabs-vencimientos .tab-vencimiento.activo {
+    color: var(--vt-superficie);
+    background: var(--vt-petroleo);
+    border-color: var(--vt-petroleo);
+}
+
+.modal-lotes .tabs-vencimientos .tab-vencimiento.activo span {
+    color: var(--vt-petroleo);
+}
+
+.modal-lotes .tabs-vencimientos .tramo-urgente.activo { background: var(--vt-peligro); border-color: var(--vt-peligro); }
+.modal-lotes .tabs-vencimientos .tramo-atencion.activo { background: var(--vt-alerta); border-color: var(--vt-alerta); }
+.modal-lotes .tabs-vencimientos .tramo-vencido.activo { background: #7A1F2B; border-color: #7A1F2B; }
+
+.detalle-vencimientos {
+    margin: 0 0 14px;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+}
+
+#buscarVencimientos {
+    margin-bottom: 14px;
+}
+
+.tabla-vencimientos td {
+    vertical-align: middle;
+}
+
+.tabla-vencimientos .proximo-dias {
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.tabla-vencimientos .proximo-dias.vencido {
+    color: #7A1F2B;
+    background: var(--vt-peligro-50);
+}
+
+.contenido-vencimientos .estado-carga {
+    margin: 18px 0;
+    color: var(--vt-tinta-3);
+    text-align: center;
+}
+
+@media (max-width: 640px) {
+    .tabla-vencimientos th:nth-child(2),
+    .tabla-vencimientos td:nth-child(2),
+    .tabla-vencimientos th:nth-child(4),
+    .tabla-vencimientos td:nth-child(4) {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tarjeta-clic,
+    .tarjeta-clic::after { transition: none; }
+}
+
+/* =========================================================
    BUSCADOR EN SELECT (producto del lote y de la promoción)
 ========================================================= */
 
@@ -3498,14 +3678,24 @@ table:has(tbody:empty) {
     gap: 14px;
 }
 
+/* Cada pedido es un desplegable */
 .pedido {
-    display: grid;
-    gap: 14px;
-    padding: 18px 20px;
     background: var(--vt-superficie);
     border: 1px solid var(--vt-linea);
     border-left: 4px solid var(--vt-trigo);
     border-radius: var(--vt-r-lg);
+    transition: box-shadow 160ms var(--vt-ease-out);
+}
+
+.pedido[open] {
+    box-shadow: var(--vt-sombra);
+}
+
+.pedido-contenido {
+    display: grid;
+    gap: 14px;
+    padding: 2px 20px 18px;
+    animation: vt-aparecer 220ms var(--vt-ease-out) both;
 }
 
 .pedido.estado-recibido { border-left-color: var(--vt-turquesa); }
@@ -3516,9 +3706,68 @@ table:has(tbody:empty) {
 
 .pedido-encabezado {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    padding: 16px 20px;
+    list-style: none;
+    border-radius: var(--vt-r-lg);
+    cursor: pointer;
+    user-select: none;
+}
+
+.pedido-encabezado::-webkit-details-marker {
+    display: none;
+}
+
+.pedido-encabezado:hover {
+    background: var(--vt-turquesa-50);
+}
+
+.pedido-encabezado:focus-visible {
+    outline: 2px solid var(--vt-turquesa-700);
+    outline-offset: 2px;
+}
+
+.pedido-titulo {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.pedido-resumen {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 12px;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+}
+
+.pedido-resumen strong {
+    color: var(--vt-tinta);
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+}
+
+.pedido-flecha {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--vt-tinta-2);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 200ms var(--vt-ease-out);
+}
+
+.pedido[open] .pedido-flecha {
+    transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pedido-contenido { animation: none; }
+    .pedido-flecha { transition: none; }
 }
 
 .pedido-encabezado h3 {
@@ -3701,4 +3950,251 @@ table:has(tbody:empty) {
 
 .historial-estado.estado-cancelado {
     color: var(--vt-peligro);
+}
+
+/* =========================================================
+   CAMPOS OBLIGATORIOS
+========================================================= */
+
+.obligatorio {
+    margin-left: 2px;
+    color: var(--vt-peligro);
+    font-weight: 700;
+}
+
+.nota-obligatorio {
+    margin: -4px 0 16px;
+    color: var(--vt-tinta-3);
+    font-size: 13px;
+}
+
+/* =========================================================
+   AUDITORÍA
+========================================================= */
+
+.filtros-auditoria {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+    align-items: end;
+    gap: 12px;
+    margin: 14px 0 6px;
+}
+
+.admin-content .filtros-auditoria .btn-limpiar-auditoria {
+    min-height: 42px;
+    padding: 0 16px;
+    color: var(--vt-tinta);
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea-fuerte);
+    box-shadow: none;
+}
+
+.admin-content .filtros-auditoria .btn-limpiar-auditoria:hover {
+    background: var(--vt-turquesa-50);
+}
+
+.estado-auditoria {
+    min-height: 18px;
+    margin: 6px 0 4px;
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+}
+
+.dia-auditoria {
+    margin: 18px 0 8px;
+    color: var(--vt-tinta-2);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.grupo-auditoria {
+    display: grid;
+    gap: 6px;
+}
+
+.registro-auditoria {
+    background: var(--vt-superficie);
+    border: 1px solid var(--vt-linea);
+    border-radius: var(--vt-r-md);
+    transition: box-shadow 160ms var(--vt-ease-out), border-color 160ms var(--vt-ease-out);
+}
+
+.registro-auditoria[open] {
+    border-color: var(--vt-linea-fuerte);
+    box-shadow: var(--vt-sombra);
+}
+
+.registro-encabezado {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) auto 18px;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    list-style: none;
+    border-radius: var(--vt-r-md);
+}
+
+details.registro-auditoria > .registro-encabezado {
+    cursor: pointer;
+    user-select: none;
+}
+
+.registro-encabezado::-webkit-details-marker {
+    display: none;
+}
+
+details.registro-auditoria > .registro-encabezado:hover {
+    background: var(--vt-turquesa-50);
+}
+
+.registro-encabezado:focus-visible {
+    outline: 2px solid var(--vt-turquesa-700);
+    outline-offset: 2px;
+}
+
+.hora-auditoria {
+    color: var(--vt-tinta-2);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+}
+
+.texto-auditoria {
+    display: grid;
+    gap: 2px;
+    min-width: 0;
+}
+
+.texto-auditoria strong {
+    overflow: hidden;
+    color: var(--vt-tinta);
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.meta-auditoria {
+    color: var(--vt-tinta-2);
+    font-size: 12.5px;
+}
+
+.rol-auditoria {
+    display: inline-block;
+    margin-left: 2px;
+    padding: 1px 7px;
+    color: var(--vt-tinta-2);
+    background: var(--vt-fondo);
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.accion-auditoria {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.accion-alta { color: var(--vt-ok); background: var(--vt-ok-50); }
+.accion-cambio { color: var(--vt-turquesa-700); background: var(--vt-turquesa-50); }
+.accion-baja { color: var(--vt-peligro); background: var(--vt-peligro-50); }
+.accion-retiro { color: var(--vt-alerta); background: var(--vt-alerta-50); }
+.accion-estado { color: var(--vt-trigo-700); background: var(--vt-trigo-50); }
+.accion-ingreso { color: var(--vt-tinta-2); background: var(--vt-fondo); }
+
+.flecha-auditoria {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: var(--vt-tinta-2);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 200ms var(--vt-ease-out);
+}
+
+.registro-auditoria[open] .flecha-auditoria {
+    transform: rotate(180deg);
+}
+
+.admin-content ul.detalle-auditoria {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 4px 14px 14px 78px;
+    list-style: none;
+    animation: vt-aparecer 200ms var(--vt-ease-out) both;
+}
+
+.admin-content .detalle-auditoria li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: baseline;
+    gap: 4px 8px;
+    margin: 0;
+    padding: 0;
+    color: var(--vt-tinta);
+    font-size: 13px;
+    line-height: 1.45;
+    border: none;
+    background: none;
+}
+
+.campo-auditoria {
+    color: var(--vt-tinta-2);
+    font-weight: 600;
+}
+
+.campo-auditoria::after {
+    content: ":";
+}
+
+.antes-auditoria {
+    color: var(--vt-tinta-3);
+    text-decoration: line-through;
+    text-decoration-color: var(--vt-peligro);
+}
+
+.cambio-flecha {
+    color: var(--vt-tinta-3);
+}
+
+.despues-auditoria {
+    padding: 0 6px;
+    color: var(--vt-tinta);
+    background: var(--vt-ok-50);
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+    .filtros-auditoria {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 650px) {
+    .filtros-auditoria {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .registro-encabezado {
+        grid-template-columns: minmax(0, 1fr) 18px;
+        gap: 6px 10px;
+    }
+
+    .hora-auditoria { grid-column: 1; grid-row: 1; }
+    .texto-auditoria { grid-column: 1 / -1; grid-row: 2; }
+    .texto-auditoria strong { white-space: normal; }
+    .accion-auditoria { grid-column: 1; grid-row: 3; justify-self: start; }
+    .flecha-auditoria, .flecha-vacia { grid-column: 2; grid-row: 1; }
+
+    .admin-content ul.detalle-auditoria {
+        padding-left: 14px;
+    }
 }

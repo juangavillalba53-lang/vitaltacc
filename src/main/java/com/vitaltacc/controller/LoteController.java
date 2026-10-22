@@ -52,7 +52,7 @@ public class LoteController {
         return loteService.obtenerPorProducto(productoId).stream().map(this::aMapa).toList();
     }
 
-    // Lotes que vencen en los próximos 2 meses
+    // Lotes que vencen en los próximos 60 días
     @GetMapping("/por-vencer")
     public List<Map<String, Object>> obtenerLotesPorVencer() {
         return loteService.obtenerLotesPorVencer().stream().map(this::aMapa).toList();

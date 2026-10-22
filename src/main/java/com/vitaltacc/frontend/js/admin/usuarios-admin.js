@@ -1,7 +1,3 @@
-// =========================================================
-// USUARIOS DEL PANEL Y PERMISOS POR ROL
-// =========================================================
-
 function aplicarPermisos() {
     const usuarioActual = JSON.parse(
         localStorage.getItem("usuario") || "null"
@@ -12,7 +8,8 @@ function aplicarPermisos() {
     const opcionesSoloAdmin = [
         "btnReportes",
         "btnPromociones",
-        "btnUsuarios"
+        "btnUsuarios",
+        "btnAuditoria"
     ];
 
     opcionesSoloAdmin.forEach(id => {

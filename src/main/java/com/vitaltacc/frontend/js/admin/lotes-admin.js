@@ -1,8 +1,3 @@
-// =========================================================
-// LOTES: alta, detalle por producto, retiro y baja
-// (los contadores de vencimiento los actualiza cargarDashboard)
-// =========================================================
-
 // Fecha de hoy en formato AAAA-MM-DD según la hora local (no la de Londres)
 function hoyLocal() {
     const d = new Date();
@@ -19,9 +14,9 @@ function crearLote() {
 
     const error =
         !productoId ? "Elegí un producto." :
-        (isNaN(cantidad) || cantidad <= 0) ? "La cantidad tiene que ser mayor a 0." :
-        !fecha ? "Elegí la fecha de vencimiento." :
-        fecha <= hoy ? "La fecha de vencimiento tiene que ser posterior a hoy." : "";
+            (isNaN(cantidad) || cantidad <= 0) ? "La cantidad tiene que ser mayor a 0." :
+                !fecha ? "Elegí la fecha de vencimiento." :
+                    fecha <= hoy ? "La fecha de vencimiento tiene que ser posterior a hoy." : "";
 
     if (error) {
         mostrarAviso(error, "error");
@@ -310,6 +305,9 @@ async function retirarLote(loteId, productoId, numeroLote) {
 function actualizarDespuesDeLote(productoId) {
     if (productoId && document.getElementById("modalLotes")?.style.display === "flex") {
         abrirModalLotes(productoId);
+    }
+    if (typeof vencimientosAbierto === "function" && vencimientosAbierto()) {
+        recargarVencimientos();
     }
     cargarProductos();
     cargarDashboard();

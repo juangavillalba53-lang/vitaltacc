@@ -1,9 +1,3 @@
-// =========================================================
-// VITALTACC · UTILIDADES COMPARTIDAS
-// Las usan la tienda y el panel. Se carga antes que todo lo demás.
-// =========================================================
-
-// Dirección del servidor: si cambia (por ejemplo al subirlo a internet), se cambia solo acá
 const API = "http://localhost:8080";
 
 // Precios con formato argentino: $ 3.200,00

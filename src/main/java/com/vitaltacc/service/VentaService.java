@@ -1,6 +1,9 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.AccionAuditoria;
 import com.vitaltacc.model.CambioEstadoPedido;
+import com.vitaltacc.model.ModuloAuditoria;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import com.vitaltacc.model.DetalleVenta;
 import com.vitaltacc.model.Devolucion;
 import com.vitaltacc.model.EstadoPedido;
@@ -50,6 +53,19 @@ public class VentaService {
 
     @Autowired
     private PedidoService pedidoService;
+
+    @Autowired
+    private AuditoriaService auditoria;
+
+    // «2 × Fideos, 1 × Pan» (un producto puede salir de varios lotes: se suman)
+    static String productosDe(List<DetalleVenta> detalles) {
+        Map<String, Integer> cantidades = new LinkedHashMap<>();
+        detalles.forEach(d -> cantidades.merge(d.getProducto().getNombre(), d.getCantidad(), Integer::sum));
+        return cantidades.entrySet().stream()
+                .map(e -> e.getValue() + " × " + e.getKey())
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("");
+    }
 
     @Transactional
     public Venta crearVenta(VentaRequest ventaRequest) {
@@ -221,7 +237,22 @@ public class VentaService {
                     new CambioEstadoPedido(venta, EstadoPedido.RECIBIDO, venta.getCliente(), null));
         }
 
-        return ventaRepository.save(venta);
+        Venta guardada = ventaRepository.save(venta);
+
+        Cambios detalle = new Cambios()
+                .dato("Productos", productosDe(guardada.getDetalles()))
+                .dato("Total", AuditoriaService.pesos(guardada.getTotal()))
+                .dato("Medio de pago", guardada.getMetodoPago().getNombre());
+
+        // Solo las ventas del local (las compras online del cliente ya están en el historial)
+        if (!guardada.esOnline()) {
+            detalle.dato("Cliente", guardada.getCliente() != null
+                    ? AuditoriaService.nombreCompleto(guardada.getCliente()) : "Consumidor Final");
+            auditoria.registrarComo(guardada.getEmpleado(), ModuloAuditoria.VENTAS, AccionAuditoria.CREAR,
+                    guardada.getId(), "Registró la venta N.º " + guardada.getId() + " en el local", detalle);
+        }
+
+        return guardada;
     }
 
     // Retiro en el local (por defecto) o envío: para el envío hacen falta dirección,

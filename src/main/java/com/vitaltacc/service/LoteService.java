@@ -1,7 +1,10 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.AccionAuditoria;
 import com.vitaltacc.model.Lote;
+import com.vitaltacc.model.ModuloAuditoria;
 import com.vitaltacc.model.Producto;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import com.vitaltacc.repository.DetalleVentaRepository;
 import com.vitaltacc.repository.LoteRepository;
 import com.vitaltacc.repository.ProductoRepository;
@@ -20,6 +23,7 @@ public class LoteService {
     // Umbrales de vencimiento (iguales en todo el sistema)
     public static final int DIAS_URGENTE = 15;
     public static final int DIAS_ATENCION = 30;
+    public static final int DIAS_PROXIMOS = 60;
 
     @Autowired
     private LoteRepository loteRepository;
@@ -29,6 +33,9 @@ public class LoteService {
 
     @Autowired
     private DetalleVentaRepository detalleVentaRepository;
+
+    @Autowired
+    private AuditoriaService auditoria;
 
     // =========================================================
     // UTILIDADES
@@ -95,7 +102,15 @@ public class LoteService {
         lote.setFechaRetiro(null);
         lote.setNumeroLote(siguienteNumeroLote(hoy));
 
-        return loteRepository.save(lote);
+        Lote guardado = loteRepository.save(lote);
+
+        auditoria.registrar(ModuloAuditoria.LOTES, AccionAuditoria.CREAR, guardado.getId(),
+                "Agregó el lote " + guardado.getNumeroLote() + " de " + AuditoriaService.comillas(producto.getNombre()),
+                new Cambios()
+                        .dato("Cantidad", guardado.getCantidad() + " u.")
+                        .dato("Vence", guardado.getFechaVencimiento()));
+
+        return guardado;
     }
 
     // Formato AAAAMMDD-NN. Usa el número más alto del día + 1, así nunca se
@@ -138,17 +153,17 @@ public class LoteService {
         return loteRepository.findByProductoIdAndCantidadGreaterThan(productoId, 0);
     }
 
-    // Lotes que vencen desde hoy y dentro de los próximos 2 meses
+    // Lotes que vencen desde hoy hasta dentro de 60 días
     public List<Lote> obtenerLotesPorVencer() {
 
         LocalDate hoy = LocalDate.now();
-        LocalDate limite = hoy.plusMonths(2);
+        LocalDate limite = hoy.plusDays(DIAS_PROXIMOS);
 
         return loteRepository.findAll().stream()
                 .filter(LoteService::productoActivo)
                 .filter(lote -> lote.getFechaVencimiento() != null
                         && !lote.getFechaVencimiento().isBefore(hoy)
-                        && lote.getFechaVencimiento().isBefore(limite)
+                        && !lote.getFechaVencimiento().isAfter(limite)
                         && lote.getCantidad() > 0)
                 .toList();
     }
@@ -185,10 +200,20 @@ public class LoteService {
             throw new RuntimeException("Ese lote ya no tiene unidades");
         }
 
+        int unidades = lote.getCantidad();
         lote.setCantidad(0);
         lote.setFechaRetiro(LocalDate.now());
 
-        return loteRepository.save(lote);
+        Lote guardado = loteRepository.save(lote);
+
+        auditoria.registrar(ModuloAuditoria.LOTES, AccionAuditoria.RETIRAR, id,
+                "Retiró el lote vencido " + lote.getNumeroLote() + " de "
+                        + AuditoriaService.comillas(lote.getProducto().getNombre()),
+                new Cambios()
+                        .dato("Unidades retiradas", unidades + " u.")
+                        .dato("Venció", lote.getFechaVencimiento()));
+
+        return guardado;
     }
 
     @Transactional
@@ -203,5 +228,12 @@ public class LoteService {
         }
 
         loteRepository.delete(lote);
+
+        auditoria.registrar(ModuloAuditoria.LOTES, AccionAuditoria.ELIMINAR, id,
+                "Eliminó el lote " + lote.getNumeroLote() + " de "
+                        + AuditoriaService.comillas(lote.getProducto().getNombre()),
+                new Cambios()
+                        .dato("Cantidad", lote.getCantidad() + " u.")
+                        .dato("Vencía", lote.getFechaVencimiento()));
     }
 }

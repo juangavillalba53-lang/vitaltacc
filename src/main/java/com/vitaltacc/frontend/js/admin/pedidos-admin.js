@@ -1,10 +1,3 @@
-// =========================================================
-// PEDIDOS ONLINE
-// Recibido → En preparación → Listo para retirar / Enviado → Entregado
-// Se puede cancelar hasta que sale del local (las unidades vuelven al stock).
-// En cada cambio al cliente le llega un mail.
-// =========================================================
-
 const PEDIDOS_POR_PAGINA = 10;
 
 const FILTROS_PEDIDOS = [
@@ -30,6 +23,9 @@ let filtroPedidos = "activos";
 let pedidosCargados = [];
 let paginaPedidos = 1;
 
+// Los pedidos que el usuario dejó abiertos siguen abiertos al recargar la lista
+const pedidosAbiertos = new Set();
+
 function mostrarContadorPedidos(cantidad) {
     const contador = document.getElementById("contadorPedidos");
     if (!contador) return;
@@ -44,7 +40,7 @@ function dibujarFiltrosPedidos(resumen) {
     contenedor.innerHTML = FILTROS_PEDIDOS.map(([valor, texto]) => {
         const cantidad = valor === "activos" ? resumen?.activos
             : valor === "todos" ? null
-            : porEstado[valor];
+                : porEstado[valor];
         return `
             <button type="button" class="filtro-pedido ${valor === filtroPedidos ? "activo" : ""}"
                 aria-pressed="${valor === filtroPedidos}" onclick="elegirFiltroPedidos('${valor}')">
@@ -103,6 +99,10 @@ function filtrarPedidos(volverAlInicio = true) {
     } else {
         estado.textContent = lista.length === 1 ? "1 pedido" : `${lista.length} pedidos`;
         contenedor.innerHTML = items.map(tarjetaPedido).join("");
+        contenedor.querySelectorAll("details.pedido").forEach(d => d.addEventListener("toggle", () => {
+            if (d.open) pedidosAbiertos.add(d.dataset.id);
+            else pedidosAbiertos.delete(d.dataset.id);
+        }));
     }
 
     dibujarPaginacion(document.getElementById("paginacionPedidos"), pagina, totalPaginas, nueva => {
@@ -127,16 +127,26 @@ function tarjetaPedido(p) {
            ${p.envioIndicaciones ? `<span>${escaparHTML(p.envioIndicaciones)}</span>` : ""}`
         : `<strong>Retiro en el local</strong>`;
 
+    const unidades = p.items.reduce((suma, i) => suma + (Number(i.cantidad) || 0), 0);
+
+    // Cerrado muestra lo principal; al tocarlo se ven los productos, la entrega y los botones
     return `
-        <article class="pedido estado-${p.estado.toLowerCase()}">
-            <header class="pedido-encabezado">
-                <div>
+        <details class="pedido estado-${p.estado.toLowerCase()}" data-id="${p.id}" ${pedidosAbiertos.has(String(p.id)) ? "open" : ""}>
+            <summary class="pedido-encabezado">
+                <div class="pedido-titulo">
                     <h3>Pedido N.º ${p.id}</h3>
                     <p>${fechaCorta(p.fecha)} · ${escaparHTML(p.cliente)}</p>
                 </div>
+                <span class="pedido-resumen">
+                    <span>${envio ? "Envío" : "Retiro"}</span>
+                    <span>${unidades === 1 ? "1 producto" : `${unidades} productos`}</span>
+                    <strong>${pesos(p.total)}</strong>
+                </span>
                 <span class="estado-pedido-admin estado-${p.estado.toLowerCase()}">${escaparHTML(p.estadoNombre)}</span>
-            </header>
+                <svg class="pedido-flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
 
+            <div class="pedido-contenido">
             <div class="pedido-cuerpo">
                 <ul class="pedido-items">
                     ${p.items.map(i => `
@@ -180,7 +190,8 @@ function tarjetaPedido(p) {
                         </button>` : ""}
                 </div>
             </footer>
-        </article>`;
+            </div>
+        </details>`;
 }
 
 async function cambiarEstadoPedido(id, estado, nota) {

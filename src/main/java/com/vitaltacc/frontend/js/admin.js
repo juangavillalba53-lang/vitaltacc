@@ -1,7 +1,3 @@
-// =========================================================
-// PANEL: arranque, navegación entre secciones y dashboard
-// =========================================================
-
 const usuario = JSON.parse(localStorage.getItem("usuario"));
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -72,10 +68,6 @@ function mostrarPanel(panel) {
         });
 }
 
-// ===============================
-// NAVEGACIÓN DEL PANEL
-// ===============================
-
 
 function mostrarSeccion(id) {
     const usuarioActual = JSON.parse(localStorage.getItem("usuario"));
@@ -89,7 +81,8 @@ function mostrarSeccion(id) {
     const seccionesSoloAdmin = [
         "adminReportes",
         "adminPromociones",
-        "adminUsuarios"
+        "adminUsuarios",
+        "adminAuditoria"
     ];
 
 
@@ -144,11 +137,11 @@ function mostrarSeccion(id) {
         cargarGeneral();
         cargarCierreCaja();
     }
-}
 
-// ===============================
-// DASHBOARD
-// ===============================
+    if (id === "adminAuditoria") {
+        abrirAuditoria();
+    }
+}
 
 function cargarDashboard() {
 
@@ -185,19 +178,20 @@ function cargarDashboard() {
         if (lotes) {
             const lotesActivos = lotes.filter(l => l.cantidad > 0 && diasHasta(l.fechaVencimiento) >= 0);
             ponerTexto(document.getElementById("dashboardLotes"), lotesActivos.length);
-            ponerTexto(document.getElementById("totalMonitoreados"), lotesActivos.length);
         }
 
         // Los contadores de vencimientos se muestran en el Dashboard y en Inventario
         if (porVencer) {
             const urgentes = porVencer.filter(l => l.alerta === "URGENTE").length;
             const atencion = porVencer.filter(l => l.alerta === "ATENCION").length;
+            const proximos = porVencer.filter(l => l.alerta === "OK").length;
 
             ponerTexto(document.getElementById("totalUrgentes"), urgentes);
             ponerTexto(document.getElementById("totalAtencion"), atencion);
             ponerTexto(document.getElementById("cantidadUrgentes"), urgentes);
             ponerTexto(document.getElementById("cantidadAtencion"), atencion);
-            ponerTexto(document.getElementById("cantidadMonitoreados"), porVencer.length);
+            ponerTexto(document.getElementById("totalProximos"), proximos);
+            ponerTexto(document.getElementById("cantidadProximos"), proximos);
             renderProximosVencimientos(porVencer);
         }
 
@@ -207,14 +201,11 @@ function cargarDashboard() {
         }
 
         if (productos) {
-            renderStockBajo(productos, Number(config?.stockBajo ?? 5));
+            limiteStockBajo = Number(config?.stockBajo ?? 5);
+            renderStockBajo(productos, limiteStockBajo);
         }
     });
 }
-
-// ===============================
-// DASHBOARD: PRÓXIMOS VENCIMIENTOS
-// ===============================
 
 function renderProximosVencimientos(lotes) {
 
@@ -340,10 +331,6 @@ function irACargarLote(productoId) {
 }
 
 
-// ===============================
-// ACTUALIZACIÓN AUTOMÁTICA DEL DASHBOARD
-// ===============================
-
 // Cambia el texto solo si el valor es distinto (así no parpadea)
 function ponerTexto(elemento, valor) {
     if (!elemento) return;
@@ -351,10 +338,6 @@ function ponerTexto(elemento, valor) {
     if (elemento.textContent !== texto) elemento.textContent = texto;
 }
 
-// Se actualiza:
-// - al volver a la pestaña o a la ventana del panel,
-// - al entrar al Dashboard desde el menú,
-// - y cada 30 segundos, solo mientras la pestaña está a la vista.
 function programarActualizacionDashboard() {
 
     const actualizarSiSeVe = () => {

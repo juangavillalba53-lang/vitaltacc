@@ -1,15 +1,3 @@
-// =========================================================
-// VITALTACC · BASE COMPARTIDA DE LA TIENDA
-// Encabezado, carrito, pie de página, avisos y utilidades.
-// Todas las páginas de la tienda lo cargan, después de js/comun.js.
-// =========================================================
-
-// ---------------------------------------------------------
-// UTILIDADES
-// ---------------------------------------------------------
-
-// API, pesos(), escaparHTML() y los nombres de pago vienen de js/comun.js
-
 function soloNumeros(texto) {
     return String(texto ?? "").replace(/\D/g, "");
 }
@@ -32,10 +20,6 @@ function leerJSON(clave, valorPorDefecto) {
         return valorPorDefecto;
     }
 }
-
-// ---------------------------------------------------------
-// SESIÓN
-// ---------------------------------------------------------
 
 function obtenerUsuario() {
     return leerJSON("usuario", null);
@@ -256,8 +240,8 @@ function renderEncabezado() {
                 <div class="menu-cuenta" id="menuCuenta" hidden>
                     <p class="menu-cuenta-nombre">${escaparHTML(usuario.nombre)} ${escaparHTML(usuario.apellido || "")}</p>
                     ${esPersonal(usuario)
-                        ? `<a href="admin.html">Ir al panel</a>`
-                        : `<a href="mis-compras.html">Mis compras</a>`}
+            ? `<a href="admin.html">Ir al panel</a>`
+            : `<a href="mis-compras.html">Mis compras</a>`}
                     <button type="button" data-accion="salir">Cerrar sesión</button>
                 </div>
             </div>`
@@ -424,8 +408,8 @@ function renderCarrito() {
         <div class="item-carrito">
             <div class="item-carrito-foto">
                 ${item.imagen
-                    ? `<img src="${escaparHTML(item.imagen)}" alt="" loading="lazy">`
-                    : icono("trigo", "icono-placeholder")}
+            ? `<img src="${escaparHTML(item.imagen)}" alt="" loading="lazy">`
+            : icono("trigo", "icono-placeholder")}
             </div>
             <div class="item-carrito-info">
                 <p class="item-carrito-nombre">${escaparHTML(item.nombre)}</p>
@@ -512,8 +496,8 @@ function crearTarjetaProducto(prod) {
     tarjeta.innerHTML = `
         <div class="tarjeta-foto">
             ${p.imagen
-                ? `<img src="${escaparHTML(p.imagen)}" alt="${escaparHTML(p.nombre)}" loading="lazy">`
-                : `<div class="tarjeta-sin-foto">${icono("trigo", "icono-placeholder")}</div>`}
+            ? `<img src="${escaparHTML(p.imagen)}" alt="${escaparHTML(p.nombre)}" loading="lazy">`
+            : `<div class="tarjeta-sin-foto">${icono("trigo", "icono-placeholder")}</div>`}
             <span class="cinta-sin-tacc">Sin TACC</span>
             ${p.descuento ? `<span class="etiqueta-descuento">-${p.descuento}%</span>` : ""}
         </div>

@@ -1,6 +1,7 @@
 package com.vitaltacc.service;
 
 import com.vitaltacc.model.*;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import com.vitaltacc.repository.LoteRepository;
 import com.vitaltacc.repository.UsuarioRepository;
 import com.vitaltacc.repository.VentaRepository;
@@ -26,6 +27,9 @@ public class PedidoService {
 
     @Autowired
     private LoteRepository loteRepository;
+
+    @Autowired
+    private AuditoriaService auditoria;
 
     // ---------------------------------------------------------
     // Consultas
@@ -132,7 +136,23 @@ public class PedidoService {
         venta.setEstadoPedido(nuevo);
         venta.getCambiosEstado().add(new CambioEstadoPedido(venta, nuevo, usuario, notaLimpia));
 
-        return datosPedido(ventaRepository.save(venta));
+        Venta guardada = ventaRepository.save(venta);
+
+        Cambios cambios = new Cambios()
+                .campo("Estado", actual.getNombre(), nuevo.getNombre())
+                .dato("Cliente", venta.getCliente() != null ? AuditoriaService.nombreCompleto(venta.getCliente()) : null)
+                .linea(notaLimpia != null ? "Nota: " + notaLimpia : null)
+                .linea(nuevo == EstadoPedido.CANCELADO ? "Las unidades volvieron al stock" : null);
+
+        auditoria.registrarComo(usuario, ModuloAuditoria.PEDIDOS,
+                nuevo == EstadoPedido.CANCELADO ? AccionAuditoria.CANCELAR : AccionAuditoria.CAMBIO_ESTADO,
+                ventaId,
+                nuevo == EstadoPedido.CANCELADO
+                        ? "Canceló el pedido N.º " + ventaId
+                        : "Pasó el pedido N.º " + ventaId + " a " + AuditoriaService.comillas(nuevo.getNombre()),
+                cambios);
+
+        return datosPedido(guardada);
     }
 
     // Al cancelar, lo que se había separado vuelve a los mismos lotes

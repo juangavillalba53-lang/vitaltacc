@@ -1,29 +1,18 @@
-// =========================================================
-// VITALTACC · DETALLES DE INTERFAZ DEL PANEL
-// - Pedidos al servidor con manejo de errores
-// - Avisos (toasts): mostrarAviso(texto, "ok" | "error" | "alerta")
-// - Indicador animado de la sección activa en el menú
-// - Estados de carga con esqueletos
-// =========================================================
-
-// API, pesos(), escaparHTML(), fechaCorta() y los nombres de pago vienen de js/comun.js
-
-/**
- * Hace un pedido al servidor y, si falla, lanza un Error con el mensaje
- * que mandó el servidor (por ejemplo "Ya existe una cuenta con ese DNI").
- * Devuelve el JSON de la respuesta, o null si vino vacía.
- *   await pedir("/productos")
- *   await pedir("/lotes", { method: "POST", json: { cantidad: 5 } })
- */
 async function pedir(ruta, opciones = {}) {
 
     const { json, ...resto } = opciones;
-    const config = { ...resto };
+    const config = { ...resto, headers: { ...(resto.headers || {}) } };
 
     if (json !== undefined) {
-        config.headers = { "Content-Type": "application/json", ...(resto.headers || {}) };
+        config.headers["Content-Type"] = "application/json";
         config.body = JSON.stringify(json);
     }
+
+    // Quién hace el pedido: el servidor lo anota en la auditoría
+    try {
+        const sesion = JSON.parse(localStorage.getItem("usuario") || "null");
+        if (sesion?.id) config.headers["X-Usuario-Id"] = String(sesion.id);
+    } catch { /* sin sesión guardada */ }
 
     let respuesta;
 
@@ -427,7 +416,7 @@ function textoDias(dias) {
     function observarNumeros() {
         const ids = [
             "dashboardProductos", "dashboardLotes", "dashboardPromociones",
-            "dashboardUsuarios", "totalUrgentes", "totalAtencion", "totalMonitoreados"
+            "dashboardUsuarios", "totalUrgentes", "totalAtencion", "totalProximos"
         ];
 
         ids.forEach(id => {

@@ -1,7 +1,3 @@
-// =========================================================
-// CATÁLOGO: búsqueda, filtro por categoría y "Ver más"
-// =========================================================
-
 // Se muestran de a 12 productos; "Ver más" suma los 12 siguientes
 const PRODUCTOS_POR_TANDA = 12;
 

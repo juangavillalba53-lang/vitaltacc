@@ -1,7 +1,3 @@
-// =========================================================
-// PRODUCTOS: alta, edición, baja, stock y categorías
-// =========================================================
-
 function crearProducto() {
     const nombre = document.getElementById("nombreProducto").value.trim();
 
@@ -357,15 +353,28 @@ function renderStock(productos) {
 }
 
 // Al escribir en el buscador vuelve a la página 1; al recargar datos se queda donde estaba
+// Desde cuántas unidades un producto cuenta como stock bajo (se elige en Configuración)
+let limiteStockBajo = 5;
+
 function filtrarStock(volverAlInicio = true) {
 
     if (volverAlInicio) paginaStockActual = 1;
 
-    const texto = (document.getElementById("buscarStock")?.value || "").toLowerCase().trim();
+    const texto = normalizarTexto((document.getElementById("buscarStock")?.value || "").trim());
+    const filtro = document.getElementById("filtroStock")?.value || "todos";
 
-    renderStock(texto
-        ? productosStock.filter(p => p.nombre.toLowerCase().includes(texto))
-        : productosStock);
+    const tieneVencidos = prod => lotesTodos.some(l =>
+        Number(l.productoId) === Number(prod.id) && Number(l.cantidad) > 0 && Number(l.diasRestantes) < 0);
+
+    const pasaFiltro = {
+        todos: () => true,
+        bajo: prod => (Number(prod.stock) || 0) <= limiteStockBajo,
+        sin: prod => (Number(prod.stock) || 0) <= 0,
+        vencidos: tieneVencidos
+    }[filtro] || (() => true);
+
+    renderStock(productosStock.filter(p =>
+        pasaFiltro(p) && (!texto || normalizarTexto(p.nombre).includes(texto))));
 }
 
 async function eliminarProductoAdmin(id) {

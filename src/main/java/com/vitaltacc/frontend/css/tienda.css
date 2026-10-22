@@ -1474,28 +1474,132 @@ p {
     padding-bottom: 88px;
 }
 
+/* Cada compra es un desplegable */
 .compra {
-    padding: 22px 24px;
     background: #FFFFFF;
     border: 1px solid var(--linea);
     border-radius: var(--r-lg);
+    transition: border-color 160ms var(--ease-out, ease), box-shadow 160ms var(--ease-out, ease);
+}
+
+.compra[open] {
+    border-color: var(--turquesa-100);
+    box-shadow: 0 14px 30px -22px rgba(15, 59, 60, 0.45);
 }
 
 .compra-encabezado {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 10px 16px;
-    margin-bottom: 14px;
+    gap: 8px 16px;
+    padding: 18px 22px;
+    border-radius: var(--r-lg);
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+}
+
+.compra-encabezado::-webkit-details-marker {
+    display: none;
+}
+
+.compra-encabezado:hover {
+    background: var(--fondo-suave);
+}
+
+.compra-encabezado:focus-visible {
+    outline: 2px solid var(--turquesa-700);
+    outline-offset: 2px;
+}
+
+.compra[open] > .compra-encabezado {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+.compra-titulo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
 }
 
 .compra-encabezado h2 {
-    font-size: 19px;
+    margin: 0;
+    font-size: 18px;
 }
 
-.compra-encabezado time {
+.compra-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 10px;
     color: var(--tinta-3);
     font-size: 14px;
+}
+
+.compra-meta > * + *::before {
+    content: "·";
+    margin-right: 10px;
+}
+
+.compra-con-devolucion {
+    padding: 3px 10px;
+    color: var(--rosa-700);
+    background: var(--rosa-50);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.compra-flecha {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--tinta-2);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: transform 200ms var(--ease-out, ease);
+}
+
+.compra[open] .compra-flecha {
+    transform: rotate(180deg);
+}
+
+.compra-detalle {
+    display: grid;
+    gap: 14px;
+    padding: 4px 22px 20px;
+    animation: compra-abrir 220ms var(--ease-out, ease);
+}
+
+@keyframes compra-abrir {
+    from { opacity: 0; transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .compra-detalle { animation: none; }
+    .compra-flecha { transition: none; }
+}
+
+/* En el celular: número y total arriba, fecha abajo y el estado al final */
+@media (max-width: 560px) {
+    .compra-encabezado {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        gap: 6px 10px;
+        padding: 16px;
+    }
+
+    .compra-titulo { grid-column: 1; grid-row: 1; }
+    .compra-encabezado .compra-total { grid-column: 2; grid-row: 1; margin-left: 0; font-size: 18px; }
+    .compra-flecha { grid-column: 3; grid-row: 1; }
+    .compra-meta { grid-column: 1 / -1; font-size: 13px; }
+    .compra-encabezado > .estado-pedido,
+    .compra-encabezado > .compra-con-devolucion { justify-self: start; grid-column: 1 / -1; }
+
+    .compra-detalle { padding: 4px 16px 16px; }
 }
 
 .compra-canal {
@@ -1812,7 +1916,7 @@ p {
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-top: 14px;
+    margin-top: 0;
     color: var(--tinta-3);
     font-size: 14px;
 }
@@ -3104,14 +3208,8 @@ p {
         display: none;
     }
 
-    .caja,
-    .compra {
+    .caja {
         padding: 20px;
-    }
-
-    .compra-total {
-        margin-left: 0;
-        width: 100%;
     }
 
     .pagina-cuenta {
@@ -3558,4 +3656,21 @@ p {
 .paginacion .boton:disabled {
     opacity: 0.45;
     cursor: not-allowed;
+}
+
+/* Campos obligatorios */
+.obligatorio {
+    margin-left: 2px;
+    color: var(--peligro);
+    font-weight: 700;
+}
+
+.nota-obligatorio {
+    color: var(--tinta-3);
+    font-size: 13px;
+}
+
+.formulario > .nota-obligatorio {
+    margin-top: -8px;
+    color: var(--tinta-3);
 }

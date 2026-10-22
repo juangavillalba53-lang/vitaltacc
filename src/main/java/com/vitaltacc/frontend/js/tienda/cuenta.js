@@ -1,7 +1,3 @@
-// =========================================================
-// CUENTA: ingresar y crear cuenta (vinculada por DNI)
-// =========================================================
-
 function mostrarPestana(cual) {
     const ingresar = cual === "ingresar";
 

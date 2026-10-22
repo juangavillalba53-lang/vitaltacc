@@ -1,7 +1,3 @@
-// =========================================================
-// INICIO: categorías, ofertas y productos destacados
-// =========================================================
-
 // Ícono según el nombre de la categoría (si no coincide, va la espiga)
 const ICONOS_CATEGORIA = [
     [/pan|budin|bizcoch|tostad|grisin/, '<path d="M5 11a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1.5a1.5 1.5 0 0 1-1.5 1.5H18v4a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-4h-.5A1.5 1.5 0 0 1 4 12.5z"/><path d="M10 10v3M14 10v3"/>'],

@@ -1,6 +1,9 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.AccionAuditoria;
+import com.vitaltacc.model.ModuloAuditoria;
 import com.vitaltacc.model.Rol;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import com.vitaltacc.model.Usuario;
 import com.vitaltacc.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,13 @@ import java.util.List;
 
 @Service
 public class UsuarioService {
+
+    @Autowired
+    private AuditoriaService auditoria;
+
+    private static boolean esDelEquipo(Usuario usuario) {
+        return usuario != null && (usuario.getRol() == Rol.ADMIN || usuario.getRol() == Rol.EMPLEADO);
+    }
 
     /*
      * Cuenta "pendiente": cliente creado en el local con su DNI, que todavía
@@ -83,7 +93,15 @@ public class UsuarioService {
         cliente.setContrasena(CONTRASENA_PENDIENTE);
         cliente.setRol(Rol.CLIENTE);
 
-        return usuarioRepository.save(cliente);
+        Usuario guardado = usuarioRepository.save(cliente);
+
+        auditoria.registrar(ModuloAuditoria.USUARIOS, AccionAuditoria.CREAR, guardado.getId(),
+                "Registró al cliente " + AuditoriaService.nombreCompleto(guardado) + " en una venta del local",
+                new Cambios()
+                        .dato("DNI", guardado.getDni())
+                        .dato("Teléfono", guardado.getTelefono()));
+
+        return guardado;
     }
 
     // Valida un email de forma simple y lo deja en minúsculas (o null si no sirve)
@@ -123,7 +141,30 @@ public class UsuarioService {
     // ALTA Y ACTUALIZACIÓN
     // =========================================================
 
+    // Alta desde el panel (un administrador crea a alguien del equipo)
+    // o registro de un cliente en la tienda
     public Usuario guardarUsuario(Usuario usuario) {
+
+        Usuario quienLoHace = auditoria.usuarioActual();
+        Usuario guardado = guardarUsuarioSinAuditar(usuario);
+
+        Cambios datos = new Cambios()
+                .dato("DNI", guardado.getDni())
+                .dato("Email", guardado.getEmail())
+                .dato("Rol", guardado.getRol());
+
+        // Solo cuando alguien del equipo crea un usuario desde el panel
+        // (el registro de un cliente en la tienda no se anota)
+        if (quienLoHace != null && !quienLoHace.getId().equals(guardado.getId())) {
+            auditoria.registrarComo(quienLoHace, ModuloAuditoria.USUARIOS, AccionAuditoria.CREAR, guardado.getId(),
+                    "Creó el usuario " + AuditoriaService.nombreCompleto(guardado)
+                            + " (" + AuditoriaService.nombreRol(guardado.getRol()) + ")", datos);
+        }
+
+        return guardado;
+    }
+
+    private Usuario guardarUsuarioSinAuditar(Usuario usuario) {
 
         usuario.setDni(normalizarDni(usuario.getDni()));
 
@@ -256,6 +297,11 @@ public class UsuarioService {
 
         usuario.setActivo(false);
         usuarioRepository.save(usuario);
+
+        auditoria.registrar(ModuloAuditoria.USUARIOS, AccionAuditoria.ELIMINAR, id,
+                "Dio de baja a " + AuditoriaService.nombreCompleto(usuario)
+                        + " (" + AuditoriaService.nombreRol(usuario.getRol()) + ")",
+                new Cambios().dato("Email", usuario.getEmail()));
     }
 
     public Usuario cambiarRol(Long id, Rol rol) {
@@ -272,8 +318,15 @@ public class UsuarioService {
                     "Tiene que quedar al menos un administrador.");
         }
 
+        Rol antes = usuario.getRol();
         usuario.setRol(rol);
-        return usuarioRepository.save(usuario);
+        Usuario guardado = usuarioRepository.save(usuario);
+
+        auditoria.registrar(ModuloAuditoria.USUARIOS, AccionAuditoria.MODIFICAR, id,
+                "Cambió el rol de " + AuditoriaService.nombreCompleto(usuario),
+                new Cambios().campo("Rol", antes, rol));
+
+        return guardado;
     }
 
     private long contarAdminsActivos() {
@@ -298,6 +351,7 @@ public class UsuarioService {
                 .orElseThrow(() -> new RuntimeException("Email o contraseña incorrectos"));
 
         if (Boolean.FALSE.equals(usuario.getActivo())) {
+            ingresoFallido(usuario, "La cuenta está dada de baja");
             throw new RuntimeException("Esta cuenta fue dada de baja.");
         }
 
@@ -308,10 +362,24 @@ public class UsuarioService {
         }
 
         if (!usuario.getContrasena().equals(contrasena)) {
+            ingresoFallido(usuario, "Contraseña incorrecta");
             throw new RuntimeException("Email o contraseña incorrectos");
         }
 
+        // Se anotan los ingresos del equipo (los de los clientes no)
+        if (esDelEquipo(usuario)) {
+            auditoria.registrarComo(usuario, ModuloAuditoria.SESION, AccionAuditoria.INGRESO, usuario.getId(),
+                    "Inició sesión en el panel", null);
+        }
+
         return usuario;
+    }
+
+    private void ingresoFallido(Usuario usuario, String motivo) {
+        if (esDelEquipo(usuario)) {
+            auditoria.registrarComo(usuario, ModuloAuditoria.SESION, AccionAuditoria.INGRESO_FALLIDO, usuario.getId(),
+                    "Intento de ingreso fallido", new Cambios().dato("Motivo", motivo));
+        }
     }
 
     public void cambiarContrasena(
@@ -340,6 +408,10 @@ public class UsuarioService {
 
         usuario.setContrasena(contrasenaNueva);
         usuarioRepository.save(usuario);
+
+        // La contraseña nunca se guarda en la auditoría: solo que se cambió
+        auditoria.registrarComo(usuario, ModuloAuditoria.USUARIOS, AccionAuditoria.MODIFICAR, id,
+                "Cambió su contraseña", null);
     }
 
     public Usuario actualizarDatosPersonales(Long id, Usuario datos) {
@@ -367,12 +439,23 @@ public class UsuarioService {
             throw new RuntimeException("El email ya está registrado");
         }
 
+        Cambios cambios = new Cambios()
+                .campo("Nombre", usuario.getNombre(), datos.getNombre().trim())
+                .campo("Apellido", usuario.getApellido(), datos.getApellido().trim())
+                .campo("Email", usuario.getEmail(), email)
+                .campo("Teléfono", usuario.getTelefono(), datos.getTelefono());
+
         usuario.setNombre(datos.getNombre().trim());
         usuario.setApellido(datos.getApellido().trim());
         usuario.setEmail(email);
         usuario.setTelefono(datos.getTelefono() == null ? null : datos.getTelefono().trim());
 
         // No se modifican DNI, rol ni contraseña.
-        return usuarioRepository.save(usuario);
+        Usuario guardado = usuarioRepository.save(usuario);
+
+        auditoria.registrarComo(guardado, ModuloAuditoria.USUARIOS, AccionAuditoria.MODIFICAR, id,
+                "Actualizó sus datos", cambios.vacio() ? cambios.linea("Se guardó sin cambios") : cambios);
+
+        return guardado;
     }
 }

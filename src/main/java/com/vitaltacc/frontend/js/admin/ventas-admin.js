@@ -1,8 +1,3 @@
-// =========================================================
-// VENTA EN EL LOCAL E HISTORIAL DE VENTAS
-// Los productos (productosVenta) los carga cargarProductos()
-// =========================================================
-
 const NOMBRES_ESTADO_PEDIDO = {
     RECIBIDO: "Recibido",
     PREPARANDO: "En preparación",
@@ -578,7 +573,7 @@ async function cargarHistorialVentas() {
                 fila.children[3].appendChild(estado);
             }
 
-                        // Si hubo devoluciones, debajo del total se ve lo que se devolvió
+            // Si hubo devoluciones, debajo del total se ve lo que se devolvió
             if (Number(venta.devuelto) > 0) {
                 const devuelto = document.createElement("small");
                 devuelto.className = "historial-devuelto";

@@ -1,6 +1,7 @@
 package com.vitaltacc.service;
 
 import com.vitaltacc.dto.DevolucionRequest;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import com.vitaltacc.model.*;
 import com.vitaltacc.repository.DevolucionRepository;
 import com.vitaltacc.repository.LoteRepository;
@@ -39,6 +40,9 @@ public class DevolucionService {
 
     @Autowired
     private LoteRepository loteRepository;
+
+    @Autowired
+    private AuditoriaService auditoria;
 
     // ---------------------------------------------------------
     // Plazo y unidades disponibles
@@ -299,7 +303,33 @@ public class DevolucionService {
         boolean algoAceptado = devolucion.getItems().stream().anyMatch(DevolucionService::fueAceptado);
         devolucion.setEstado(algoAceptado ? EstadoDevolucion.APROBADA : EstadoDevolucion.RECHAZADA);
 
-        return resumen(devolucionRepository.save(devolucion));
+        Devolucion guardada = devolucionRepository.save(devolucion);
+
+        Map<String, Integer> devueltos = new LinkedHashMap<>();
+        Map<String, Integer> alStock = new LinkedHashMap<>();
+        guardada.getItems().forEach(i -> {
+            devueltos.merge(i.getProducto().getNombre(), i.getCantidad(), Integer::sum);
+            if (Boolean.TRUE.equals(i.getVuelveAlStock())) {
+                alStock.merge(i.getProducto().getNombre(), i.getCantidad(), Integer::sum);
+            }
+        });
+
+        auditoria.registrarComo(empleado, ModuloAuditoria.DEVOLUCIONES, AccionAuditoria.CREAR, guardada.getId(),
+                "Registró una devolución de la venta N.º " + venta.getId(),
+                new Cambios()
+                        .dato("Motivo", motivo.getNombre())
+                        .dato("Productos", unir(devueltos))
+                        .dato("Resultado", guardada.getEstado() == EstadoDevolucion.APROBADA ? "Aprobada" : "Rechazada")
+                        .dato("Reintegro", AuditoriaService.pesos(guardada.getMontoReintegrado()))
+                        .linea(alStock.isEmpty() ? "No vuelve nada al stock" : "Vuelve al stock: " + unir(alStock)));
+
+        return resumen(guardada);
+    }
+
+    private static String unir(Map<String, Integer> cantidades) {
+        return cantidades.entrySet().stream()
+                .map(e -> e.getValue() + " × " + e.getKey())
+                .collect(Collectors.joining(", "));
     }
 
     // ---------------------------------------------------------

@@ -1,5 +1,8 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.AccionAuditoria;
+import com.vitaltacc.model.ModuloAuditoria;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import com.vitaltacc.model.Categoria;
 import com.vitaltacc.model.TipoCategoria;
 import com.vitaltacc.repository.CategoriaRepository;
@@ -17,6 +20,9 @@ public class CategoriaService {
 
     @Autowired
     private TipoCategoriaRepository tipoCategoriaRepository;
+
+    @Autowired
+    private AuditoriaService auditoria;
 
     // Crear categoría
     public Categoria guardarCategoria(Categoria categoria) {
@@ -46,14 +52,26 @@ public class CategoriaService {
             // Estaba dada de baja: se reactiva con el tipo elegido
             existente.setTipoCategoria(tipo);
             existente.setActivo(true);
-            return categoriaRepository.save(existente);
+            Categoria reactivada = categoriaRepository.save(existente);
+
+            auditoria.registrar(ModuloAuditoria.CATEGORIAS, AccionAuditoria.CREAR, reactivada.getId(),
+                    "Volvió a activar la categoría " + AuditoriaService.comillas(nombre),
+                    new Cambios().dato("Tipo", tipo.getNombre()));
+
+            return reactivada;
         }
 
         categoria.setNombre(nombre);
         categoria.setTipoCategoria(tipo);
         categoria.setActivo(true);
 
-        return categoriaRepository.save(categoria);
+        Categoria guardada = categoriaRepository.save(categoria);
+
+        auditoria.registrar(ModuloAuditoria.CATEGORIAS, AccionAuditoria.CREAR, guardada.getId(),
+                "Creó la categoría " + AuditoriaService.comillas(nombre),
+                new Cambios().dato("Tipo", tipo.getNombre()));
+
+        return guardada;
     }
 
     // Listar todas
@@ -100,6 +118,11 @@ public class CategoriaService {
         // Baja lógica: los productos viejos siguen apuntando a ella sin romperse
         categoria.setActivo(false);
         categoriaRepository.save(categoria);
+
+        auditoria.registrar(ModuloAuditoria.CATEGORIAS, AccionAuditoria.ELIMINAR, id,
+                "Eliminó la categoría " + AuditoriaService.comillas(categoria.getNombre()),
+                new Cambios().dato("Tipo", categoria.getTipoCategoria() != null
+                        ? categoria.getTipoCategoria().getNombre() : null));
     }
 
 }

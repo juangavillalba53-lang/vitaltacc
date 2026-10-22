@@ -1,7 +1,3 @@
-// =========================================================
-// CHECKOUT: compra online del cliente
-// =========================================================
-
 // Orden en que se ofrecen los métodos de pago online (los nombres están en js/comun.js)
 const METODOS_PAGO = ["MERCADO_PAGO", "TRANSFERENCIA", "TARJETA_DEBITO", "TARJETA_CREDITO", "MODO", "EFECTIVO"]
     .map(valor => [valor, NOMBRES_PAGO[valor]]);
@@ -88,8 +84,8 @@ function renderCheckout(cambios = []) {
                         <li>
                             <div class="miniatura">
                                 ${item.imagen
-                                    ? `<img src="${escaparHTML(item.imagen)}" alt="">`
-                                    : icono("trigo", "icono-placeholder")}
+            ? `<img src="${escaparHTML(item.imagen)}" alt="">`
+            : icono("trigo", "icono-placeholder")}
                             </div>
                             <div>
                                 <strong>${escaparHTML(item.nombre)}</strong>
@@ -126,20 +122,21 @@ function renderCheckout(cambios = []) {
                 </fieldset>
 
                 <div class="datos-envio" id="datosEnvio" ${entrega.forma === "ENVIO" ? "" : "hidden"}>
+                    <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
                     <div class="campo">
-                        <label for="envioDireccion">Dirección</label>
-                        <input type="text" id="envioDireccion" autocomplete="street-address" maxlength="150"
+                        <label for="envioDireccion">Dirección <span class="obligatorio" aria-hidden="true">*</span></label>
+                        <input type="text" id="envioDireccion" aria-required="true" autocomplete="street-address" maxlength="150"
                             placeholder="Calle y número" value="${escaparHTML(entrega.direccion)}">
                     </div>
                     <div class="fila-campos">
                         <div class="campo">
-                            <label for="envioLocalidad">Localidad</label>
-                            <input type="text" id="envioLocalidad" autocomplete="address-level2" maxlength="80"
+                            <label for="envioLocalidad">Localidad <span class="obligatorio" aria-hidden="true">*</span></label>
+                            <input type="text" id="envioLocalidad" aria-required="true" autocomplete="address-level2" maxlength="80"
                                 value="${escaparHTML(entrega.localidad)}">
                         </div>
                         <div class="campo">
-                            <label for="envioTelefono">Teléfono</label>
-                            <input type="tel" id="envioTelefono" autocomplete="tel" maxlength="40"
+                            <label for="envioTelefono">Teléfono <span class="obligatorio" aria-hidden="true">*</span></label>
+                            <input type="tel" id="envioTelefono" aria-required="true" autocomplete="tel" maxlength="40"
                                 placeholder="Para coordinar la entrega" value="${escaparHTML(entrega.telefono)}">
                         </div>
                     </div>
@@ -192,7 +189,7 @@ function renderCheckout(cambios = []) {
     });
 
     [["envioDireccion", "direccion"], ["envioLocalidad", "localidad"],
-     ["envioTelefono", "telefono"], ["envioIndicaciones", "indicaciones"]].forEach(([id, clave]) => {
+    ["envioTelefono", "telefono"], ["envioIndicaciones", "indicaciones"]].forEach(([id, clave]) => {
         const campo = document.getElementById(id);
         campo.addEventListener("input", () => {
             entrega[clave] = campo.value;

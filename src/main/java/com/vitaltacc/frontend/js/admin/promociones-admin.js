@@ -1,7 +1,3 @@
-// =========================================================
-// PROMOCIONES
-// =========================================================
-
 function crearPromocion() {
 
     const productoId = document.getElementById("productoPromo").value;
@@ -21,8 +17,8 @@ function crearPromocion() {
     // Las fechas vienen como AAAA-MM-DD, así que se pueden comparar como texto
     const error =
         (!descripcion.trim() || isNaN(descuento) || !inicio || !fin) ? "Completá todos los campos." :
-        (descuento <= 0 || descuento > 100) ? "El descuento tiene que ser entre 1 y 100 %." :
-        fin < inicio ? "La fecha de fin no puede ser anterior a la de inicio." : "";
+            (descuento <= 0 || descuento > 100) ? "El descuento tiene que ser entre 1 y 100 %." :
+                fin < inicio ? "La fecha de fin no puede ser anterior a la de inicio." : "";
 
     if (error) {
         mostrarAviso(error, "error");

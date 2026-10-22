@@ -1,7 +1,3 @@
-// =========================================================
-// MIS COMPRAS: todo lo comprado en el local y online
-// =========================================================
-
 function formatearFecha(fecha) {
     if (!fecha) return "";
     const [anio, mes, dia] = String(fecha).substring(0, 10).split("-").map(Number);
@@ -73,16 +69,27 @@ function estadoPedido(c) {
         </div>`;
 }
 
+// Cada compra es un desplegable: cerrada muestra lo principal y al tocarla se ve el detalle
 function tarjetaCompra(c) {
     const local = c.tipoVenta === "LOCAL";
+    const unidades = (c.items || []).reduce((suma, i) => suma + (Number(i.cantidad) || 0), 0);
     return `
-        <article class="compra revelar">
-            <header class="compra-encabezado">
-                <h2>Compra N.º ${escaparHTML(c.id)}</h2>
-                <span class="compra-canal ${local ? "local" : "online"}">${local ? "En el local" : "Online"}</span>
-                <time datetime="${escaparHTML(c.fecha)}">${formatearFecha(c.fecha)}</time>
+        <details class="compra revelar">
+            <summary class="compra-encabezado">
+                <span class="compra-titulo">
+                    <h2>Compra N.º ${escaparHTML(c.id)}</h2>
+                    <span class="compra-canal ${local ? "local" : "online"}">${local ? "En el local" : "Online"}</span>
+                </span>
+                <span class="compra-meta">
+                    <time datetime="${escaparHTML(c.fecha)}">${formatearFecha(c.fecha)}</time>
+                    <span>${unidades === 1 ? "1 producto" : `${unidades} productos`}</span>
+                </span>
+                ${c.estado ? `<span class="estado-pedido estado-${c.estado.toLowerCase()}">${escaparHTML(c.estadoNombre)}</span>` : ""}
+                ${Number(c.devuelto) > 0 ? `<span class="compra-con-devolucion">Con devolución</span>` : ""}
                 <span class="compra-total">${pesos(c.total)}</span>
-            </header>
+                <svg class="compra-flecha" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="compra-detalle">
             ${estadoPedido(c)}
             <ul class="compra-items">
                 ${(c.items || []).map(i => `
@@ -100,7 +107,8 @@ function tarjetaCompra(c) {
                 <span>Pago: ${escaparHTML(nombrePago(c.metodoPago))}</span>
                 <button type="button" class="boton boton-secundario" data-comprobante="${escaparHTML(c.id)}">Descargar comprobante</button>
             </footer>
-        </article>`;
+            </div>
+        </details>`;
 }
 
 function renderPaginaCompras(desplazar) {

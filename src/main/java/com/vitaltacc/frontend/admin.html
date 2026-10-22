@@ -37,7 +37,7 @@
 
                 <button class="menu-principal" data-seccion="adminDashboard" onclick="mostrarSeccion('adminDashboard')">
                     <span class="menu-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></span>
-                    <span>Dashboard</span>
+                    <span>Panel General</span>
                 </button>
 
                 <button class="menu-principal" data-seccion="adminProductos" onclick="mostrarSeccion('adminProductos')">
@@ -88,6 +88,12 @@
                     <span>Reportes</span>
                 </button>
 
+                <button id="btnAuditoria" class="menu-principal" data-seccion="adminAuditoria"
+                    onclick="mostrarSeccion('adminAuditoria')">
+                    <span class="menu-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 4.5 6v5.5c0 4.4 3.1 8.1 7.5 9.5 4.4-1.4 7.5-5.1 7.5-9.5V6z"/><path d="m9 12 2.2 2.2L15.5 10"/></svg></span>
+                    <span>Auditoría</span>
+                </button>
+
                 <button id="btnConfiguracion" class="menu-principal" data-seccion="adminConfiguracion"
                     onclick="mostrarSeccion('adminConfiguracion')">
                     <span class="menu-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
@@ -120,31 +126,31 @@
 
                         <span>Resumen</span>
 
-                        <h2>Dashboard</h2>
+                        <h2>Panel General</h2>
 
                     </div>
 
                     <div class="grid-admin">
 
-                        <div class="card-admin">
+                        <div class="card-admin" data-ir="adminInventario" aria-label="Productos: ver inventario">
                             <span class="kpi-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/></svg></span>
                             <h2>Productos</h2>
                             <p id="dashboardProductos"></p>
                         </div>
 
-                        <div class="card-admin">
+                        <div class="card-admin" data-ir="adminInventario" aria-label="Lotes activos: ver inventario">
                             <span class="kpi-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 3 9 5-9 5-9-5z"/><path d="m3 13 9 5 9-5"/></svg></span>
                             <h2>Lotes activos</h2>
                             <p id="dashboardLotes"></p>
                         </div>
 
-                        <div class="card-admin">
+                        <div class="card-admin" data-ir="adminPromociones" data-solo-admin aria-label="Promociones: ver promociones">
                             <span class="kpi-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg></span>
                             <h2>Promociones</h2>
                             <p id="dashboardPromociones"></p>
                         </div>
 
-                        <div class="card-admin">
+                        <div class="card-admin" data-ir="adminUsuarios" data-solo-admin aria-label="Usuarios del equipo: ver usuarios">
                             <span class="kpi-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7"/><path d="M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/></svg></span>
                             <h2>Usuarios del equipo</h2>
                             <p id="dashboardUsuarios"></p>
@@ -168,6 +174,7 @@
                             <div class="card-encabezado">
                                 <h2>Stock bajo</h2>
                                 <span class="contador-alerta" id="totalStockBajo">0</span>
+                                <button type="button" class="btn-link" onclick="verStockBajo()">Ver en inventario</button>
                             </div>
                             <ul id="dashboardStockBajo" class="lista-proximos">
                                 <li class="esqueleto-item"><span></span><span></span></li>
@@ -188,17 +195,17 @@
                             </div>
 
                             <div class="vencimientos-resumen">
-                                <div class="venc-chip urgente">
+                                <div class="venc-chip urgente" data-vencimientos="URGENTE" aria-label="Ver lotes que vencen en 15 días o menos">
                                     <strong id="totalUrgentes"></strong>
                                     <span>vencen en 15 días o menos</span>
                                 </div>
-                                <div class="venc-chip atencion">
+                                <div class="venc-chip atencion" data-vencimientos="ATENCION" aria-label="Ver lotes que vencen en 16 a 30 días">
                                     <strong id="totalAtencion"></strong>
                                     <span>vencen en 16 a 30 días</span>
                                 </div>
-                                <div class="venc-chip total">
-                                    <strong id="totalMonitoreados"></strong>
-                                    <span>lotes con stock</span>
+                                <div class="venc-chip total" data-vencimientos="PROXIMOS" aria-label="Ver lotes que vencen en 31 a 60 días">
+                                    <strong id="totalProximos"></strong>
+                                    <span>vencen en 31 a 60 días</span>
                                 </div>
                             </div>
 
@@ -269,17 +276,22 @@
 
                         <h2>Agregar producto</h2>
 
-                        <input type="text" id="nombreProducto" placeholder="Nombre del producto">
+                        <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
 
-                        <input type="number" step="0.01" id="precioProducto" placeholder="Precio">
+                        <label for="nombreProducto" class="label-admin">Nombre <span class="obligatorio" aria-hidden="true">*</span></label>
+                        <input type="text" id="nombreProducto" placeholder="Ej.: Fideos tirabuzón" aria-required="true">
 
-                        <textarea id="descripcionProducto" rows="4" placeholder="Descripción"></textarea>
+                        <label for="precioProducto" class="label-admin">Precio <span class="obligatorio" aria-hidden="true">*</span></label>
+                        <input type="number" step="0.01" id="precioProducto" placeholder="Ej.: 2500" aria-required="true">
+
+                        <label for="descripcionProducto" class="label-admin">Descripción <span class="obligatorio" aria-hidden="true">*</span></label>
+                        <textarea id="descripcionProducto" rows="4" placeholder="Ingredientes, presentación, etc." aria-required="true"></textarea>
 
                         <label for="tipoCategoriaProducto" class="label-admin">
-                            Tipo de categoría
+                            Tipo de categoría <span class="obligatorio" aria-hidden="true">*</span>
                         </label>
 
-                        <select id="tipoCategoriaProducto">
+                        <select id="tipoCategoriaProducto" aria-required="true">
 
                             <option value="">
                                 Seleccionar tipo
@@ -288,10 +300,10 @@
                         </select>
 
                         <label for="categoriaProducto" class="label-admin">
-                            Categoría
+                            Categoría <span class="obligatorio" aria-hidden="true">*</span>
                         </label>
 
-                        <select id="categoriaProducto">
+                        <select id="categoriaProducto" aria-required="true">
 
                             <option value="">
                                 Seleccionar categoría
@@ -324,18 +336,22 @@
                     <div id="panel-lote" class="panel-admin">
                         <h2>Agregar lote</h2>
 
-                        <label for="productoLote" class="label-admin">Producto</label>
-                        <select id="productoLote"></select>
+                        <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
 
-                        <input type="text" id="precioLote" placeholder="Precio" readonly>
+                        <label for="productoLote" class="label-admin">Producto <span class="obligatorio" aria-hidden="true">*</span></label>
+                        <select id="productoLote" aria-required="true"></select>
 
-                        <input type="number" id="cantidadLote" placeholder="Cantidad">
+                        <label for="precioLote" class="label-admin">Precio</label>
+                        <input type="text" id="precioLote" placeholder="Se completa al elegir el producto" readonly>
+
+                        <label for="cantidadLote" class="label-admin">Cantidad <span class="obligatorio" aria-hidden="true">*</span></label>
+                        <input type="number" id="cantidadLote" min="1" placeholder="Unidades que entran" aria-required="true">
 
                         <label for="vencimientoLote" class="label-admin">
-                            Fecha de vencimiento
+                            Fecha de vencimiento <span class="obligatorio" aria-hidden="true">*</span>
                         </label>
 
-                        <input type="date" id="vencimientoLote">
+                        <input type="date" id="vencimientoLote" aria-required="true">
 
                         <button onclick="crearLote()">Guardar lote</button>
 
@@ -357,28 +373,28 @@
 
                     <div class="resumen-alertas">
 
-                        <div class="alerta-card urgente">
+                        <div class="alerta-card urgente" data-vencimientos="URGENTE" aria-label="Urgentes: ver lotes">
                             <p class="alerta-titulo">Urgentes</p>
                             <h3 id="cantidadUrgentes">0</h3>
                             <span class="alerta-sub">Vencen en 15 días o menos</span>
                         </div>
 
-                        <div class="alerta-card atencion">
+                        <div class="alerta-card atencion" data-vencimientos="ATENCION" aria-label="Atención: ver lotes">
                             <p class="alerta-titulo">Atención</p>
                             <h3 id="cantidadAtencion">0</h3>
                             <span class="alerta-sub">Vencen en 16 a 30 días</span>
                         </div>
 
-                        <div class="alerta-card vencido">
+                        <div class="alerta-card vencido" data-vencimientos="VENCIDO" aria-label="Vencidos: ver lotes para retirar">
                             <p class="alerta-titulo">Vencidos</p>
                             <h3 id="cantidadVencidos">0</h3>
                             <span class="alerta-sub">Para retirar del local</span>
                         </div>
 
-                        <div class="alerta-card total">
-                            <p class="alerta-titulo">Próximos 2 meses</p>
-                            <h3 id="cantidadMonitoreados">0</h3>
-                            <span class="alerta-sub">Lotes con vencimiento cercano</span>
+                        <div class="alerta-card total" data-vencimientos="PROXIMOS" aria-label="31 a 60 días: ver lotes">
+                            <p class="alerta-titulo">Más adelante</p>
+                            <h3 id="cantidadProximos">0</h3>
+                            <span class="alerta-sub">Vencen en 31 a 60 días</span>
                         </div>
 
                     </div>
@@ -388,7 +404,15 @@
 
                         <h2>Gestión de stock</h2>
 
-                        <input type="text" id="buscarStock" placeholder="Buscar producto" oninput="filtrarStock()">
+                        <div class="filtros-stock">
+                            <input type="text" id="buscarStock" placeholder="Buscar producto" aria-label="Buscar producto" oninput="filtrarStock()">
+                            <select id="filtroStock" aria-label="Mostrar" onchange="filtrarStock()">
+                                <option value="todos">Todos los productos</option>
+                                <option value="bajo">Stock bajo</option>
+                                <option value="sin">Sin stock</option>
+                                <option value="vencidos">Con lotes vencidos</option>
+                            </select>
+                        </div>
 
                         <table class="tabla-stock">
 
@@ -480,13 +504,13 @@
                                         <div id="nuevoClienteVenta" class="oculto">
 
                                             <div class="campo-venta">
-                                                <label for="nombreClienteVenta">Nombre</label>
-                                                <input type="text" id="nombreClienteVenta">
+                                                <label for="nombreClienteVenta">Nombre <span class="obligatorio" aria-hidden="true">*</span></label>
+                                                <input type="text" id="nombreClienteVenta" aria-required="true">
                                             </div>
 
                                             <div class="campo-venta">
-                                                <label for="apellidoClienteVenta">Apellido</label>
-                                                <input type="text" id="apellidoClienteVenta">
+                                                <label for="apellidoClienteVenta">Apellido <span class="obligatorio" aria-hidden="true">*</span></label>
+                                                <input type="text" id="apellidoClienteVenta" aria-required="true">
                                             </div>
 
                                             <div class="campo-venta">
@@ -767,12 +791,12 @@
                         </div>
 
                         <div class="card-admin">
-                            <h2>Top 10 productos más vendidos</h2>
+                            <h2>Top 3 productos más vendidos</h2>
                             <ul id="masVendidos"></ul>
                         </div>
 
                         <div class="card-admin">
-                            <h2>Top 10 clientes</h2>
+                            <h2>Top 3 clientes</h2>
                             <ul id="topClientes"></ul>
                         </div>
 
@@ -802,6 +826,8 @@
 
                         <h3>Crear promoción</h3>
 
+                        <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
+
                         <div class="crear-promocion">
 
                             <div class="campo">
@@ -814,23 +840,23 @@
                             </div>
 
                             <div class="campo">
-                                <label for="descripcionPromo">Descripción</label>
-                                <input type="text" id="descripcionPromo" placeholder="Ej.: Semana sin TACC">
+                                <label for="descripcionPromo">Descripción <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="text" id="descripcionPromo" placeholder="Ej.: Semana sin TACC" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="descuentoPromo">Descuento (%)</label>
-                                <input type="number" id="descuentoPromo" placeholder="Ej.: 15">
+                                <label for="descuentoPromo">Descuento (%) <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="number" id="descuentoPromo" min="1" max="100" placeholder="Ej.: 15" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="inicioPromo">Empieza</label>
-                                <input type="date" id="inicioPromo">
+                                <label for="inicioPromo">Empieza <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="date" id="inicioPromo" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="finPromo">Termina</label>
-                                <input type="date" id="finPromo">
+                                <label for="finPromo">Termina <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="date" id="finPromo" aria-required="true">
                             </div>
 
                             <button onclick="crearPromocion()">
@@ -883,35 +909,37 @@
                         <h2>Nuevo usuario del equipo</h2>
 
                         <!-- Crear usuario -->
+                        <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
+
                         <div class="crear-usuario">
 
                             <div class="campo">
-                                <label for="nombreUsuario">Nombre</label>
-                                <input type="text" id="nombreUsuario">
+                                <label for="nombreUsuario">Nombre <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="text" id="nombreUsuario" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="apellidoUsuario">Apellido</label>
-                                <input type="text" id="apellidoUsuario">
+                                <label for="apellidoUsuario">Apellido <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="text" id="apellidoUsuario" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="dniUsuario">DNI</label>
-                                <input type="text" id="dniUsuario">
+                                <label for="dniUsuario">DNI <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="text" id="dniUsuario" inputmode="numeric" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="emailUsuario">Email</label>
-                                <input type="email" id="emailUsuario">
+                                <label for="emailUsuario">Email <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="email" id="emailUsuario" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="contrasenaUsuario">Contraseña temporal</label>
-                                <input type="password" id="contrasenaUsuario">
+                                <label for="contrasenaUsuario">Contraseña temporal <span class="obligatorio" aria-hidden="true">*</span></label>
+                                <input type="password" id="contrasenaUsuario" aria-required="true">
                             </div>
 
                             <div class="campo">
-                                <label for="rolUsuario">Rol</label>
+                                <label for="rolUsuario">Rol <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <select id="rolUsuario">
                                     <option value="EMPLEADO">Empleado</option>
                                     <option value="ADMIN">Administrador</option>
@@ -948,6 +976,63 @@
                         <p class="tabla-vacia">Todavía no hay usuarios del personal.</p>
 
                         <div id="paginacionUsuarios" class="paginacion-stock"></div>
+
+                    </div>
+
+                </section>
+
+
+                <section class="admin-section vista-admin" id="adminAuditoria">
+
+                    <div class="section-header">
+                        <span>Control</span>
+                        <h2>Auditoría</h2>
+                    </div>
+
+                    <div class="card-admin full">
+
+                        <h3>Quién hizo cada cambio</h3>
+
+                        <label for="buscarAuditoria" class="solo-lectores">Buscar en la auditoría</label>
+                        <input type="search" id="buscarAuditoria" placeholder="Buscar por producto, número de venta, usuario…">
+
+                        <div class="filtros-auditoria">
+                            <div>
+                                <label for="desdeAuditoria">Desde</label>
+                                <input type="date" id="desdeAuditoria">
+                            </div>
+                            <div>
+                                <label for="hastaAuditoria">Hasta</label>
+                                <input type="date" id="hastaAuditoria">
+                            </div>
+                            <div>
+                                <label for="usuarioAuditoria">Usuario</label>
+                                <select id="usuarioAuditoria">
+                                    <option value="">Todos</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="moduloAuditoria">Sección</label>
+                                <select id="moduloAuditoria">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="accionAuditoria">Acción</label>
+                                <select id="accionAuditoria">
+                                    <option value="">Todas</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn-limpiar-auditoria" onclick="limpiarFiltrosAuditoria()">
+                                Limpiar filtros
+                            </button>
+                        </div>
+
+                        <p id="estadoAuditoria" class="estado-auditoria" role="status"></p>
+
+                        <div id="listaAuditoria" class="lista-auditoria"></div>
+
+                        <div id="paginacionAuditoria" class="paginacion-stock"></div>
 
                     </div>
 
@@ -993,7 +1078,9 @@
                             <div class="card-admin full">
                                 <h3>Información general</h3>
 
-                                <label for="configNombre">Nombre del negocio</label>
+                                <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
+
+                                <label for="configNombre">Nombre del negocio <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <input type="text" id="configNombre" maxlength="120" required>
 
                                 <label for="configDireccion">Dirección</label>
@@ -1080,13 +1167,15 @@
                             <div class="card-admin full">
                                 <h3>Mi cuenta</h3>
 
-                                <label for="cuentaNombre">Nombre</label>
+                                <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
+
+                                <label for="cuentaNombre">Nombre <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <input type="text" id="cuentaNombre" maxlength="100" required>
 
-                                <label for="cuentaApellido">Apellido</label>
+                                <label for="cuentaApellido">Apellido <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <input type="text" id="cuentaApellido" maxlength="100" required>
 
-                                <label for="cuentaEmail">Correo electrónico</label>
+                                <label for="cuentaEmail">Correo electrónico <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <input type="email" id="cuentaEmail" maxlength="120" required>
 
                                 <label for="cuentaDni">DNI</label>
@@ -1116,14 +1205,16 @@
                             <div class="card-admin full">
                                 <h3>Cambiar contraseña</h3>
 
-                                <label for="contrasenaActual">Contraseña actual</label>
+                                <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
+
+                                <label for="contrasenaActual">Contraseña actual <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <input type="password" id="contrasenaActual" autocomplete="current-password" required>
 
-                                <label for="contrasenaNueva">Nueva contraseña</label>
+                                <label for="contrasenaNueva">Nueva contraseña <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <input type="password" id="contrasenaNueva" autocomplete="new-password" minlength="8"
                                     required>
 
-                                <label for="confirmarContrasenaNueva">Confirmar nueva contraseña</label>
+                                <label for="confirmarContrasenaNueva">Confirmar nueva contraseña <span class="obligatorio" aria-hidden="true">*</span></label>
                                 <input type="password" id="confirmarContrasenaNueva" autocomplete="new-password"
                                     minlength="8" required>
 
@@ -1179,6 +1270,32 @@
 
     </div>
 
+    <!-- Ventana de vencimientos -->
+
+    <div id="modalVencimientos" class="modal-lotes" role="dialog" aria-modal="true" aria-labelledby="tituloVencimientos">
+
+        <div class="contenido-modal-lotes contenido-vencimientos">
+
+            <span class="cerrar-modal" role="button" tabindex="0" aria-label="Cerrar" onclick="cerrarVencimientos()">
+                ✖
+            </span>
+
+            <h2 id="tituloVencimientos">Vencimientos</h2>
+
+            <div class="tabs-vencimientos" id="tabsVencimientos" role="tablist" aria-label="Tramos de vencimiento"></div>
+
+            <p class="detalle-vencimientos" id="detalleVencimientos"></p>
+
+            <input type="search" id="buscarVencimientos" placeholder="Buscar producto o lote" aria-label="Buscar producto o lote">
+
+            <div id="listaVencimientos"></div>
+
+            <div id="paginacionVencimientos" class="paginacion-stock"></div>
+
+        </div>
+
+    </div>
+
     <!-- Modal editar producto -->
 
     <div id="modalEditarProducto" class="modal-lotes">
@@ -1193,26 +1310,31 @@
 
             <h3 id="tituloEditarProducto"></h3>
 
-            <input type="text" id="editarNombre" placeholder="Nombre del producto">
+            <p class="nota-obligatorio">Los campos con <span class="obligatorio" aria-hidden="true">*</span> son obligatorios.</p>
 
-            <input type="number" step="0.01" id="editarPrecio" placeholder="Precio">
+            <label class="label-admin" for="editarNombre">Nombre <span class="obligatorio" aria-hidden="true">*</span></label>
+            <input type="text" id="editarNombre" placeholder="Nombre del producto" aria-required="true">
+
+            <label class="label-admin" for="editarPrecio">Precio <span class="obligatorio" aria-hidden="true">*</span></label>
+            <input type="number" step="0.01" id="editarPrecio" placeholder="Precio" aria-required="true">
 
             <label class="label-admin" for="editarTipoCategoria">
-                Tipo de categoría
+                Tipo de categoría <span class="obligatorio" aria-hidden="true">*</span>
             </label>
 
-            <select id="editarTipoCategoria">
+            <select id="editarTipoCategoria" aria-required="true">
                 <option value="">Seleccionar tipo</option>
             </select>
 
             <label class="label-admin" for="editarCategoria">
-                Categoría
+                Categoría <span class="obligatorio" aria-hidden="true">*</span>
             </label>
 
-            <select id="editarCategoria">
+            <select id="editarCategoria" aria-required="true">
                 <option value="">Seleccionar categoría</option>
             </select>
 
+            <label class="label-admin" for="editarDescripcion">Descripción</label>
             <textarea id="editarDescripcion" placeholder="Descripción" rows="4"></textarea>
 
             <label for="editarImagenes" class="label-admin">
@@ -1282,6 +1404,7 @@
     <script src="js/admin/buscador-select.js"></script>
     <script src="js/admin/productos-admin.js"></script>
     <script src="js/admin/lotes-admin.js"></script>
+    <script src="js/admin/vencimientos-admin.js"></script>
     <script src="js/admin/usuarios-admin.js"></script>
     <script src="js/admin/promociones-admin.js"></script>
     <script src="js/admin/ventas-admin.js"></script>
@@ -1289,6 +1412,7 @@
     <script src="js/admin/pedidos-admin.js"></script>
     <script src="js/admin/estadisticas.js"></script>
     <script src="js/admin/configuracion-admin.js"></script>
+    <script src="js/admin/auditoria-admin.js"></script>
 
     <script src="js/admin.js"></script>
 

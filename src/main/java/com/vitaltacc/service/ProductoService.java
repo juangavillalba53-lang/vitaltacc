@@ -1,7 +1,9 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.AccionAuditoria;
 import com.vitaltacc.model.Categoria;
 import com.vitaltacc.model.Lote;
+import com.vitaltacc.model.ModuloAuditoria;
 import com.vitaltacc.model.Producto;
 import com.vitaltacc.model.ProductoImagen;
 import com.vitaltacc.model.Promocion;
@@ -9,6 +11,7 @@ import com.vitaltacc.repository.CategoriaRepository;
 import com.vitaltacc.repository.LoteRepository;
 import com.vitaltacc.repository.ProductoRepository;
 import com.vitaltacc.repository.PromocionRepository;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +48,9 @@ public class ProductoService {
     @Autowired
     private CategoriaRepository categoriaRepository;
 
+    @Autowired
+    private AuditoriaService auditoria;
+
     // =========================================================
     // ALTA Y EDICIÓN
     // =========================================================
@@ -76,7 +82,32 @@ public class ProductoService {
             agregarImagen(producto, archivo, producto.getImagenes().size());
         }
 
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+
+        auditoria.registrar(ModuloAuditoria.PRODUCTOS, AccionAuditoria.CREAR, guardado.getId(),
+                "Agregó el producto " + AuditoriaService.comillas(guardado.getNombre()),
+                new Cambios()
+                        .dato("Precio", AuditoriaService.pesos(guardado.getPrecio()))
+                        .dato("Categoría", nombreCategoria(guardado))
+                        .dato("Descripción", guardado.getDescripcion())
+                        .dato("Fotos", guardado.getImagenes().size()));
+
+        return guardado;
+    }
+
+    private static String nombreCategoria(Producto producto) {
+        return producto.getCategoria() != null ? producto.getCategoria().getNombre() : null;
+    }
+
+    // Ids de las fotos en el orden en que se muestran
+    private static List<Long> idsDeFotos(Producto producto) {
+        if (producto.getImagenes() == null) return List.of();
+        return producto.getImagenes().stream()
+                .sorted(java.util.Comparator.comparing(
+                        (ProductoImagen i) -> i.getOrden() == null ? Integer.MAX_VALUE : i.getOrden())
+                        .thenComparing(i -> i.getId() == null ? Long.MAX_VALUE : i.getId()))
+                .map(ProductoImagen::getId)
+                .toList();
     }
 
     /**
@@ -102,6 +133,13 @@ public class ProductoService {
 
         Producto producto = obtenerPorId(id);
 
+        // Cómo estaba antes, para la auditoría
+        String nombreAntes = producto.getNombre();
+        Double precioAntes = producto.getPrecio();
+        String descripcionAntes = producto.getDescripcion();
+        String categoriaAntes = nombreCategoria(producto);
+        List<Long> fotosAntes = new ArrayList<>(idsDeFotos(producto));
+
         producto.setNombre(nombre.trim());
         producto.setPrecio(precio);
         producto.setDescripcion(descripcion);
@@ -111,7 +149,29 @@ public class ProductoService {
             acomodarImagenes(producto, orden, soloConContenido(imagenes));
         }
 
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+
+        Cambios cambios = new Cambios()
+                .campo("Nombre", nombreAntes, guardado.getNombre())
+                .pesos("Precio", precioAntes, guardado.getPrecio())
+                .campo("Descripción", descripcionAntes, guardado.getDescripcion())
+                .campo("Categoría", categoriaAntes, nombreCategoria(guardado));
+
+        List<Long> fotosDespues = idsDeFotos(guardado);
+        long quitadas = fotosAntes.stream().filter(f -> !fotosDespues.contains(f)).count();
+        long agregadas = fotosDespues.stream().filter(f -> !fotosAntes.contains(f)).count();
+        List<Long> quedaronAntes = fotosAntes.stream().filter(fotosDespues::contains).toList();
+        List<Long> quedaronDespues = fotosDespues.stream().filter(fotosAntes::contains).toList();
+
+        if (agregadas > 0) cambios.linea("Fotos: se agregó" + (agregadas == 1 ? " 1" : "ron " + agregadas));
+        if (quitadas > 0) cambios.linea("Fotos: se quitó" + (quitadas == 1 ? " 1" : "ron " + quitadas));
+        if (!quedaronAntes.equals(quedaronDespues)) cambios.linea("Fotos: se cambió el orden");
+        if (cambios.vacio()) cambios.linea("Se guardó sin cambios");
+
+        auditoria.registrar(ModuloAuditoria.PRODUCTOS, AccionAuditoria.MODIFICAR, guardado.getId(),
+                "Editó el producto " + AuditoriaService.comillas(guardado.getNombre()), cambios);
+
+        return guardado;
     }
 
     private void validarDatos(String nombre, Double precio) {
@@ -320,14 +380,25 @@ public class ProductoService {
         producto.setActivo(false);
         productoRepository.save(producto);
 
-        promocionRepository.findAll().stream()
+        List<Promocion> promociones = promocionRepository.findAll().stream()
                 .filter(promo -> promo.getProducto() != null
                         && id.equals(promo.getProducto().getId())
                         && !Boolean.FALSE.equals(promo.getActivo()))
-                .forEach(promo -> {
-                    promo.setActivo(false);
-                    promocionRepository.save(promo);
-                });
+                .toList();
+
+        promociones.forEach(promo -> {
+            promo.setActivo(false);
+            promocionRepository.save(promo);
+        });
+
+        auditoria.registrar(ModuloAuditoria.PRODUCTOS, AccionAuditoria.ELIMINAR, id,
+                "Dio de baja el producto " + AuditoriaService.comillas(producto.getNombre()),
+                new Cambios()
+                        .dato("Precio", AuditoriaService.pesos(producto.getPrecio()))
+                        .dato("Categoría", nombreCategoria(producto))
+                        .linea(promociones.isEmpty() ? null
+                                : "También se dio de baja " + (promociones.size() == 1
+                                        ? "1 promoción" : promociones.size() + " promociones")));
     }
 
     // =========================================================
@@ -341,17 +412,31 @@ public class ProductoService {
         }
 
         Producto producto = obtenerPorId(id);
+        Double antes = producto.getPrecio();
         producto.setPrecio(precio);
 
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+
+        auditoria.registrar(ModuloAuditoria.PRODUCTOS, AccionAuditoria.MODIFICAR, id,
+                "Cambió el precio de " + AuditoriaService.comillas(producto.getNombre()),
+                new Cambios().pesos("Precio", antes, precio));
+
+        return guardado;
     }
 
     public Producto actualizarDescripcion(Long id, String descripcion) {
 
         Producto producto = obtenerPorId(id);
+        String antes = producto.getDescripcion();
         producto.setDescripcion(descripcion);
 
-        return productoRepository.save(producto);
+        Producto guardado = productoRepository.save(producto);
+
+        auditoria.registrar(ModuloAuditoria.PRODUCTOS, AccionAuditoria.MODIFICAR, id,
+                "Cambió la descripción de " + AuditoriaService.comillas(producto.getNombre()),
+                new Cambios().campo("Descripción", antes, descripcion));
+
+        return guardado;
     }
 
     // Promociones vigentes hoy (sin las dadas de baja)

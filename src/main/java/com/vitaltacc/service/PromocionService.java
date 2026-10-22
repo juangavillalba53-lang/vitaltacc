@@ -1,5 +1,8 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.model.AccionAuditoria;
+import com.vitaltacc.model.ModuloAuditoria;
+import com.vitaltacc.service.AuditoriaService.Cambios;
 import com.vitaltacc.model.Producto;
 import com.vitaltacc.model.Promocion;
 import com.vitaltacc.repository.ProductoRepository;
@@ -19,6 +22,23 @@ public class PromocionService {
 
     @Autowired
     private ProductoRepository productoRepository;
+
+    @Autowired
+    private AuditoriaService auditoria;
+
+    private static String aplicaA(Promocion promo) {
+        return promo.getProducto() != null ? promo.getProducto().getNombre() : "Toda la tienda";
+    }
+
+    private static Cambios datos(Promocion promo) {
+        return new Cambios()
+                .dato("Aplica a", aplicaA(promo))
+                .dato("Descuento", (promo.getDescuento() % 1 == 0
+                        ? String.valueOf(promo.getDescuento().intValue())
+                        : String.valueOf(promo.getDescuento())) + " %")
+                .dato("Vigencia", AuditoriaService.fecha(promo.getFechaInicio())
+                        + " al " + AuditoriaService.fecha(promo.getFechaFin()));
+    }
 
     private static boolean activa(Promocion promo) {
         return !Boolean.FALSE.equals(promo.getActivo());
@@ -66,7 +86,12 @@ public class PromocionService {
         promocion.setDescripcion(promocion.getDescripcion().trim());
         promocion.setActivo(true);
 
-        return promocionRepository.save(promocion);
+        Promocion guardada = promocionRepository.save(promocion);
+
+        auditoria.registrar(ModuloAuditoria.PROMOCIONES, AccionAuditoria.CREAR, guardada.getId(),
+                "Creó la promoción " + AuditoriaService.comillas(guardada.getDescripcion()), datos(guardada));
+
+        return guardada;
     }
 
     // Todas las que no se dieron de baja
@@ -107,5 +132,8 @@ public class PromocionService {
 
         promocion.setActivo(false);
         promocionRepository.save(promocion);
+
+        auditoria.registrar(ModuloAuditoria.PROMOCIONES, AccionAuditoria.ELIMINAR, id,
+                "Dio de baja la promoción " + AuditoriaService.comillas(promocion.getDescripcion()), datos(promocion));
     }
 }
