@@ -1,5 +1,6 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.config.ControlDeAcceso;
 import com.vitaltacc.model.AccionAuditoria;
 import com.vitaltacc.model.ModuloAuditoria;
 import com.vitaltacc.model.RegistroAuditoria;
@@ -7,13 +8,10 @@ import com.vitaltacc.model.Rol;
 import com.vitaltacc.model.Usuario;
 import com.vitaltacc.repository.RegistroAuditoriaRepository;
 import com.vitaltacc.repository.UsuarioRepository;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -30,14 +28,12 @@ import java.util.Objects;
 /**
  * AUDITORÍA: deja anotado quién hizo cada cambio, cuándo y qué cambió.
  *
- * El panel manda en cada pedido la cabecera "X-Usuario-Id" con el usuario
- * que inició sesión (ver pedir() en ui-admin.js). Las ventas, devoluciones
- * y pedidos ya traen su usuario, así que lo pasan directo con registrarComo().
+ * Quién lo hizo sale de la sesión (el token que revisa ControlDeAcceso).
+ * Las ventas, devoluciones y pedidos ya traen su usuario, así que lo pasan
+ * directo con registrarComo().
  */
 @Service
 public class AuditoriaService {
-
-    public static final String CABECERA_USUARIO = "X-Usuario-Id";
 
     private static final int REGISTROS_POR_PAGINA = 20;
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -55,24 +51,9 @@ public class AuditoriaService {
     // QUIÉN ESTÁ HACIENDO EL PEDIDO
     // =========================================================
 
+    // Sale de la sesión (token) que revisó ControlDeAcceso
     public Usuario usuarioActual() {
-
-        if (!(RequestContextHolder.getRequestAttributes() instanceof ServletRequestAttributes atributos)) {
-            return null;
-        }
-
-        HttpServletRequest pedido = atributos.getRequest();
-        String valor = pedido.getHeader(CABECERA_USUARIO);
-
-        if (valor == null || valor.isBlank()) {
-            return null;
-        }
-
-        try {
-            return usuarioRepository.findById(Long.parseLong(valor.trim())).orElse(null);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return ControlDeAcceso.usuarioActual();
     }
 
     // =========================================================

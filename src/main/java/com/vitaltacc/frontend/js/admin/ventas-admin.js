@@ -663,7 +663,7 @@ function mostrarControlesPaginacion(total, totalPaginas) {
 // Baja el PDF de una venta. Devuelve true si se pudo.
 async function descargarComprobante(id) {
     try {
-        const respuesta = await fetch(`${API}/ventas/${id}/pdf`);
+        const respuesta = await fetch(`${API}/ventas/${id}/pdf`, { headers: cabeceraSesion() });
         if (!respuesta.ok) return false;
 
         const archivo = await respuesta.blob();

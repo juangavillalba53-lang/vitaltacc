@@ -266,9 +266,11 @@ async function confirmarCompra(evento) {
 
         const respuesta = await fetch(`${API}/ventas`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { "Content-Type": "application/json", ...cabeceraSesion() },
             body: JSON.stringify(venta)
         });
+
+        if (sesionVencida(respuesta)) return;
 
         if (!respuesta.ok) {
             throw new Error(await leerError(respuesta, "No pudimos registrar la compra."));
@@ -331,7 +333,7 @@ function mostrarCompraLista(compra, datosEntrega) {
             ${tieneMail ? `<p class="compra-lista-mail">Te enviamos el comprobante a <strong>${escaparHTML(email)}</strong>. Si no lo ves, revisá la carpeta de spam.</p>` : ""}
             <div class="compra-lista-botones">
                 <a class="boton boton-primario" href="mis-compras.html">Ver mis compras</a>
-                <a class="boton boton-secundario" href="${API}/ventas/${encodeURIComponent(compra.id)}/pdf" download>Descargar comprobante</a>
+                <button type="button" class="boton boton-secundario" onclick="descargarComprobante(${Number(compra.id)}, this)">Descargar comprobante</button>
                 <a class="boton boton-secundario" href="productos.html">Seguir comprando</a>
             </div>
         </div>

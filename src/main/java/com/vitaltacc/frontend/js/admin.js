@@ -2,8 +2,9 @@ const usuario = JSON.parse(localStorage.getItem("usuario"));
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Solo entra el personal con sesión iniciada
-    if (!usuario) {
+    // Solo entra el personal con sesión iniciada (las sesiones viejas, sin token, vuelven a entrar)
+    if (!usuario || !usuario.token) {
+        localStorage.removeItem("usuario");
         window.location.href = "login.html";
         return;
     }
@@ -140,6 +141,10 @@ function mostrarSeccion(id) {
 
     if (id === "adminAuditoria") {
         abrirAuditoria();
+    }
+
+    if (id === "adminClientes") {
+        cargarClientes(1);
     }
 }
 

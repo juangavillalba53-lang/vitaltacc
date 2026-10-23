@@ -1,5 +1,9 @@
 package com.vitaltacc.controller;
 
+import com.vitaltacc.config.ControlDeAcceso;
+import com.vitaltacc.model.Rol;
+import com.vitaltacc.model.TipoVenta;
+import com.vitaltacc.model.Usuario;
 import com.vitaltacc.model.Venta;
 import com.vitaltacc.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +37,22 @@ public class VentaController {
     // Crear venta
     @PostMapping
     public Venta crearVenta(@RequestBody VentaRequest ventaRequest) {
+
+        // Quién vende o quién compra sale de la sesión, no de lo que manda el navegador
+        Usuario actual = ControlDeAcceso.usuarioActual();
+
+        if (ventaRequest.getTipoVenta() == TipoVenta.ONLINE) {
+            if (actual == null || actual.getRol() != Rol.CLIENTE) {
+                throw new ControlDeAcceso.AccesoDenegado("Las compras online las hace el cliente desde la tienda.");
+            }
+            ventaRequest.setClienteId(actual.getId());
+        } else {
+            if (!ControlDeAcceso.esEquipo(actual)) {
+                throw new ControlDeAcceso.AccesoDenegado("Solo el personal del local puede registrar ventas.");
+            }
+            ventaRequest.setEmpleadoId(actual.getId());
+        }
+
         Venta venta = ventaService.crearVenta(ventaRequest);
 
         // El comprobante llega por mail: en las compras web siempre y en las
@@ -61,6 +81,7 @@ public class VentaController {
     @GetMapping("/cliente/{clienteId}")
     public List<Map<String, Object>> obtenerComprasDeCliente(
             @PathVariable Long clienteId) {
+        ControlDeAcceso.exigirDuenoOEquipo(clienteId);
         return ventaService.obtenerComprasDeCliente(clienteId);
     }
 
@@ -73,6 +94,10 @@ public class VentaController {
     @GetMapping("/{id}/pdf")
     public ResponseEntity<byte[]> descargarComprobante(
             @PathVariable Long id) {
+
+        // El comprobante lo descarga el equipo o el cliente de esa compra
+        Venta venta = ventaService.obtenerVentaPorId(id);
+        ControlDeAcceso.exigirDuenoOEquipo(venta.getCliente() != null ? venta.getCliente().getId() : -1L);
 
         byte[] pdf = ventaPdfService.generarComprobante(id);
 

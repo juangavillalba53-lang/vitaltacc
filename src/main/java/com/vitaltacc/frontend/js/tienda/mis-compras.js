@@ -8,31 +8,6 @@ function formatearFecha(fecha) {
     });
 }
 
-async function descargarComprobante(id, boton) {
-    boton.disabled = true;
-    boton.textContent = "Descargando…";
-
-    try {
-        const respuesta = await fetch(`${API}/ventas/${id}/pdf`);
-        if (!respuesta.ok) throw new Error();
-
-        const url = URL.createObjectURL(await respuesta.blob());
-        const enlace = document.createElement("a");
-        enlace.href = url;
-        enlace.download = `comprobante-vitaltacc-${id}.pdf`;
-        document.body.appendChild(enlace);
-        enlace.click();
-        enlace.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-    } catch {
-        mostrarAviso("No pudimos descargar el comprobante. Probá de nuevo.", "error");
-    } finally {
-        boton.disabled = false;
-        boton.textContent = "Descargar comprobante";
-    }
-}
-
 // 10 compras por página
 const COMPRAS_POR_PAGINA = 10;
 let comprasCliente = [];
@@ -209,7 +184,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     destino.innerHTML = `<div class="lista-compras"><div class="esqueleto-linea"></div><div class="esqueleto-linea"></div></div>`;
 
     try {
-        const respuesta = await fetch(`${API}/ventas/cliente/${usuario.id}`);
+        const respuesta = await fetch(`${API}/ventas/cliente/${usuario.id}`, { headers: cabeceraSesion() });
+        if (sesionVencida(respuesta)) return;
         if (!respuesta.ok) throw new Error();
         renderCompras(await respuesta.json());
     } catch {

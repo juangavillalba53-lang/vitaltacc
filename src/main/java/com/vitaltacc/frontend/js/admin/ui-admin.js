@@ -8,11 +8,8 @@ async function pedir(ruta, opciones = {}) {
         config.body = JSON.stringify(json);
     }
 
-    // Quién hace el pedido: el servidor lo anota en la auditoría
-    try {
-        const sesion = JSON.parse(localStorage.getItem("usuario") || "null");
-        if (sesion?.id) config.headers["X-Usuario-Id"] = String(sesion.id);
-    } catch { /* sin sesión guardada */ }
+    // La sesión: el servidor sabe quién es y qué puede hacer
+    Object.assign(config.headers, cabeceraSesion());
 
     let respuesta;
 
@@ -31,6 +28,13 @@ async function pedir(ruta, opciones = {}) {
         } catch {
             datos = texto;
         }
+    }
+
+    // Sesión vencida o inválida: hay que volver a entrar
+    if (respuesta.status === 401) {
+        localStorage.removeItem("usuario");
+        window.location.href = "login.html";
+        throw new Error("Tu sesión venció. Volvé a iniciar sesión.");
     }
 
     if (!respuesta.ok) {

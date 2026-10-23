@@ -22,7 +22,48 @@ function leerJSON(clave, valorPorDefecto) {
 }
 
 function obtenerUsuario() {
-    return leerJSON("usuario", null);
+    const usuario = leerJSON("usuario", null);
+    // Una sesión guardada antes del cambio de seguridad no tiene token: hay que volver a entrar
+    if (usuario && !usuario.token) {
+        localStorage.removeItem("usuario");
+        return null;
+    }
+    return usuario;
+}
+
+// Si el servidor dice que la sesión venció, se sale y se vuelve a ingresar
+function sesionVencida(respuesta) {
+    if (respuesta.status !== 401) return false;
+    localStorage.removeItem("usuario");
+    window.location.href = `login.html?volver=${encodeURIComponent(location.pathname.split("/").pop() || "index.html")}`;
+    return true;
+}
+
+// Descarga el comprobante PDF de una compra (lo usan Mis compras y el checkout)
+async function descargarComprobante(id, boton) {
+    boton.disabled = true;
+    boton.textContent = "Descargando…";
+
+    try {
+        const respuesta = await fetch(`${API}/ventas/${id}/pdf`, { headers: cabeceraSesion() });
+        if (sesionVencida(respuesta)) return;
+        if (!respuesta.ok) throw new Error();
+
+        const url = URL.createObjectURL(await respuesta.blob());
+        const enlace = document.createElement("a");
+        enlace.href = url;
+        enlace.download = `comprobante-vitaltacc-${id}.pdf`;
+        document.body.appendChild(enlace);
+        enlace.click();
+        enlace.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+    } catch {
+        mostrarAviso("No pudimos descargar el comprobante. Probá de nuevo.", "error");
+    } finally {
+        boton.disabled = false;
+        boton.textContent = "Descargar comprobante";
+    }
 }
 
 function guardarSesion(usuario) {

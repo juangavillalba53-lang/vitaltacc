@@ -1,5 +1,7 @@
 package com.vitaltacc.service;
 
+import com.vitaltacc.config.ControlDeAcceso.AccesoDenegado;
+import com.vitaltacc.config.Contrasenas;
 import com.vitaltacc.model.AccionAuditoria;
 import com.vitaltacc.model.ModuloAuditoria;
 import com.vitaltacc.model.Rol;
@@ -146,6 +148,20 @@ public class UsuarioService {
     public Usuario guardarUsuario(Usuario usuario) {
 
         Usuario quienLoHace = auditoria.usuarioActual();
+
+        // Sin un administrador detrás es un registro desde la tienda: siempre como cliente
+        if (quienLoHace == null || quienLoHace.getRol() != Rol.ADMIN) {
+            if (usuario.getRol() != null && usuario.getRol() != Rol.CLIENTE) {
+                throw new AccesoDenegado("Solo el administrador puede crear usuarios del equipo.");
+            }
+            usuario.setRol(Rol.CLIENTE);
+            usuario.setId(null);
+        }
+
+        if (usuario.getContrasena() != null && usuario.getContrasena().length() < 8) {
+            throw new RuntimeException("La contraseña debe tener al menos 8 caracteres");
+        }
+
         Usuario guardado = guardarUsuarioSinAuditar(usuario);
 
         Cambios datos = new Cambios()
@@ -199,6 +215,10 @@ public class UsuarioService {
         if (existente != null
                 && usuario.getId() != null
                 && usuario.getId().equals(existente.getId())) {
+            // La contraseña se encripta si vino una nueva; si no, queda la que tenía
+            usuario.setContrasena(tieneTexto(usuario.getContrasena())
+                    ? Contrasenas.encriptar(usuario.getContrasena())
+                    : existente.getContrasena());
             return usuarioRepository.save(usuario);
         }
 
@@ -214,7 +234,7 @@ public class UsuarioService {
                 existente.setNombre(usuario.getNombre().trim());
                 existente.setApellido(usuario.getApellido().trim());
                 existente.setEmail(usuario.getEmail());
-                existente.setContrasena(usuario.getContrasena());
+                existente.setContrasena(Contrasenas.encriptar(usuario.getContrasena()));
                 existente.setRol(usuario.getRol() != null ? usuario.getRol() : Rol.CLIENTE);
                 existente.setActivo(true);
 
@@ -237,7 +257,7 @@ public class UsuarioService {
             }
 
             existente.setEmail(usuario.getEmail());
-            existente.setContrasena(usuario.getContrasena());
+            existente.setContrasena(Contrasenas.encriptar(usuario.getContrasena()));
             existente.setNombre(usuario.getNombre().trim());
             existente.setApellido(usuario.getApellido().trim());
 
@@ -261,6 +281,7 @@ public class UsuarioService {
             usuario.setRol(Rol.CLIENTE);
         }
 
+        usuario.setContrasena(Contrasenas.encriptar(usuario.getContrasena()));
         return usuarioRepository.save(usuario);
     }
 
@@ -361,7 +382,7 @@ public class UsuarioService {
                     "Tu cuenta todavía no está activada. Registrate con tu DNI para activarla.");
         }
 
-        if (!usuario.getContrasena().equals(contrasena)) {
+        if (!Contrasenas.coincide(contrasena, usuario.getContrasena())) {
             ingresoFallido(usuario, "Contraseña incorrecta");
             throw new RuntimeException("Email o contraseña incorrectos");
         }
@@ -394,7 +415,7 @@ public class UsuarioService {
             throw new RuntimeException("Ingresá tu contraseña actual");
         }
 
-        if (!usuario.getContrasena().equals(contrasenaActual)) {
+        if (!Contrasenas.coincide(contrasenaActual, usuario.getContrasena())) {
             throw new RuntimeException("La contraseña actual es incorrecta");
         }
 
@@ -406,7 +427,7 @@ public class UsuarioService {
             throw new RuntimeException("La nueva contraseña debe ser diferente de la actual");
         }
 
-        usuario.setContrasena(contrasenaNueva);
+        usuario.setContrasena(Contrasenas.encriptar(contrasenaNueva));
         usuarioRepository.save(usuario);
 
         // La contraseña nunca se guarda en la auditoría: solo que se cambió

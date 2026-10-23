@@ -1,5 +1,6 @@
 package com.vitaltacc.controller;
 
+import com.vitaltacc.config.ControlDeAcceso;
 import com.vitaltacc.model.EstadoPedido;
 import com.vitaltacc.service.CompraEmailService;
 import com.vitaltacc.service.PedidoService;
@@ -43,8 +44,8 @@ public class PedidoController {
             throw new RuntimeException("Ese estado de pedido no existe.");
         }
 
-        Object usuario = cuerpo.get("usuarioId");
-        Long usuarioId = usuario instanceof Number n ? n.longValue() : null;
+        // Quién lo cambia sale de la sesión
+        Long usuarioId = ControlDeAcceso.usuarioActual().getId();
         String nota = cuerpo.get("nota") != null ? String.valueOf(cuerpo.get("nota")) : null;
 
         Map<String, Object> pedido = pedidoService.cambiarEstado(id, estado, usuarioId, nota);

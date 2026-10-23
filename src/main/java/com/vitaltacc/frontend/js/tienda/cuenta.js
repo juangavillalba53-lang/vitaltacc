@@ -29,7 +29,7 @@ function destinoDespuesDeIngresar(usuario) {
 
 async function contarComprasPrevias(usuario) {
     try {
-        const respuesta = await fetch(`${API}/ventas/cliente/${usuario.id}`);
+        const respuesta = await fetch(`${API}/ventas/cliente/${usuario.id}`, { headers: cabeceraSesion() });
         if (!respuesta.ok) return 0;
         return (await respuesta.json()).length;
     } catch {

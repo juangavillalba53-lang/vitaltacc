@@ -1,5 +1,6 @@
 package com.vitaltacc.controller;
 
+import com.vitaltacc.config.ControlDeAcceso;
 import com.vitaltacc.dto.DevolucionRequest;
 import com.vitaltacc.service.DevolucionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,8 @@ public class DevolucionController {
 
     @PostMapping
     public Map<String, Object> registrarDevolucion(@RequestBody DevolucionRequest request) {
+        // El empleado que la registra sale de la sesión
+        request.setEmpleadoId(ControlDeAcceso.usuarioActual().getId());
         return devolucionService.registrarDevolucion(request);
     }
 }

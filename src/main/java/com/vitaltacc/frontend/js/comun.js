@@ -3,6 +3,16 @@ const API = "http://localhost:8080";
 // Precios con formato argentino: $ 3.200,00
 const FORMATO_PESOS = new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS" });
 
+// Cabecera con el token de la sesión (la usan el panel y la tienda)
+function cabeceraSesion() {
+    try {
+        const sesion = JSON.parse(localStorage.getItem("usuario") || "null");
+        return sesion?.token ? { Authorization: `Bearer ${sesion.token}` } : {};
+    } catch {
+        return {};
+    }
+}
+
 function pesos(valor) {
     return FORMATO_PESOS.format(Number(valor) || 0);
 }

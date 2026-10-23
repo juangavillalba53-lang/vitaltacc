@@ -69,6 +69,11 @@
                     <span class="menu-contador" id="contadorPedidos" hidden aria-label="pedidos por atender"></span>
                 </button>
 
+                <button class="menu-principal" data-seccion="adminClientes" onclick="mostrarSeccion('adminClientes')">
+                    <span class="menu-icono" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.8"/><path d="M4.5 20.5a7.5 7.5 0 0 1 15 0"/></svg></span>
+                    <span>Clientes</span>
+                </button>
+
 
                 <button id="btnPromociones" class="menu-principal" data-seccion="adminPromociones"
                     onclick="mostrarSeccion('adminPromociones')">
@@ -811,6 +816,42 @@
 
                 </section>
 
+                <section class="admin-section vista-admin" id="adminClientes">
+
+                    <div class="section-header">
+                        <span>Comercial</span>
+                        <h2>Clientes</h2>
+                    </div>
+
+                    <div class="card-admin full">
+
+                        <div class="filtros-clientes">
+                            <div class="buscar-clientes">
+                                <label for="buscarClientes">Buscar</label>
+                                <input type="search" id="buscarClientes" placeholder="Nombre, DNI, email o teléfono">
+                            </div>
+                            <div>
+                                <label for="ordenClientes">Ordenar por</label>
+                                <select id="ordenClientes">
+                                    <option value="recientes">Última compra</option>
+                                    <option value="compras">Más compras</option>
+                                    <option value="gastado">Más gastado</option>
+                                    <option value="nombre">Apellido (A-Z)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <p id="estadoClientes" class="estado-auditoria" role="status"></p>
+
+                        <div id="listaClientes" class="lista-clientes"></div>
+
+                        <div id="paginacionClientes" class="paginacion-stock"></div>
+
+                    </div>
+
+                </section>
+
+
                 <section class="admin-section vista-admin" id="adminPromociones">
 
                     <div class="section-header">
@@ -1413,6 +1454,7 @@
     <script src="js/admin/estadisticas.js"></script>
     <script src="js/admin/configuracion-admin.js"></script>
     <script src="js/admin/auditoria-admin.js"></script>
+    <script src="js/admin/clientes-admin.js"></script>
 
     <script src="js/admin.js"></script>
 
