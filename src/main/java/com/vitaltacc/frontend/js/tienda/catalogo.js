@@ -3,35 +3,37 @@ const PRODUCTOS_POR_TANDA = 12;
 
 let productosCatalogo = [];
 let categoriaElegida = "";
+let tipoElegido = "";
 let filtradosCatalogo = [];
 let mostradosCatalogo = 0;
 
-function renderCategorias() {
-    const contenedor = document.getElementById("categorias");
+function actualizarDireccion() {
+    const parametros = new URLSearchParams();
+    if (tipoElegido) parametros.set("tipo", tipoElegido);
+    if (categoriaElegida) parametros.set("categoria", categoriaElegida);
+    const consulta = parametros.toString();
+    history.replaceState(null, "", "productos.html" + (consulta ? `?${consulta}` : ""));
+}
 
-    const categorias = [...new Set(
-        productosCatalogo.map(p => p.categoria).filter(Boolean)
-    )].sort((a, b) => a.localeCompare(b, "es"));
+function renderFiltroActual() {
+    const tipoDeLaCategoria = categoriaElegida
+        ? productosCatalogo.find(p => p.categoria === categoriaElegida)?.tipoCategoria
+        : "";
 
-    if (!categorias.length) {
-        contenedor.hidden = true;
-        return;
-    }
+    document.querySelector(".cabecera-pagina h1").textContent = categoriaElegida || tipoElegido || "Productos";
+    document.querySelector(".cabecera-pagina .cinta").textContent = tipoDeLaCategoria || "Catálogo";
 
-    contenedor.innerHTML = ["", ...categorias].map(cat => `
-        <button type="button" class="chip" data-categoria="${escaparHTML(cat)}"
-            aria-pressed="${cat === categoriaElegida}">
-            ${cat ? escaparHTML(cat) : "Todos"}
-        </button>
-    `).join("");
+    const contenedor = document.getElementById("filtroActual");
+    contenedor.hidden = !categoriaElegida && !tipoElegido;
+    contenedor.innerHTML = contenedor.hidden ? ""
+        : `<button type="button" class="chip chip-todo-catalogo">Ver todos los productos</button>`;
 
-    contenedor.querySelectorAll(".chip").forEach(chip => {
-        chip.addEventListener("click", () => {
-            categoriaElegida = chip.dataset.categoria;
-            contenedor.querySelectorAll(".chip").forEach(c =>
-                c.setAttribute("aria-pressed", String(c === chip)));
-            renderCatalogo();
-        });
+    contenedor.querySelector("button")?.addEventListener("click", () => {
+        tipoElegido = "";
+        categoriaElegida = "";
+        actualizarDireccion();
+        renderFiltroActual();
+        renderCatalogo();
     });
 }
 
@@ -41,6 +43,7 @@ function renderCatalogo() {
     const texto = normalizarTexto(document.getElementById("buscador").value.trim());
 
     const filtrados = productosCatalogo.filter(p =>
+        (!tipoElegido || p.tipoCategoria === tipoElegido) &&
         (!categoriaElegida || p.categoria === categoriaElegida) &&
         (!texto || normalizarTexto(p.nombre).includes(texto) || normalizarTexto(p.descripcion).includes(texto))
     );
@@ -58,14 +61,16 @@ function renderCatalogo() {
         contenedor.innerHTML = `
             <div class="estado-vacio">
                 <h3>No encontramos productos con esa búsqueda</h3>
-                <p>Probá con otra palabra o elegí otra categoría.</p>
+                <p>Probá con otra palabra o elegí otra categoría en el menú.</p>
                 <button type="button" class="boton boton-secundario" id="limpiarFiltros">Ver todos los productos</button>
             </div>`;
 
         document.getElementById("limpiarFiltros").addEventListener("click", () => {
             document.getElementById("buscador").value = "";
             categoriaElegida = "";
-            renderCategorias();
+            tipoElegido = "";
+            actualizarDireccion();
+            renderFiltroActual();
             renderCatalogo();
         });
         return;
@@ -108,6 +113,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (parametros.get("buscar")) buscador.value = parametros.get("buscar");
     // ...o con una categoría elegida desde el inicio: productos.html?categoria=Pastas
     const categoriaPedida = parametros.get("categoria") || "";
+    const tipoPedido = parametros.get("tipo") || "";
 
     document.getElementById("botonVerMas").addEventListener("click", () => {
         const primeraNueva = mostradosCatalogo;
@@ -129,11 +135,16 @@ document.addEventListener("DOMContentLoaded", async () => {
             .filter(p => Number(p.stock) > 0)
             .sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), "es"));
 
-        if (productosCatalogo.some(p => p.categoria === categoriaPedida)) {
+        if (productosCatalogo.some(p => p.tipoCategoria === tipoPedido)) {
+            tipoElegido = tipoPedido;
+        }
+
+        if (productosCatalogo.some(p => p.categoria === categoriaPedida
+            && (!tipoElegido || p.tipoCategoria === tipoElegido))) {
             categoriaElegida = categoriaPedida;
         }
 
-        renderCategorias();
+        renderFiltroActual();
         renderCatalogo();
 
     } catch {

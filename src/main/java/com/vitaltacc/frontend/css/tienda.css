@@ -380,6 +380,228 @@ p {
     background: var(--turquesa-100);
 }
 
+.nav-categorias {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.nav-categorias.con-menu > a {
+    padding-right: 32px;
+}
+
+.nav-categorias-abrir {
+    position: absolute;
+    right: 4px;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    color: var(--tinta-2);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+}
+
+.nav-categorias-abrir .icono,
+.menu-tipo-abrir .icono {
+    width: 16px;
+    height: 16px;
+    transition: transform 200ms var(--ease-out);
+}
+
+.nav-categorias-abrir[hidden] {
+    display: none;
+}
+
+.menu-categorias,
+.menu-subcategorias {
+    display: none;
+    min-width: 230px;
+    padding: 6px;
+    background: #FFFFFF;
+    border: 1px solid var(--linea);
+    border-radius: var(--r-md);
+    box-shadow: var(--sombra-alta);
+}
+
+.menu-tipos,
+.menu-subcategorias {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.encabezado-nav .menu-categorias a {
+    display: block;
+    padding: 10px 12px;
+    color: var(--tinta);
+    border-radius: var(--r-sm);
+    font-weight: 500;
+    font-size: 15px;
+    white-space: nowrap;
+}
+
+.encabezado-nav .menu-categorias a:hover,
+.encabezado-nav .menu-categorias a:focus-visible {
+    color: var(--petroleo);
+    background: var(--turquesa-50);
+}
+
+.encabezado-nav .menu-categorias .menu-categorias-todos {
+    margin-bottom: 4px;
+    padding-bottom: 12px;
+    color: var(--turquesa-700);
+    border-bottom: 1px solid var(--linea);
+    border-radius: var(--r-sm) var(--r-sm) 0 0;
+    font-weight: 600;
+}
+
+.menu-tipo {
+    position: relative;
+}
+
+.menu-tipo-fila {
+    display: flex;
+    align-items: center;
+    border-radius: var(--r-sm);
+    transition: background-color 160ms ease;
+}
+
+.encabezado-nav .menu-tipo-fila a {
+    flex: 1;
+}
+
+.menu-tipo-abrir {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    margin-right: 4px;
+    padding: 0;
+    color: var(--tinta-3);
+    background: transparent;
+    border: 0;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+}
+
+.menu-tipo.abierto > .menu-tipo-fila {
+    background: var(--turquesa);
+}
+
+.encabezado-nav .menu-tipo.abierto > .menu-tipo-fila a,
+.menu-tipo.abierto > .menu-tipo-fila .menu-tipo-abrir {
+    color: #FFFFFF;
+    background: transparent;
+}
+
+.nav-categorias.abierto > .menu-categorias,
+.menu-tipo.abierto > .menu-subcategorias {
+    display: block;
+}
+
+@keyframes aparecer-menu {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+}
+
+@media (min-width: 821px) {
+    .menu-categorias {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 0;
+        z-index: 60;
+        animation: aparecer-menu 160ms var(--ease-out);
+    }
+
+    .menu-categorias::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -12px;
+        height: 12px;
+    }
+
+    .menu-subcategorias {
+        position: absolute;
+        top: -7px;
+        left: calc(100% + 6px);
+        animation: aparecer-menu 160ms var(--ease-out);
+    }
+
+    .menu-subcategorias::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -8px;
+        width: 8px;
+    }
+
+    .nav-categorias.con-menu:not(.sin-hover):focus-within > .menu-categorias,
+    .menu-tipo:focus-within > .menu-subcategorias {
+        display: block;
+    }
+
+    .menu-tipo:focus-within > .menu-tipo-fila {
+        background: var(--turquesa);
+    }
+
+    .encabezado-nav .menu-tipo:focus-within > .menu-tipo-fila a,
+    .menu-tipo:focus-within > .menu-tipo-fila .menu-tipo-abrir {
+        color: #FFFFFF;
+        background: transparent;
+    }
+}
+
+@media (min-width: 821px) and (hover: hover) {
+    .nav-categorias.con-menu:not(.sin-hover):hover > .menu-categorias,
+    .menu-tipo:hover > .menu-subcategorias {
+        display: block;
+    }
+
+    .menu-tipo:hover > .menu-tipo-fila {
+        background: var(--turquesa);
+    }
+
+    .encabezado-nav .menu-tipo:hover > .menu-tipo-fila a,
+    .menu-tipo:hover > .menu-tipo-fila .menu-tipo-abrir {
+        color: #FFFFFF;
+        background: transparent;
+    }
+
+    .nav-categorias.con-menu:not(.sin-hover):hover .nav-categorias-abrir .icono {
+        transform: rotate(180deg);
+    }
+}
+
+.nav-categorias.abierto .nav-categorias-abrir .icono {
+    transform: rotate(180deg);
+}
+
+.filtro-actual[hidden] {
+    display: none;
+}
+
+.chip.chip-todo-catalogo {
+    color: var(--turquesa-700);
+    background: transparent;
+    border-style: dashed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .menu-categorias,
+    .menu-subcategorias {
+        animation: none;
+    }
+}
+
 .encabezado-acciones {
     display: flex;
     align-items: center;
@@ -3038,6 +3260,64 @@ p {
     .encabezado-nav a {
         padding: 12px 14px;
         border-radius: var(--r-sm);
+    }
+
+    .nav-categorias {
+        flex-wrap: wrap;
+    }
+
+    .nav-categorias > a {
+        flex: 1;
+    }
+
+    .nav-categorias-abrir {
+        top: 2px;
+        right: 2px;
+        width: 40px;
+        height: 40px;
+    }
+
+    .nav-categorias-abrir .icono,
+    .menu-tipo-abrir .icono {
+        width: 18px;
+        height: 18px;
+    }
+
+    .menu-categorias,
+    .menu-subcategorias {
+        flex-basis: 100%;
+        min-width: 0;
+        padding: 2px 0 6px 12px;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .menu-categorias {
+        border-left: 2px solid var(--turquesa-100);
+        margin-left: 14px;
+    }
+
+    .encabezado-nav .menu-categorias a {
+        padding: 11px 12px;
+    }
+
+    .menu-tipo-abrir {
+        width: 40px;
+        height: 40px;
+    }
+
+    .menu-tipo.abierto > .menu-tipo-fila {
+        background: var(--turquesa-50);
+    }
+
+    .encabezado-nav .menu-tipo.abierto > .menu-tipo-fila a,
+    .menu-tipo.abierto > .menu-tipo-fila .menu-tipo-abrir {
+        color: var(--petroleo);
+    }
+
+    .menu-tipo.abierto .menu-tipo-abrir .icono {
+        transform: rotate(90deg);
     }
 
     .encabezado-logo img {

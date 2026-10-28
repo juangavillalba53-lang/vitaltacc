@@ -215,6 +215,8 @@ const ICONOS = {
     instagram: '<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6" fill="currentColor"/>',
     whatsapp: '<path d="M4 20l1.3-4A8.5 8.5 0 1 1 8 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5l1-1.5-2-1-1 .8a4 4 0 0 1-1.8-1.8l.8-1-1-2z"/>',
     check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+    abajo: '<path d="m6 9 6 6 6-6"/>',
+    derecha: '<path d="m9 6 6 6-6 6"/>',
     trigo: '<path d="M12 21V9"/><path d="M12 13c-2.5 0-4-1.6-4-4 2.5 0 4 1.6 4 4zM12 13c2.5 0 4-1.6 4-4-2.5 0-4 1.6-4 4zM12 9c-2 0-3.3-1.3-3.3-3.3C10.7 5.7 12 7 12 9zM12 9c2 0 3.3-1.3 3.3-3.3C13.3 5.7 12 7 12 9zM12 5.5V3"/>'
 };
 
@@ -308,7 +310,12 @@ function renderEncabezado() {
 
             <nav class="encabezado-nav" id="navPrincipal" aria-label="Principal">
                 ${enlace("index.html", "Inicio", "inicio")}
-                ${enlace("productos.html", "Productos", "productos")}
+                <div class="nav-categorias" id="navCategorias">
+                    ${enlace("productos.html", "Categorías", "productos")}
+                    <button type="button" class="nav-categorias-abrir" aria-expanded="false" aria-controls="menuCategorias"
+                        aria-label="Ver las categorías" hidden>${icono("abajo")}</button>
+                    <div class="menu-categorias" id="menuCategorias"></div>
+                </div>
                 ${enlace("nosotras.html", "Nosotras", "nosotras")}
             </nav>
 
@@ -367,6 +374,103 @@ function renderEncabezado() {
     marcarScroll();
 
     actualizarContadorCarrito();
+    cargarMenuCategorias();
+}
+
+async function cargarMenuCategorias() {
+    const contenedor = document.getElementById("navCategorias");
+    if (!contenedor) return;
+
+    let productos;
+    try {
+        productos = await obtenerProductos();
+    } catch {
+        return;
+    }
+
+    const porTipo = new Map();
+    productos
+        .filter(p => Number(p.stock) > 0 && p.categoria)
+        .forEach(p => {
+            const tipo = p.tipoCategoria || "";
+            if (!porTipo.has(tipo)) porTipo.set(tipo, new Set());
+            porTipo.get(tipo).add(p.categoria);
+        });
+
+    if (!porTipo.size) return;
+
+    const orden = (a, b) => a.localeCompare(b, "es");
+    const direccion = (clave, valor) => `productos.html?${clave}=${encodeURIComponent(valor)}`;
+    const enlaces = categorias => [...categorias].sort(orden)
+        .map(c => `<li><a href="${direccion("categoria", c)}">${escaparHTML(c)}</a></li>`).join("");
+
+    const tipos = [...porTipo.keys()].filter(Boolean).sort(orden);
+
+    contenedor.querySelector(".menu-categorias").innerHTML = `
+        <a class="menu-categorias-todos" href="productos.html">Todos los productos</a>
+        <ul class="menu-tipos">
+            ${tipos.map((tipo, i) => `
+            <li class="menu-tipo">
+                <div class="menu-tipo-fila">
+                    <a href="${direccion("tipo", tipo)}">${escaparHTML(tipo)}</a>
+                    <button type="button" class="menu-tipo-abrir" aria-expanded="false" aria-controls="menuTipo${i}"
+                        aria-label="Ver las categorías de ${escaparHTML(tipo)}">${icono("derecha")}</button>
+                </div>
+                <ul class="menu-subcategorias" id="menuTipo${i}">${enlaces(porTipo.get(tipo))}</ul>
+            </li>`).join("")}
+            ${enlaces(porTipo.get("") || [])}
+        </ul>`;
+
+    const botonAbrir = contenedor.querySelector(".nav-categorias-abrir");
+    botonAbrir.hidden = false;
+    contenedor.classList.add("con-menu");
+
+    const cerrarTipos = (salvo = null) => {
+        contenedor.querySelectorAll(".menu-tipo").forEach(li => {
+            if (li === salvo) return;
+            li.classList.remove("abierto");
+            li.querySelector(".menu-tipo-abrir").setAttribute("aria-expanded", "false");
+        });
+    };
+
+    const cerrarMenu = () => {
+        contenedor.classList.remove("abierto");
+        botonAbrir.setAttribute("aria-expanded", "false");
+        cerrarTipos();
+    };
+
+    botonAbrir.addEventListener("click", () => {
+        const abrir = !contenedor.classList.contains("abierto");
+        contenedor.classList.toggle("abierto", abrir);
+        botonAbrir.setAttribute("aria-expanded", String(abrir));
+        if (!abrir) cerrarTipos();
+    });
+
+    contenedor.querySelectorAll(".menu-tipo-abrir").forEach(boton => {
+        boton.addEventListener("click", () => {
+            const tipo = boton.closest(".menu-tipo");
+            const abrir = !tipo.classList.contains("abierto");
+            cerrarTipos(tipo);
+            tipo.classList.toggle("abierto", abrir);
+            boton.setAttribute("aria-expanded", String(abrir));
+        });
+    });
+
+    const enlaceCategorias = contenedor.querySelector("a");
+    contenedor.addEventListener("keydown", evento => {
+        if (evento.key !== "Escape") return;
+        cerrarMenu();
+        contenedor.classList.add("sin-hover");
+        enlaceCategorias.focus();
+    });
+    contenedor.addEventListener("mouseleave", () => contenedor.classList.remove("sin-hover"));
+    contenedor.addEventListener("focusin", evento => {
+        if (evento.target !== enlaceCategorias) contenedor.classList.remove("sin-hover");
+    });
+
+    document.addEventListener("click", evento => {
+        if (!contenedor.contains(evento.target)) cerrarMenu();
+    });
 }
 
 // El botón del carrito "salta" para mostrar que entró algo
