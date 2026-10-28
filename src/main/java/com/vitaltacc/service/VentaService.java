@@ -244,8 +244,12 @@ public class VentaService {
                 .dato("Total", AuditoriaService.pesos(guardada.getTotal()))
                 .dato("Medio de pago", guardada.getMetodoPago().getNombre());
 
-        // Solo las ventas del local (las compras online del cliente ya están en el historial)
-        if (!guardada.esOnline()) {
+        if (guardada.esOnline()) {
+            // Compra que hizo el cliente en la tienda
+            detalle.dato("Entrega", guardada.formaEntregaActual().getNombre());
+            auditoria.registrarComo(guardada.getCliente(), ModuloAuditoria.VENTAS, AccionAuditoria.CREAR,
+                    guardada.getId(), "Hizo la compra online N.º " + guardada.getId(), detalle);
+        } else {
             detalle.dato("Cliente", guardada.getCliente() != null
                     ? AuditoriaService.nombreCompleto(guardada.getCliente()) : "Consumidor Final");
             auditoria.registrarComo(guardada.getEmpleado(), ModuloAuditoria.VENTAS, AccionAuditoria.CREAR,

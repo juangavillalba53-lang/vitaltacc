@@ -4,6 +4,7 @@ package com.vitaltacc.service;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
 import com.vitaltacc.model.DetalleVenta;
+import com.vitaltacc.model.FormaEntrega;
 import com.vitaltacc.model.Venta;
 import com.vitaltacc.repository.VentaRepository;
 import org.springframework.core.io.ClassPathResource;
@@ -171,6 +172,26 @@ public class VentaPdfService {
                                 agregarDato(datos, "DNI",
                                                 venta.getCliente().getDni(), etiqueta, valor);
                         }
+
+                        // Compras online: cómo se entrega (y adónde, si es envío)
+                        if (venta.esOnline()) {
+                                agregarDato(datos, "ENTREGA",
+                                                venta.formaEntregaActual().getNombre(), etiqueta, valor);
+
+                                if (venta.formaEntregaActual() == FormaEntrega.ENVIO) {
+                                        String direccion = textoSeguro(venta.getEnvioDireccion())
+                                                        + (venta.getEnvioLocalidad() != null
+                                                                        ? ", " + venta.getEnvioLocalidad()
+                                                                        : "");
+                                        agregarDato(datos, "DIRECCIÓN DE ENVÍO", direccion, etiqueta, valor);
+                                }
+                        }
+
+                        // Si un dato quedó solo en la última fila, se completa la fila
+                        // (si no, la tabla del PDF no la muestra)
+                        datos.getDefaultCell().setBorder(Rectangle.NO_BORDER);
+                        datos.getDefaultCell().setBackgroundColor(GRIS_CLARO);
+                        datos.completeRow();
 
                         documento.add(datos);
 

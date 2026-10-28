@@ -66,14 +66,10 @@ public class AuditoriaService {
         registrarComo(usuarioActual(), modulo, accion, entidadId, descripcion, detalle);
     }
 
-    // Con un usuario que ya se conoce (el empleado de la venta, el que cambió el pedido...)
-    // Lo que hacen los clientes no se anota: sus compras ya están en el historial.
+    // Con un usuario que ya se conoce (el empleado de la venta, el cliente que compró...)
+    // Se anota todo lo que pasa en el sistema: lo del equipo y lo de los clientes.
     public void registrarComo(Usuario usuario, ModuloAuditoria modulo, AccionAuditoria accion,
                               Long entidadId, String descripcion, Cambios detalle) {
-
-        if (usuario != null && usuario.getRol() == Rol.CLIENTE) {
-            return;
-        }
 
         RegistroAuditoria registro = new RegistroAuditoria();
         registro.setFechaHora(LocalDateTime.now());
@@ -96,7 +92,7 @@ public class AuditoriaService {
     @Transactional(readOnly = true)
     public Map<String, Object> buscar(LocalDate desde, LocalDate hasta, Long usuarioId,
                                       ModuloAuditoria modulo, AccionAuditoria accion,
-                                      String texto, int pagina) {
+                                      String texto, String quien, int pagina) {
 
         Usuario actual = usuarioActual();
 
@@ -112,8 +108,14 @@ public class AuditoriaService {
         LocalDateTime fin = hasta != null ? hasta.plusDays(1).atStartOfDay() : LocalDateTime.now().plusDays(1);
         String busqueda = texto == null || texto.isBlank() ? null : texto.trim();
 
+        // EQUIPO (administradores y empleados), CLIENTES o, sin valor, todos
+        String deQuien = quien == null || quien.isBlank() ? null : quien.trim().toUpperCase();
+        if (deQuien != null && !deQuien.equals("EQUIPO") && !deQuien.equals("CLIENTES")) {
+            throw new RuntimeException("Filtro no válido: " + quien);
+        }
+
         Page<RegistroAuditoria> resultado = registroRepository.buscar(
-                inicio, fin, usuarioId, modulo, accion, busqueda, Rol.CLIENTE,
+                inicio, fin, usuarioId, modulo, accion, busqueda, deQuien, Rol.CLIENTE,
                 PageRequest.of(Math.max(pagina - 1, 0), REGISTROS_POR_PAGINA));
 
         Map<String, Object> respuesta = new HashMap<>();

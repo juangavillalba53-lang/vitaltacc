@@ -26,7 +26,11 @@ public interface RegistroAuditoriaRepository extends JpaRepository<RegistroAudit
               AND (:usuarioId IS NULL OR u.id = :usuarioId)
               AND (:modulo IS NULL OR r.modulo = :modulo)
               AND (:accion IS NULL OR r.accion = :accion)
-              AND (r.usuarioRol IS NULL OR r.usuarioRol <> :rolCliente)
+              AND (
+                  :quien IS NULL
+                  OR (:quien = 'CLIENTES' AND r.usuarioRol = :rolCliente)
+                  OR (:quien = 'EQUIPO' AND (r.usuarioRol IS NULL OR r.usuarioRol <> :rolCliente))
+              )
               AND (
                   :texto IS NULL
                   OR LOWER(r.descripcion) LIKE LOWER(CONCAT('%', :texto, '%'))
@@ -42,6 +46,7 @@ public interface RegistroAuditoriaRepository extends JpaRepository<RegistroAudit
             @Param("modulo") ModuloAuditoria modulo,
             @Param("accion") AccionAuditoria accion,
             @Param("texto") String texto,
+            @Param("quien") String quien,
             @Param("rolCliente") Rol rolCliente,
             Pageable pagina);
 }

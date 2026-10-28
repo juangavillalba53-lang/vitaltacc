@@ -3974,7 +3974,7 @@ table:has(tbody:empty) {
 
 .filtros-auditoria {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+    grid-template-columns: repeat(6, minmax(0, 1fr)) auto;
     align-items: end;
     gap: 12px;
     margin: 14px 0 6px;

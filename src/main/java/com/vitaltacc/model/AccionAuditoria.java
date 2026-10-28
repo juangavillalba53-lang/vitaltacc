@@ -9,7 +9,9 @@ public enum AccionAuditoria {
     CAMBIO_ESTADO("Cambio de estado"),
     CANCELAR("Cancelación"),
     INGRESO("Ingreso"),
-    INGRESO_FALLIDO("Ingreso fallido");
+    INGRESO_FALLIDO("Ingreso fallido"),
+    SALIDA("Cierre de sesión"),
+    DESCARGA("Descarga");
 
     private final String nombre;
 

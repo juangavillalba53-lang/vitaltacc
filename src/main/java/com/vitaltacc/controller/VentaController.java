@@ -12,6 +12,9 @@ import com.vitaltacc.dto.VentaRequest;
 import java.time.LocalDate;
 import com.vitaltacc.service.VentaPdfService;
 import com.vitaltacc.service.CompraEmailService;
+import com.vitaltacc.service.AuditoriaService;
+import com.vitaltacc.model.AccionAuditoria;
+import com.vitaltacc.model.ModuloAuditoria;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +36,9 @@ public class VentaController {
 
     @Autowired
     private CompraEmailService compraEmailService;
+
+    @Autowired
+    private AuditoriaService auditoria;
 
     // Crear venta
     @PostMapping
@@ -100,6 +106,15 @@ public class VentaController {
         ControlDeAcceso.exigirDuenoOEquipo(venta.getCliente() != null ? venta.getCliente().getId() : -1L);
 
         byte[] pdf = ventaPdfService.generarComprobante(id);
+
+        // Cada descarga queda en la auditoría (quién la hizo sale de la sesión)
+        auditoria.registrar(ModuloAuditoria.VENTAS, AccionAuditoria.DESCARGA, id,
+                "Descargó el comprobante (PDF) de la " + (venta.esOnline() ? "compra online" : "venta")
+                        + " N.º " + id,
+                new AuditoriaService.Cambios()
+                        .dato("Cliente", venta.getCliente() != null
+                                ? AuditoriaService.nombreCompleto(venta.getCliente()) : "Consumidor Final")
+                        .dato("Total", AuditoriaService.pesos(venta.getTotal())));
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION,

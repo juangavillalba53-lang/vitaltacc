@@ -13,6 +13,14 @@ function cabeceraSesion() {
     }
 }
 
+// Avisa al servidor que la persona cerró sesión (queda en la auditoría).
+// keepalive: el aviso sale aunque enseguida se cambie de página.
+function avisarCierreSesion() {
+    const cabecera = cabeceraSesion();
+    if (!cabecera.Authorization) return;
+    fetch(`${API}/usuarios/logout`, { method: "POST", headers: cabecera, keepalive: true }).catch(() => {});
+}
+
 function pesos(valor) {
     return FORMATO_PESOS.format(Number(valor) || 0);
 }

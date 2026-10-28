@@ -179,6 +179,7 @@ async function eliminarUsuario(id) {
 // Cerrar sesión
 function logout() {
 
+    avisarCierreSesion();
     localStorage.removeItem("usuario");
 
     window.location.href = "login.html";

@@ -1,5 +1,5 @@
 // =========================================================
-// AUDITORÍA: quién hizo cada cambio (solo el administrador)
+// AUDITORÍA: todos los movimientos del sistema, del equipo y de los clientes (solo el administrador)
 // =========================================================
 
 let paginaAuditoria = 1;
@@ -15,7 +15,9 @@ const TONO_ACCION = {
     RETIRAR: "retiro",
     CAMBIO_ESTADO: "estado",
     INGRESO: "ingreso",
-    INGRESO_FALLIDO: "baja"
+    INGRESO_FALLIDO: "baja",
+    SALIDA: "ingreso",
+    DESCARGA: "estado"
 };
 
 async function abrirAuditoria() {
@@ -55,7 +57,8 @@ function parametrosAuditoria(pagina) {
     const parametros = new URLSearchParams({ pagina });
 
     [["texto", "buscarAuditoria"], ["desde", "desdeAuditoria"], ["hasta", "hastaAuditoria"],
-     ["usuarioId", "usuarioAuditoria"], ["modulo", "moduloAuditoria"], ["accion", "accionAuditoria"]]
+     ["usuarioId", "usuarioAuditoria"], ["modulo", "moduloAuditoria"], ["accion", "accionAuditoria"],
+     ["quien", "quienAuditoria"]]
         .forEach(([clave, id]) => {
             if (valor(id)) parametros.set(clave, valor(id));
         });
@@ -178,7 +181,7 @@ function lineaDetalle(linea) {
 }
 
 function limpiarFiltrosAuditoria() {
-    ["buscarAuditoria", "desdeAuditoria", "hastaAuditoria", "usuarioAuditoria", "moduloAuditoria", "accionAuditoria"]
+    ["buscarAuditoria", "desdeAuditoria", "hastaAuditoria", "quienAuditoria", "usuarioAuditoria", "moduloAuditoria", "accionAuditoria"]
         .forEach(id => { document.getElementById(id).value = ""; });
     cargarAuditoria(1);
 }
@@ -190,6 +193,6 @@ document.addEventListener("DOMContentLoaded", () => {
         esperaBusquedaAuditoria = setTimeout(() => cargarAuditoria(1), 300);
     });
 
-    ["desdeAuditoria", "hastaAuditoria", "usuarioAuditoria", "moduloAuditoria", "accionAuditoria"]
+    ["desdeAuditoria", "hastaAuditoria", "quienAuditoria", "usuarioAuditoria", "moduloAuditoria", "accionAuditoria"]
         .forEach(id => document.getElementById(id)?.addEventListener("change", () => cargarAuditoria(1)));
 });

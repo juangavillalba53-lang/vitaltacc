@@ -21,7 +21,7 @@ public class AuditoriaController {
         this.auditoriaService = auditoriaService;
     }
 
-    // Ej.: /auditoria?desde=2026-10-01&hasta=2026-10-22&usuarioId=3&modulo=PRODUCTOS&accion=MODIFICAR&texto=fideos&pagina=1
+    // Ej.: /auditoria?desde=2026-10-01&hasta=2026-10-22&usuarioId=3&modulo=PRODUCTOS&accion=MODIFICAR&texto=fideos&quien=EQUIPO&pagina=1
     @GetMapping
     public Map<String, Object> buscar(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
@@ -30,12 +30,13 @@ public class AuditoriaController {
             @RequestParam(required = false) String modulo,
             @RequestParam(required = false) String accion,
             @RequestParam(required = false) String texto,
+            @RequestParam(required = false) String quien,
             @RequestParam(defaultValue = "1") int pagina) {
 
         return auditoriaService.buscar(desde, hasta, usuarioId,
                 enumOpcional(ModuloAuditoria.class, modulo),
                 enumOpcional(AccionAuditoria.class, accion),
-                texto, pagina);
+                texto, quien, pagina);
     }
 
     @GetMapping("/opciones")

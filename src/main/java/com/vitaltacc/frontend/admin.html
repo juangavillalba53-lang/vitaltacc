@@ -1032,10 +1032,10 @@
 
                     <div class="card-admin full">
 
-                        <h3>Quién hizo cada cambio</h3>
+                        <h3>Todos los movimientos del sistema</h3>
 
                         <label for="buscarAuditoria" class="solo-lectores">Buscar en la auditoría</label>
-                        <input type="search" id="buscarAuditoria" placeholder="Buscar por producto, número de venta, usuario…">
+                        <input type="search" id="buscarAuditoria" placeholder="Buscar por producto, número de venta, usuario o cliente…">
 
                         <div class="filtros-auditoria">
                             <div>
@@ -1047,7 +1047,15 @@
                                 <input type="date" id="hastaAuditoria">
                             </div>
                             <div>
-                                <label for="usuarioAuditoria">Usuario</label>
+                                <label for="quienAuditoria">Quién</label>
+                                <select id="quienAuditoria">
+                                    <option value="">Todos</option>
+                                    <option value="EQUIPO">Equipo</option>
+                                    <option value="CLIENTES">Clientes</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="usuarioAuditoria">Usuario del equipo</label>
                                 <select id="usuarioAuditoria">
                                     <option value="">Todos</option>
                                 </select>

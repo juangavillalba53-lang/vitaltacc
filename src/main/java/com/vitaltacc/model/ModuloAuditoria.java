@@ -11,7 +11,7 @@ public enum ModuloAuditoria {
     VENTAS("Ventas"),
     DEVOLUCIONES("Devoluciones"),
     PEDIDOS("Pedidos online"),
-    SESION("Inicio de sesión");
+    SESION("Sesiones");
 
     private final String nombre;
 

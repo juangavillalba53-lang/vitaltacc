@@ -79,6 +79,12 @@ public class UsuarioController {
                 loginData.getContrasena()));
     }
 
+    // Cerrar sesión: queda anotado en la auditoría
+    @PostMapping("/logout")
+    public void logout() {
+        usuarioService.cerrarSesion(ControlDeAcceso.usuarioActual());
+    }
+
     // Actualizar rol
     @PutMapping("/{id}/rol")
     public Usuario actualizarRol(@PathVariable Long id, @RequestBody Usuario datos) {

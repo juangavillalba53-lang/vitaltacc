@@ -162,6 +162,10 @@ public class UsuarioService {
             throw new RuntimeException("La contraseña debe tener al menos 8 caracteres");
         }
 
+        // Si ya compraba en el local con su DNI, al registrarse se completa esa cuenta
+        boolean teniaCuentaDelLocal = esCuentaPendiente(
+                usuarioRepository.findByDni(normalizarDni(usuario.getDni())).orElse(null));
+
         Usuario guardado = guardarUsuarioSinAuditar(usuario);
 
         Cambios datos = new Cambios()
@@ -169,12 +173,17 @@ public class UsuarioService {
                 .dato("Email", guardado.getEmail())
                 .dato("Rol", guardado.getRol());
 
-        // Solo cuando alguien del equipo crea un usuario desde el panel
-        // (el registro de un cliente en la tienda no se anota)
         if (quienLoHace != null && !quienLoHace.getId().equals(guardado.getId())) {
+            // Alguien del equipo crea un usuario desde el panel
             auditoria.registrarComo(quienLoHace, ModuloAuditoria.USUARIOS, AccionAuditoria.CREAR, guardado.getId(),
                     "Creó el usuario " + AuditoriaService.nombreCompleto(guardado)
                             + " (" + AuditoriaService.nombreRol(guardado.getRol()) + ")", datos);
+        } else if (quienLoHace == null) {
+            // Registro de un cliente en la tienda
+            auditoria.registrarComo(guardado, ModuloAuditoria.USUARIOS, AccionAuditoria.CREAR, guardado.getId(),
+                    teniaCuentaDelLocal
+                            ? "Se registró en la tienda (ya tenía compras en el local)"
+                            : "Se registró en la tienda", datos);
         }
 
         return guardado;
@@ -387,20 +396,29 @@ public class UsuarioService {
             throw new RuntimeException("Email o contraseña incorrectos");
         }
 
-        // Se anotan los ingresos del equipo (los de los clientes no)
-        if (esDelEquipo(usuario)) {
-            auditoria.registrarComo(usuario, ModuloAuditoria.SESION, AccionAuditoria.INGRESO, usuario.getId(),
-                    "Inició sesión en el panel", null);
-        }
+        auditoria.registrarComo(usuario, ModuloAuditoria.SESION, AccionAuditoria.INGRESO, usuario.getId(),
+                "Inició sesión en " + dondeEntra(usuario), null);
 
         return usuario;
     }
 
+    // El equipo entra al panel; los clientes, a la tienda
+    private static String dondeEntra(Usuario usuario) {
+        return esDelEquipo(usuario) ? "el panel" : "la tienda";
+    }
+
     private void ingresoFallido(Usuario usuario, String motivo) {
-        if (esDelEquipo(usuario)) {
-            auditoria.registrarComo(usuario, ModuloAuditoria.SESION, AccionAuditoria.INGRESO_FALLIDO, usuario.getId(),
-                    "Intento de ingreso fallido", new Cambios().dato("Motivo", motivo));
+        auditoria.registrarComo(usuario, ModuloAuditoria.SESION, AccionAuditoria.INGRESO_FALLIDO, usuario.getId(),
+                "Intento de ingreso fallido en " + dondeEntra(usuario), new Cambios().dato("Motivo", motivo));
+    }
+
+    // Se llama cuando la persona toca "Cerrar sesión"
+    public void cerrarSesion(Usuario usuario) {
+        if (usuario == null) {
+            return;
         }
+        auditoria.registrarComo(usuario, ModuloAuditoria.SESION, AccionAuditoria.SALIDA, usuario.getId(),
+                "Cerró sesión en " + dondeEntra(usuario), null);
     }
 
     public void cambiarContrasena(

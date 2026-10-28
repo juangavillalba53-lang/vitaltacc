@@ -6,7 +6,8 @@ function mostrarPestana(cual) {
     document.getElementById("formIngresar").hidden = !ingresar;
     document.getElementById("formRegistro").hidden = ingresar;
 
-    history.replaceState(null, "", ingresar ? "login.html" : "login.html#registro");
+    // Se conserva ?volver=... para que después de entrar vuelva a donde estaba
+    history.replaceState(null, "", "login.html" + location.search + (ingresar ? "" : "#registro"));
 }
 
 function mensaje(id, texto, tipo = "error") {
@@ -161,7 +162,11 @@ async function registrarse(evento) {
                     : `Listo. Encontramos ${compras} compras que hiciste en el local y ya están en tu cuenta.`,
                 "ok");
 
-            setTimeout(() => { window.location.href = "mis-compras.html"; }, 1800);
+            // Si venía de terminar una compra, vuelve al pedido; si no, a sus compras
+            const volver = new URLSearchParams(location.search).get("volver");
+            setTimeout(() => {
+                window.location.href = volver ? destinoDespuesDeIngresar(usuario) : "mis-compras.html";
+            }, 1800);
             return;
         }
 

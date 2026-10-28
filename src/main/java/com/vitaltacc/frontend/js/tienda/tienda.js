@@ -74,6 +74,7 @@ function guardarSesion(usuario) {
 }
 
 function cerrarSesion() {
+    avisarCierreSesion();
     localStorage.removeItem("usuario");
     window.location.href = "index.html";
 }
@@ -243,6 +244,7 @@ function mostrarAviso(mensaje, tipo = "ok") {
     aviso.lastElementChild.textContent = mensaje;
 
     contenedor.appendChild(aviso);
+    ubicarAvisos();
 
     while (contenedor.children.length > 3) {
         contenedor.firstElementChild.remove();
@@ -252,6 +254,14 @@ function mostrarAviso(mensaje, tipo = "ok") {
         aviso.classList.add("saliendo");
         setTimeout(() => aviso.remove(), 180);
     }, tipo === "error" ? 5000 : 2800);
+}
+
+// Con el carrito abierto, los avisos van arriba de su pie para no tapar "Finalizar compra"
+function ubicarAvisos() {
+    const contenedor = document.getElementById("avisos");
+    if (!contenedor) return;
+    const pie = document.querySelector("#panelCarrito:not([hidden]) #pieCarrito:not([hidden])");
+    contenedor.style.bottom = pie ? `${pie.offsetHeight + 16}px` : "";
 }
 
 // ---------------------------------------------------------
@@ -489,6 +499,7 @@ function abrirCarrito() {
     document.body.classList.add("sin-scroll");
     requestAnimationFrame(() => panel.classList.add("visible"));
     panel.querySelector(".boton-icono").focus();
+    ubicarAvisos();
 }
 
 function cerrarCarrito() {
@@ -496,7 +507,7 @@ function cerrarCarrito() {
     if (!panel) return;
     panel.classList.remove("visible");
     document.body.classList.remove("sin-scroll");
-    setTimeout(() => { panel.hidden = true; }, 220);
+    setTimeout(() => { panel.hidden = true; ubicarAvisos(); }, 220);
     if (ultimoFoco) ultimoFoco.focus();
 }
 

@@ -64,6 +64,7 @@ public class ControlDeAcceso implements HandlerInterceptor {
             regla("POST", "/ventas", Nivel.SESION),
             regla("GET", "/usuarios/\\d+", Nivel.SESION),
             regla("PUT", "/usuarios/\\d+/(contrasena|datos)", Nivel.SESION),
+            regla("POST", "/usuarios/logout", Nivel.SESION),
 
             // ---------- Solo administrador
             regla("PUT", "/productos/\\d+(/editar)?", Nivel.ADMIN),
